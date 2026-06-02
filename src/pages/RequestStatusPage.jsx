@@ -6,6 +6,7 @@ import Badge from "../components/UI/Badge";
 import Alert from "../components/UI/Alert";
 import { useAuth } from "../hooks/useAuth";
 import { requestService } from "../services/requestService";
+import { mapRequestDtoToUiModel } from "../utils/requestMapper";
 import {
   DocumentTextIcon,
   ClockIcon,
@@ -35,35 +36,9 @@ const RequestStatusPage = () => {
 
         if (response.status === 200) {
           // API 응답 데이터를 기존 UI에 맞게 변환
-          const transformedRequests = response.data.data.map((request) => ({
-            request_id: request.requestId,
-            user_id: request.user.userId,
-            user_name: request.user.name,
-            user_email: request.user.email,
-            user_phone: request.user.phone,
-            student_id: request.user.studentId,
-            department: request.user.department,
-            is_active: request.user.isActive,
-            rsgroup_id: request.resourceGroupId,
-            rsgroup_name: request.resourceGroup.resourceGroupName,
-            rsgroup_description: request.resourceGroup.description,
-            server_name: request.resourceGroup.serverName,
-            image_name: request.imageName,
-            image_version: request.imageVersion,
-            ubuntu_username: request.ubuntuUsername,
-            ubuntu_uid: request.ubuntuUid,
-            ubuntu_gids: request.ubuntuGids,
-            volume_size_GB: request.volumeSizeGiB,
-            expires_at: request.expiresAt,
-            usage_purpose: request.usagePurpose,
-            form_answers: request.formAnswers,
-            status: request.status,
-            admin_comment: request.comment,
-            approved_at: request.approvedAt,
-            created_at: request.createdAt,
-            updated_at: request.updatedAt,
-            port_mappings: request.portMappings || [],
-          }));
+          const transformedRequests = response.data.data.map(
+            mapRequestDtoToUiModel
+          );
 
           setRequests(transformedRequests);
         } else {
@@ -542,14 +517,6 @@ const RequestStatusPage = () => {
                         </p>
                         <p className="text-sm text-gray-900">
                           {selectedRequest.volume_size_GB} GiB
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium text-gray-700">
-                          Ubuntu UID
-                        </p>
-                        <p className="text-sm text-gray-900">
-                          {selectedRequest.ubuntu_uid || "설정되지 않음"}
                         </p>
                       </div>
                     </div>

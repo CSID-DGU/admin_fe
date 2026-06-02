@@ -15,6 +15,7 @@ import Badge from "../../components/UI/Badge";
 import Button from "../../components/UI/Button";
 import Alert from "../../components/UI/Alert";
 import { requestService } from "../../services/requestService";
+import { mapRequestDtoToUiModel } from "../../utils/requestMapper";
 
 const RequestManagementPage = () => {
   const [requests, setRequests] = useState([]);
@@ -35,36 +36,7 @@ const RequestManagementPage = () => {
           // API 응답 데이터를 기존 UI에 맞게 변환
           // response.data는 서버 응답이고, response.data.data가 실제 배열
           const requestsArray = response.data.data || [];
-          const transformedRequests = requestsArray.map((request) => ({
-            request_id: request.requestId,
-            user_id: request.user.userId,
-            user_name: request.user.name,
-            user_email: request.user.email,
-            user_phone: request.user.phone,
-            student_id: request.user.studentId,
-            department: request.user.department,
-            is_active: request.user.isActive,
-            rsgroup_id: request.resourceGroupId,
-            rsgroup_name: request.resourceGroup.resourceGroupName,
-            rsgroup_description: request.resourceGroup.description,
-            server_name: request.resourceGroup.serverName,
-            image_id: request.imageId, // 허용 버튼 처리 시 사용할 imageId 저장
-            image_name: request.imageName,
-            image_version: request.imageVersion,
-            ubuntu_username: request.ubuntuUsername,
-            ubuntu_uid: request.ubuntuUid,
-            ubuntu_gids: request.ubuntuGids,
-            volume_size_GB: request.volumeSizeGiB,
-            expires_at: request.expiresAt,
-            usage_purpose: request.usagePurpose,
-            form_answers: request.formAnswers,
-            status: request.status,
-            admin_comment: request.comment,
-            approved_at: request.approvedAt,
-            created_at: request.createdAt,
-            updated_at: request.updatedAt,
-            port_mappings: request.portMappings || [],
-          }));
+          const transformedRequests = requestsArray.map(mapRequestDtoToUiModel);
 
           setRequests(transformedRequests);
         } else {
@@ -169,7 +141,7 @@ const RequestManagementPage = () => {
 
       if (response.status === 200) {
         // API 응답으로 받은 업데이트된 데이터로 state 업데이트
-        const updatedRequest = response.data;
+        const updatedRequest = response.data?.data || response.data;
         
         // 승인/거절 API의 경우 newStatus를 기반으로 상태 설정
         const finalStatus = (newStatus === "FULFILLED" || newStatus === "DENIED") 
@@ -185,7 +157,6 @@ const RequestManagementPage = () => {
                   admin_comment: updatedRequest.comment,
                   updated_at: updatedRequest.updatedAt,
                   approved_at: updatedRequest.approvedAt,
-                  ubuntu_uid: updatedRequest.ubuntuUid,
                   ubuntu_gids: updatedRequest.ubuntuGids,
                 }
               : req
@@ -208,7 +179,6 @@ const RequestManagementPage = () => {
             imageId: request.image_id,
             userId: request.user_id,
             resourceGroupId: request.rsgroup_id,
-            ubuntuUid: updatedRequest.ubuntuUid,
             ubuntuGids: updatedRequest.ubuntuGids,
           });
         }
@@ -701,14 +671,6 @@ const RequestManagementPage = () => {
                         </p>
                         <p className="text-sm text-gray-900">
                           {selectedRequest.volume_size_GB} GiB
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium text-gray-700">
-                          Ubuntu UID
-                        </p>
-                        <p className="text-sm text-gray-900">
-                          {selectedRequest.ubuntu_uid || "설정되지 않음"}
                         </p>
                       </div>
                     </div>

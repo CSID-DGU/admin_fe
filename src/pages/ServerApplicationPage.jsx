@@ -3,6 +3,7 @@ import Alert from "../components/UI/Alert";
 import ServerForm from "../components/Forms/ServerForm";
 import ChangeRequestForm from "../components/Forms/ChangeRequestForm";
 import { requestService } from "../services/requestService";
+import { mapApprovedRequestDtoToApplicationModel } from "../utils/requestMapper";
 import {
   ServerIcon,
   PencilSquareIcon,
@@ -132,20 +133,9 @@ const ServerApplicationPage = () => {
           const approvedData = approvedResponse.data?.data || approvedResponse.data;
           if (Array.isArray(approvedData)) {
             // API 응답 데이터를 UI에서 사용할 형태로 변환
-            const processedApprovedRequests = approvedData.map((request) => ({
-              request_id: request.requestId,
-              gpu_model: request.resourceGroup?.resourceGroupName || "Unknown GPU",
-              image_name: request.imageName,
-              image_version: request.imageVersion,
-              volume_size_gb: request.volumeSizeGiB,
-              expires_at: request.expiresAt ? request.expiresAt.split('T')[0] : 'N/A',
-              group_names: request.ubuntuGids || [],
-              usage_purpose: request.usagePurpose,
-              status: request.status,
-              server_name: request.resourceGroup?.serverName || 'Unknown Server',
-              ubuntu_username: request.ubuntuUsername,
-              port_mappings: request.portMappings || []
-            }));
+            const processedApprovedRequests = approvedData.map(
+              mapApprovedRequestDtoToApplicationModel
+            );
             setApprovedRequests(processedApprovedRequests);
           } else {
             setApprovedRequests([]);

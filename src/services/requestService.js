@@ -34,7 +34,7 @@ export const requestService = {
         throw new Error("인증 토큰이 없습니다.");
       }
 
-      const response = await apiClient.request("/api/resource-groups", {
+      const response = await apiClient.request("/api/resources/groups", {
         method: "GET",
         headers: {
           accept: "application/json;charset=UTF-8",
