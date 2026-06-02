@@ -15,6 +15,7 @@ import Badge from "../../components/UI/Badge";
 import Button from "../../components/UI/Button";
 import Alert from "../../components/UI/Alert";
 import { requestService } from "../../services/requestService";
+import { mapRequestDtoToUiModel } from "../../utils/requestMapper";
 
 const RequestManagementPage = () => {
   const [requests, setRequests] = useState([]);
@@ -35,35 +36,7 @@ const RequestManagementPage = () => {
           // API 응답 데이터를 기존 UI에 맞게 변환
           // response.data는 서버 응답이고, response.data.data가 실제 배열
           const requestsArray = response.data.data || [];
-          const transformedRequests = requestsArray.map((request) => ({
-            request_id: request.requestId,
-            user_id: request.user.userId,
-            user_name: request.user.name,
-            user_email: request.user.email,
-            user_phone: request.user.phone,
-            student_id: request.user.studentId,
-            department: request.user.department,
-            is_active: request.user.isActive,
-            rsgroup_id: request.resourceGroupId,
-            rsgroup_name: request.resourceGroup.resourceGroupName,
-            rsgroup_description: request.resourceGroup.description,
-            server_name: request.resourceGroup.serverName,
-            image_id: request.imageId, // 허용 버튼 처리 시 사용할 imageId 저장
-            image_name: request.imageName,
-            image_version: request.imageVersion,
-            ubuntu_username: request.ubuntuUsername,
-            ubuntu_gids: request.ubuntuGids,
-            volume_size_GB: request.volumeSizeGiB,
-            expires_at: request.expiresAt,
-            usage_purpose: request.usagePurpose,
-            form_answers: request.formAnswers,
-            status: request.status,
-            admin_comment: request.comment,
-            approved_at: request.approvedAt,
-            created_at: request.createdAt,
-            updated_at: request.updatedAt,
-            port_mappings: request.portMappings || [],
-          }));
+          const transformedRequests = requestsArray.map(mapRequestDtoToUiModel);
 
           setRequests(transformedRequests);
         } else {
