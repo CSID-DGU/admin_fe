@@ -52,7 +52,6 @@ const RequestManagementPage = () => {
             image_name: request.imageName,
             image_version: request.imageVersion,
             ubuntu_username: request.ubuntuUsername,
-            ubuntu_uid: request.ubuntuUid,
             ubuntu_gids: request.ubuntuGids,
             volume_size_GB: request.volumeSizeGiB,
             expires_at: request.expiresAt,
@@ -169,7 +168,7 @@ const RequestManagementPage = () => {
 
       if (response.status === 200) {
         // API 응답으로 받은 업데이트된 데이터로 state 업데이트
-        const updatedRequest = response.data;
+        const updatedRequest = response.data?.data || response.data;
         
         // 승인/거절 API의 경우 newStatus를 기반으로 상태 설정
         const finalStatus = (newStatus === "FULFILLED" || newStatus === "DENIED") 
@@ -185,7 +184,6 @@ const RequestManagementPage = () => {
                   admin_comment: updatedRequest.comment,
                   updated_at: updatedRequest.updatedAt,
                   approved_at: updatedRequest.approvedAt,
-                  ubuntu_uid: updatedRequest.ubuntuUid,
                   ubuntu_gids: updatedRequest.ubuntuGids,
                 }
               : req
@@ -208,7 +206,6 @@ const RequestManagementPage = () => {
             imageId: request.image_id,
             userId: request.user_id,
             resourceGroupId: request.rsgroup_id,
-            ubuntuUid: updatedRequest.ubuntuUid,
             ubuntuGids: updatedRequest.ubuntuGids,
           });
         }
@@ -701,14 +698,6 @@ const RequestManagementPage = () => {
                         </p>
                         <p className="text-sm text-gray-900">
                           {selectedRequest.volume_size_GB} GiB
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium text-gray-700">
-                          Ubuntu UID
-                        </p>
-                        <p className="text-sm text-gray-900">
-                          {selectedRequest.ubuntu_uid || "설정되지 않음"}
                         </p>
                       </div>
                     </div>

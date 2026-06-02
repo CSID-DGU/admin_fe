@@ -51,7 +51,6 @@ const RequestStatusPage = () => {
             image_name: request.imageName,
             image_version: request.imageVersion,
             ubuntu_username: request.ubuntuUsername,
-            ubuntu_uid: request.ubuntuUid,
             ubuntu_gids: request.ubuntuGids,
             volume_size_GB: request.volumeSizeGiB,
             expires_at: request.expiresAt,
@@ -542,14 +541,6 @@ const RequestStatusPage = () => {
                         </p>
                         <p className="text-sm text-gray-900">
                           {selectedRequest.volume_size_GB} GiB
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium text-gray-700">
-                          Ubuntu UID
-                        </p>
-                        <p className="text-sm text-gray-900">
-                          {selectedRequest.ubuntu_uid || "설정되지 않음"}
                         </p>
                       </div>
                     </div>
