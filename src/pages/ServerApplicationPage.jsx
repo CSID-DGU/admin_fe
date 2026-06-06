@@ -1,168 +1,63 @@
 import { useState, useEffect } from "react";
-import Alert from "../components/UI/Alert";
-import ServerForm from "../components/Forms/ServerForm";
+import { ApplicationProvider, useApplication } from "../contexts/ApplicationContext";
+import ApplicationStepper from "../components/application/ApplicationStepper";
+import StepServerType from "../components/application/StepServerType";
+import StepServerSpec from "../components/application/StepServerSpec";
+import StepUserInfo from "../components/application/StepUserInfo";
+import StepOptions from "../components/application/StepOptions";
+import StepReview from "../components/application/StepReview";
+import StepComplete from "../components/application/StepComplete";
 import ChangeRequestForm from "../components/Forms/ChangeRequestForm";
 import { requestService } from "../services/requestService";
 import { mapApprovedRequestDtoToApplicationModel } from "../utils/requestMapper";
+import Alert from "../components/UI/Alert";
+import Button from "../components/UI/Button";
 import {
   ServerIcon,
   PencilSquareIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
 } from "@heroicons/react/24/outline";
 
-const ServerApplicationPage = () => {
-  const [activeTab, setActiveTab] = useState("new");
-  const [formData, setFormData] = useState({
-    ubuntu_username: "",
-    ubuntu_password: "",
-    rsgroup_id: "",
-    image_id: "",
-    expires_at: "",
-    volume_size_gb: "",
-    usage_purpose: "",
-    ubuntu_gids: [],
-    port_requests: [],
-  });
-  const [changeFormData, setChangeFormData] = useState({
-    request_id: "",
-    change_type: "",
-    new_value: "",
-    reason: "",
-  });
-  const [isInitialLoading, setIsInitialLoading] = useState(true);
-  const [alert, setAlert] = useState(null);
-  const [gpuTypes, setGpuTypes] = useState([]);
-  const [containerImages, setContainerImages] = useState([]);
-  const [availableGroups, setAvailableGroups] = useState([]);
-  const [userRequests, setUserRequests] = useState([]);
-  const [approvedRequests, setApprovedRequests] = useState([]);
+const STEP_COMPONENTS = {
+  1: StepServerType,
+  2: StepServerSpec,
+  3: StepUserInfo,
+  4: StepOptions,
+  5: StepReview,
+  6: StepComplete,
+};
 
-  const updateAvailableGroups = (newGroups) => {
-    setAvailableGroups(newGroups);
-  };
+const WizardNavigation = () => {
+  const { currentStep, goNext, goPrev } = useApplication();
 
-  const scrollToTop = () => {
-    setTimeout(() => {
-      const mainElement =
-        document.querySelector("main.overflow-auto") ||
-        document.querySelector("main") ||
-        document.querySelector('[class*="overflow-auto"]');
+  if (currentStep >= 5) return null;
 
-      if (mainElement) {
-        mainElement.scrollTo({
-          top: 0,
-          left: 0,
-          behavior: "smooth",
-        });
-      } else {
-        window.scrollTo({
-          top: 0,
-          left: 0,
-          behavior: "smooth",
-        });
-      }
-    }, 100);
-  };
+  return (
+    <div className="flex justify-between items-center pt-8 border-t border-gray-200 mt-8">
+      <Button
+        variant="outline"
+        onClick={goPrev}
+        disabled={currentStep === 1}
+        icon={ChevronLeftIcon}
+      >
+        이전
+      </Button>
 
-  const handleSuccess = (message, type = "success") => {
-    setAlert({ type, message });
-    scrollToTop();
-  };
+      <Button
+        variant="primary"
+        onClick={goNext}
+        className="bg-[#F68313] hover:bg-[#E6750F] border-[#F68313] hover:border-[#E6750F]"
+      >
+        다음
+        <ChevronRightIcon className="w-4 h-4 ml-1" />
+      </Button>
+    </div>
+  );
+};
 
-  useEffect(() => {
-    const fetchInitialData = async () => {
-      try {
-        const [gpuTypesResponse, imagesResponse, groupsResponse, approvedResponse] =
-          await Promise.all([
-            requestService.getGpuTypes(),
-            requestService.getContainerImages(),
-            requestService.getGroups(),
-            requestService.getApprovedRequests(),
-          ]);
-
-        if (gpuTypesResponse.status === 200) {
-          const gpuData = gpuTypesResponse.data?.data || gpuTypesResponse.data;
-          if (Array.isArray(gpuData)) {
-            const processedGpuData = gpuData.map((gpu) => {
-              let gpuModel = "Unknown GPU";
-              if (gpu.description) {
-                const parts = gpu.description.trim().split(" ");
-                if (parts.length >= 2) {
-                  gpuModel = parts.slice(0, 2).join(" ");
-                }
-              }
-              return {
-                ...gpu,
-                gpuModel,
-              };
-            });
-            setGpuTypes(processedGpuData);
-          } else {
-            setGpuTypes([]);
-          }
-        } else {
-          setGpuTypes([]);
-        }
-
-        if (imagesResponse.status === 200) {
-          const imageData = imagesResponse.data?.data || imagesResponse.data;
-          if (Array.isArray(imageData)) {
-            setContainerImages(imageData);
-          } else {
-            setContainerImages([]);
-          }
-        } else {
-          setContainerImages([]);
-        }
-
-        if (groupsResponse.status === 200) {
-          const groupData = groupsResponse.data?.data || groupsResponse.data;
-          if (Array.isArray(groupData)) {
-            const processedGroups = groupData.map((group) => ({
-              ubuntu_gid: group.ubuntuGid || group.ubuntu_gid,
-              group_name: group.groupName || group.group_name,
-            }));
-            setAvailableGroups(processedGroups);
-          } else {
-            setAvailableGroups([]);
-          }
-        } else {
-          setAvailableGroups([]);
-        }
-
-        if (approvedResponse.status === 200) {
-          const approvedData = approvedResponse.data?.data || approvedResponse.data;
-          if (Array.isArray(approvedData)) {
-            // API 응답 데이터를 UI에서 사용할 형태로 변환
-            const processedApprovedRequests = approvedData.map(
-              mapApprovedRequestDtoToApplicationModel
-            );
-            setApprovedRequests(processedApprovedRequests);
-          } else {
-            setApprovedRequests([]);
-          }
-        } else {
-          setApprovedRequests([]);
-        }
-
-        const defaultExpiry = new Date();
-        defaultExpiry.setMonth(defaultExpiry.getMonth() + 3);
-        setFormData((prev) => ({
-          ...prev,
-          expires_at: defaultExpiry.toISOString().split("T")[0],
-        }));
-      } catch (error) {
-        console.error("초기 데이터 로드 실패:", error);
-        setAlert({
-          type: "error",
-          message: "초기 데이터를 불러오는데 실패했습니다.",
-        });
-      } finally {
-        setIsInitialLoading(false);
-      }
-    };
-
-    fetchInitialData();
-  }, []);
+const WizardContent = () => {
+  const { currentStep, isInitialLoading } = useApplication();
 
   if (isInitialLoading) {
     return (
@@ -174,6 +69,100 @@ const ServerApplicationPage = () => {
       </div>
     );
   }
+
+  const StepComponent = STEP_COMPONENTS[currentStep];
+
+  return (
+    <div className="bg-white border border-gray-200 p-6 md:p-8">
+      <ApplicationStepper />
+      <div className="mt-12">
+        <StepComponent />
+      </div>
+      <WizardNavigation />
+    </div>
+  );
+};
+
+const ServerApplicationPage = () => {
+  const [activeTab, setActiveTab] = useState("new");
+  const [changeFormData, setChangeFormData] = useState({
+    request_id: "",
+    change_type: "",
+    new_value: "",
+    reason: "",
+  });
+  const [alert, setAlert] = useState(null);
+  const [gpuTypes, setGpuTypes] = useState([]);
+  const [containerImages, setContainerImages] = useState([]);
+  const [availableGroups, setAvailableGroups] = useState([]);
+  const [approvedRequests, setApprovedRequests] = useState([]);
+  const [isChangeDataLoading, setIsChangeDataLoading] = useState(false);
+
+  useEffect(() => {
+    if (activeTab === "change" && approvedRequests.length === 0) {
+      setIsChangeDataLoading(true);
+      Promise.all([
+        requestService.getGpuTypes(),
+        requestService.getContainerImages(),
+        requestService.getGroups(),
+        requestService.getApprovedRequests(),
+      ])
+        .then(([gpuRes, imgRes, grpRes, approvedRes]) => {
+          if (gpuRes.status === 200) {
+            const data = gpuRes.data?.data || gpuRes.data;
+            if (Array.isArray(data)) {
+              setGpuTypes(
+                data.map((gpu) => {
+                  let gpuModel = "Unknown GPU";
+                  if (gpu.description) {
+                    const parts = gpu.description.trim().split(" ");
+                    if (parts.length >= 2) gpuModel = parts.slice(0, 2).join(" ");
+                  }
+                  return { ...gpu, gpuModel };
+                })
+              );
+            }
+          }
+          if (imgRes.status === 200) {
+            const data = imgRes.data?.data || imgRes.data;
+            if (Array.isArray(data)) setContainerImages(data);
+          }
+          if (grpRes.status === 200) {
+            const data = grpRes.data?.data || grpRes.data;
+            if (Array.isArray(data)) {
+              setAvailableGroups(
+                data.map((g) => ({
+                  ubuntu_gid: g.ubuntuGid || g.ubuntu_gid,
+                  group_name: g.groupName || g.group_name,
+                }))
+              );
+            }
+          }
+          if (approvedRes.status === 200) {
+            const data = approvedRes.data?.data || approvedRes.data;
+            if (Array.isArray(data)) {
+              setApprovedRequests(data.map(mapApprovedRequestDtoToApplicationModel));
+            }
+          }
+        })
+        .catch((err) => {
+          console.error("변경 요청 데이터 로드 실패:", err);
+          setAlert({ type: "error", message: "데이터를 불러오는데 실패했습니다." });
+        })
+        .finally(() => setIsChangeDataLoading(false));
+    }
+  }, [activeTab, approvedRequests.length]);
+
+  const handleChangeSuccess = (message, type = "success") => {
+    setAlert({ type, message });
+    setTimeout(() => {
+      const el =
+        document.querySelector("main.overflow-auto") ||
+        document.querySelector("main");
+      if (el) el.scrollTo({ top: 0, behavior: "smooth" });
+      else window.scrollTo({ top: 0, behavior: "smooth" });
+    }, 100);
+  };
 
   return (
     <div className="space-y-6">
@@ -221,30 +210,23 @@ const ServerApplicationPage = () => {
         <Alert
           type={alert.type}
           onClose={() => setAlert(null)}
-          title={
-            alert.type === "success"
-              ? activeTab === "new"
-                ? "신청 완료"
-                : "변경 요청 완료"
-              : activeTab === "new"
-              ? "신청 실패"
-              : "변경 요청 실패"
-          }
+          title={alert.type === "success" ? "변경 요청 완료" : "변경 요청 실패"}
         >
           {alert.message}
         </Alert>
       )}
 
       {activeTab === "new" ? (
-        <ServerForm
-          formData={formData}
-          setFormData={setFormData}
-          gpuTypes={gpuTypes}
-          containerImages={containerImages}
-          availableGroups={availableGroups}
-          onUpdateAvailableGroups={updateAvailableGroups}
-          onSuccess={handleSuccess}
-        />
+        <ApplicationProvider>
+          <WizardContent />
+        </ApplicationProvider>
+      ) : isChangeDataLoading ? (
+        <div className="flex items-center justify-center min-h-96">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#F68313] mx-auto"></div>
+            <p className="mt-4 text-gray-600">데이터를 불러오는 중...</p>
+          </div>
+        </div>
       ) : (
         <ChangeRequestForm
           changeFormData={changeFormData}
@@ -253,8 +235,8 @@ const ServerApplicationPage = () => {
           containerImages={containerImages}
           availableGroups={availableGroups}
           userRequests={approvedRequests}
-          onUpdateAvailableGroups={updateAvailableGroups}
-          onSuccess={handleSuccess}
+          onUpdateAvailableGroups={setAvailableGroups}
+          onSuccess={handleChangeSuccess}
         />
       )}
     </div>
