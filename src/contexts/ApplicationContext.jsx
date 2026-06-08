@@ -1,6 +1,10 @@
 import { createContext, useContext, useState, useEffect, useCallback } from "react";
 import { useSearchParams } from "react-router-dom";
 import { requestService } from "../services/requestService";
+import {
+  normalizeContainerImage,
+  normalizeGpuType,
+} from "../utils/applicationDataMapper";
 
 const ApplicationContext = createContext(null);
 
@@ -154,23 +158,12 @@ export const ApplicationProvider = ({ children }) => {
 
         if (gpuRes.status === 200) {
           const data = gpuRes.data?.data || gpuRes.data;
-          if (Array.isArray(data)) {
-            setGpuTypes(
-              data.map((gpu) => {
-                let gpuModel = "Unknown GPU";
-                if (gpu.description) {
-                  const parts = gpu.description.trim().split(" ");
-                  if (parts.length >= 2) gpuModel = parts.slice(0, 2).join(" ");
-                }
-                return { ...gpu, gpuModel };
-              })
-            );
-          }
+          if (Array.isArray(data)) setGpuTypes(data.map(normalizeGpuType));
         }
 
         if (imgRes.status === 200) {
           const data = imgRes.data?.data || imgRes.data;
-          if (Array.isArray(data)) setContainerImages(data);
+          if (Array.isArray(data)) setContainerImages(data.map(normalizeContainerImage));
         }
 
         if (grpRes.status === 200) {

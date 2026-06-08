@@ -31,6 +31,7 @@ const ServerForm = ({
   const navigate = useNavigate();
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
+  const hasId = (id) => id !== undefined && id !== null;
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -282,11 +283,12 @@ const ServerForm = ({
                       {serverName} 서버
                     </h4>
 
-                    <div className="grid grid-cols-1 gap-3">
-                      {/* 각 GPU 모델별로 그룹화 */}
-                      {Object.entries(
-                        serverGpus.reduce((acc, gpu) => {
-                          const key = `${gpu.gpuModel}-${gpu.ramGb}GB`;
+	                    <div className="grid grid-cols-1 gap-3">
+	                      {/* 각 GPU 모델별로 그룹화 */}
+	                      {Object.entries(
+	                        serverGpus.reduce((acc, gpu) => {
+	                          if (!hasId(gpu.rsgroupId)) return acc;
+	                          const key = `${gpu.gpuModel}-${gpu.ramGb}GB`;
                           if (!acc[key]) {
                             acc[key] = {
                               ...gpu,
@@ -298,29 +300,29 @@ const ServerForm = ({
                           acc[key].nodeIds.push(gpu.nodeId);
                           return acc;
                         }, {})
-                      ).map(([gpuKey, gpuGroup]) => (
-                        <div key={`${serverName}-${gpuKey}`} className="relative">
-                          <input
+	                      ).map(([gpuKey, gpuGroup]) => (
+	                        <div key={`${serverName}-${gpuKey}`} className="relative">
+	                          <input
                             type="radio"
                             id={`rsgroup_${gpuGroup.rsgroupId}`}
                             name="rsgroup_id"
                             value={gpuGroup.rsgroupId}
-                            checked={
-                              formData.rsgroup_id === gpuGroup.rsgroupId.toString()
-                            }
+	                            checked={
+	                              formData.rsgroup_id === String(gpuGroup.rsgroupId)
+	                            }
                             onChange={handleChange}
                             disabled={gpuGroup.availableNodes === 0}
                             className="sr-only"
                           />
                           <label
                             htmlFor={`rsgroup_${gpuGroup.rsgroupId}`}
-                            className={`block p-4 border cursor-pointer transition-all ${
-                              gpuGroup.availableNodes === 0
-                                ? "bg-gray-50 border-gray-200 cursor-not-allowed"
-                                : formData.rsgroup_id === gpuGroup.rsgroupId.toString()
-                                ? "border-[#F68313] bg-orange-50"
-                                : "border-gray-300 hover:border-gray-400"
-                            }`}
+	                            className={`block p-4 border cursor-pointer transition-all ${
+	                              gpuGroup.availableNodes === 0
+	                                ? "bg-gray-50 border-gray-200 cursor-not-allowed"
+	                                : formData.rsgroup_id === String(gpuGroup.rsgroupId)
+	                                ? "border-[#F68313] bg-orange-50"
+	                                : "border-gray-300 hover:border-gray-400"
+	                            }`}
                           >
                             <div className="flex items-center justify-between">
                               <div>
@@ -353,10 +355,10 @@ const ServerForm = ({
                                   </span>
                                 </div>
                               </div>
-                              {formData.rsgroup_id === gpuGroup.rsgroupId.toString() && (
-                                <div className="w-4 h-4 border-2 border-[#F68313] rounded-full flex items-center justify-center">
-                                  <div className="w-2 h-2 bg-[#F68313] rounded-full"></div>
-                                </div>
+	                              {formData.rsgroup_id === String(gpuGroup.rsgroupId) && (
+	                                <div className="w-4 h-4 border-2 border-[#F68313] rounded-full flex items-center justify-center">
+	                                  <div className="w-2 h-2 bg-[#F68313] rounded-full"></div>
+	                                </div>
                               )}
                             </div>
                           </label>
@@ -388,10 +390,11 @@ const ServerForm = ({
               ) : (
                 /* 컨테이너 이미지를 프레임워크별로 그룹화하여 표시 */
                 Object.entries(
-                  containerImages.reduce((acc, image) => {
-                    const frameworkName =
-                      image.imageName || image.image_name || "Unknown";
-                    const imageId = image.imageId || image.image_id;
+	                  containerImages.reduce((acc, image) => {
+	                    const frameworkName =
+	                      image.imageName || image.image_name || "Unknown";
+	                    const imageId = image.imageId ?? image.image_id;
+	                    if (!hasId(imageId)) return acc;
                     const imageVersion = image.imageVersion || image.image_version;
                     const cudaVersion = image.cudaVersion || image.cuda_version;
                     const description = image.description;
@@ -425,20 +428,20 @@ const ServerForm = ({
                         >
                           <input
                             type="radio"
-                            id={`image_${image.imageId}`}
-                            name="image_id"
-                            value={image.imageId}
-                            checked={formData.image_id === image.imageId.toString()}
+	                            id={`image_${image.imageId}`}
+	                            name="image_id"
+	                            value={image.imageId}
+	                            checked={formData.image_id === String(image.imageId)}
                             onChange={handleChange}
                             className="sr-only"
                           />
                           <label
-                            htmlFor={`image_${image.imageId}`}
-                            className={`block p-4 border cursor-pointer transition-all ${
-                              formData.image_id === image.imageId.toString()
-                                ? "border-[#F68313] bg-orange-50"
-                                : "border-gray-300 hover:border-gray-400"
-                            }`}
+	                            htmlFor={`image_${image.imageId}`}
+	                            className={`block p-4 border cursor-pointer transition-all ${
+	                              formData.image_id === String(image.imageId)
+	                                ? "border-[#F68313] bg-orange-50"
+	                                : "border-gray-300 hover:border-gray-400"
+	                            }`}
                           >
                             <div className="flex items-center justify-between">
                               <div>
@@ -457,10 +460,10 @@ const ServerForm = ({
                                   <span>이미지 ID: {image.imageId}</span>
                                 </div>
                               </div>
-                              {formData.image_id === image.imageId.toString() && (
-                                <div className="w-4 h-4 border-2 border-[#F68313] rounded-full flex items-center justify-center">
-                                  <div className="w-2 h-2 bg-[#F68313] rounded-full"></div>
-                                </div>
+	                              {formData.image_id === String(image.imageId) && (
+	                                <div className="w-4 h-4 border-2 border-[#F68313] rounded-full flex items-center justify-center">
+	                                  <div className="w-2 h-2 bg-[#F68313] rounded-full"></div>
+	                                </div>
                               )}
                             </div>
                           </label>

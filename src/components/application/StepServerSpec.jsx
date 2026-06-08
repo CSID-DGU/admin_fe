@@ -10,12 +10,15 @@ const StepServerSpec = () => {
   const { formData, updateField, gpuTypes, containerImages, errors } =
     useApplication();
 
+  const hasId = (id) => id !== undefined && id !== null;
+
   const filteredGpuTypes = gpuTypes.filter(
     (gpu) => gpu.serverName === formData.server_type
   );
 
   const groupedGpus = Object.entries(
     filteredGpuTypes.reduce((acc, gpu) => {
+      if (!hasId(gpu.rsgroupId)) return acc;
       const key = `${gpu.gpuModel}-${gpu.ramGb}GB`;
       if (!acc[key]) {
         acc[key] = { ...gpu, availableNodes: 0, nodeIds: [] };
@@ -29,7 +32,8 @@ const StepServerSpec = () => {
   const groupedImages = Object.entries(
     containerImages.reduce((acc, image) => {
       const frameworkName = image.imageName || image.image_name || "Unknown";
-      const imageId = image.imageId || image.image_id;
+      const imageId = image.imageId ?? image.image_id;
+      if (!hasId(imageId)) return acc;
       const imageVersion = image.imageVersion || image.image_version;
       const cudaVersion = image.cudaVersion || image.cuda_version;
       if (!acc[frameworkName]) acc[frameworkName] = [];
@@ -46,11 +50,11 @@ const StepServerSpec = () => {
   );
 
   const handleGpuSelect = (rsgroupId) => {
-    updateField("rsgroup_id", rsgroupId.toString());
+    if (hasId(rsgroupId)) updateField("rsgroup_id", String(rsgroupId));
   };
 
   const handleImageSelect = (imageId) => {
-    updateField("image_id", imageId.toString());
+    if (hasId(imageId)) updateField("image_id", String(imageId));
   };
 
   return (
@@ -79,7 +83,7 @@ const StepServerSpec = () => {
         ) : (
           <div className="grid grid-cols-1 gap-3">
             {groupedGpus.map(([gpuKey, gpu]) => {
-              const isSelected = formData.rsgroup_id === gpu.rsgroupId.toString();
+              const isSelected = formData.rsgroup_id === String(gpu.rsgroupId);
               const isDisabled = gpu.availableNodes === 0;
               return (
                 <button
@@ -155,7 +159,7 @@ const StepServerSpec = () => {
                 <div className="grid grid-cols-1 gap-2">
                   {images.map((image) => {
                     const isSelected =
-                      formData.image_id === image.imageId.toString();
+                      formData.image_id === String(image.imageId);
                     return (
                       <button
                         key={image.imageId}

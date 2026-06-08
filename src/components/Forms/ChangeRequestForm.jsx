@@ -31,6 +31,7 @@ const ChangeRequestForm = ({
   const navigate = useNavigate();
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
+  const hasId = (id) => id !== undefined && id !== null;
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -265,6 +266,7 @@ const ChangeRequestForm = ({
     const grouped = {};
     
     gpuTypes.forEach((gpu) => {
+      if (!hasId(gpu.rsgroupId)) return;
       const key = `${gpu.gpuModel}_${gpu.ramGb}GB`;
       if (!grouped[key]) {
         grouped[key] = {
@@ -366,7 +368,8 @@ const ChangeRequestForm = ({
                 containerImages.reduce((acc, image) => {
                   const frameworkName =
                     image.imageName || image.image_name || "Unknown";
-                  const imageId = image.imageId || image.image_id;
+                  const imageId = image.imageId ?? image.image_id;
+                  if (!hasId(imageId)) return acc;
                   const imageVersion =
                     image.imageVersion || image.image_version;
                   const cudaVersion = image.cudaVersion || image.cuda_version;
@@ -403,17 +406,17 @@ const ChangeRequestForm = ({
                           type="radio"
                           id={`change_image_${image.imageId}`}
                           name="new_value"
-                          value={image.imageId}
-                          checked={
-                            changeFormData.new_value === image.imageId.toString()
-                          }
+	                          value={image.imageId}
+	                          checked={
+	                            changeFormData.new_value === String(image.imageId)
+	                          }
                           onChange={handleChange}
                           className="sr-only"
                         />
                         <label
                           htmlFor={`change_image_${image.imageId}`}
                           className={`block p-3 border cursor-pointer transition-all ${
-                            changeFormData.new_value === image.imageId.toString()
+	                            changeFormData.new_value === String(image.imageId)
                               ? "border-[#F68313] bg-orange-50"
                               : "border-gray-300 hover:border-gray-400"
                           }`}
@@ -435,7 +438,7 @@ const ChangeRequestForm = ({
                                 <span>ID: {image.imageId}</span>
                               </div>
                             </div>
-                            {changeFormData.new_value === image.imageId.toString() && (
+	                            {changeFormData.new_value === String(image.imageId) && (
                               <div className="w-4 h-4 border-2 border-[#F68313] rounded-full flex items-center justify-center">
                                 <div className="w-2 h-2 bg-[#F68313] rounded-full"></div>
                               </div>

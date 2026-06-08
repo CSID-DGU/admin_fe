@@ -51,11 +51,11 @@ const StepReview = () => {
   const [submitError, setSubmitError] = useState(null);
 
   const selectedGpu = gpuTypes.find(
-    (g) => g.rsgroupId?.toString() === formData.rsgroup_id
+    (g) => g.rsgroupId !== undefined && g.rsgroupId !== null && String(g.rsgroupId) === formData.rsgroup_id
   );
   const selectedImage = containerImages.find((img) => {
-    const id = img.imageId || img.image_id;
-    return id?.toString() === formData.image_id;
+    const id = img.imageId ?? img.image_id;
+    return id !== undefined && id !== null && String(id) === formData.image_id;
   });
 
   const groupNames = formData.ubuntu_gids
