@@ -144,13 +144,13 @@ const StepServerSpec = () => {
           컨테이너 이미지 선택
         </h3>
 
-        {Object.keys(groupedImages).length === 0 ? (
+        {groupedImages.length === 0 ? (
           <p className="text-gray-500 text-sm py-4">
             컨테이너 이미지 정보를 불러오는 중...
           </p>
         ) : (
           <div className="space-y-6">
-            {Object.entries(groupedImages).map(([framework, images]) => (
+            {groupedImages.map(([framework, images]) => (
               <div key={framework}>
                 <h4 className="text-sm font-medium text-gray-700 mb-2 flex items-center">
                   <ServerIcon className="w-4 h-4 mr-1 text-gray-400" />
