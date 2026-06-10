@@ -112,3 +112,6 @@ playwright/.cache/
 # yarn.lock
 # package-lock.json
 # pnpm-lock.yaml
+
+# Understand.md
+understand.md
