@@ -26,6 +26,9 @@ export const mapRequestDtoToUiModel = (request) => ({
   created_at: request.createdAt,
   updated_at: request.updatedAt,
   port_mappings: request.portMappings || [],
+  pod_external_ports: request.podExternalPorts || null,
+  ubuntu_uid: request.ubuntuUid ?? null,
+  ubuntu_gid: request.ubuntuGid ?? null,
 });
 
 export const mapApprovedRequestDtoToApplicationModel = (request) => ({
@@ -41,4 +44,7 @@ export const mapApprovedRequestDtoToApplicationModel = (request) => ({
   server_name: request.resourceGroup?.serverName || "Unknown Server",
   ubuntu_username: request.ubuntuUsername,
   port_mappings: request.portMappings || [],
+  pod_external_ports: request.podExternalPorts || null,
+  ubuntu_uid: request.ubuntuUid ?? null,
+  ubuntu_gid: request.ubuntuGid ?? null,
 });
