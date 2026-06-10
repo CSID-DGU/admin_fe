@@ -272,29 +272,33 @@ const RequestStatusPage = () => {
                     </div>
                   </div>
 
-                      {/* Port Mappings */}
-                  {request.port_mappings && request.port_mappings.length > 0 && (
-                    <div className="mt-3 pt-3 border-t border-gray-100">
-                      <p className="text-xs font-medium text-gray-700 uppercase tracking-tight mb-2">
-                        포트 매핑
-                      </p>
-                      <div className="flex flex-wrap gap-2">
-                        {request.port_mappings.map((port, index) => (
-                          <span
-                            key={index}
-                            className={`inline-flex items-center justify-center px-2.5 py-0.5 text-xs font-medium text-center ${
-                              port.isActive
-                                ? "bg-green-100 text-green-800"
-                                : "bg-gray-100 text-gray-800"
-                            }`}
-                          >
-                            {port.externalPort}:{port.internalPort}
-                            {port.usagePurpose && ` (${port.usagePurpose})`}
-                          </span>
-                        ))}
+                      {/* Port Information - pod_external_ports 우선, fallback to port_mappings */}
+                  {(() => {
+                    const ports = request.pod_external_ports || request.port_mappings;
+                    if (!ports || ports.length === 0) return null;
+                    return (
+                      <div className="mt-3 pt-3 border-t border-gray-100">
+                        <p className="text-xs font-medium text-gray-700 uppercase tracking-tight mb-2">
+                          외부 포트 정보
+                        </p>
+                        <div className="flex flex-wrap gap-2">
+                          {ports.map((port, index) => (
+                            <span
+                              key={index}
+                              className={`inline-flex items-center justify-center px-2.5 py-0.5 text-xs font-medium text-center ${
+                                port.isActive !== false
+                                  ? "bg-green-100 text-green-800"
+                                  : "bg-gray-100 text-gray-800"
+                              }`}
+                            >
+                              {port.externalPort}:{port.internalPort}
+                              {port.usagePurpose && ` (${port.usagePurpose})`}
+                            </span>
+                          ))}
+                        </div>
                       </div>
-                    </div>
-                  )}                  {/* Additional Info */}
+                    );
+                  })()}                  {/* Additional Info */}
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4 mt-3 pt-3 border-t border-gray-100">
                     <div>
                       <p className="text-xs font-medium text-gray-600 tracking-tight">
@@ -622,65 +626,132 @@ const RequestStatusPage = () => {
                           </code>
                         </div>
                       )}
+                      {(selectedRequest.ubuntu_uid != null || selectedRequest.ubuntu_gid != null) && (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                          {selectedRequest.ubuntu_uid != null && (
+                            <div>
+                              <p className="text-sm font-medium text-gray-700">Ubuntu UID</p>
+                              <code className="block mt-1 p-2 bg-white border text-sm rounded">
+                                {selectedRequest.ubuntu_uid}
+                              </code>
+                            </div>
+                          )}
+                          {selectedRequest.ubuntu_gid != null && (
+                            <div>
+                              <p className="text-sm font-medium text-gray-700">Ubuntu GID</p>
+                              <code className="block mt-1 p-2 bg-white border text-sm rounded">
+                                {selectedRequest.ubuntu_gid}
+                              </code>
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      {/* SSH/Jupyter/추가 포트 접속 정보 - pod_external_ports 기준 */}
+                      {(() => {
+                        const ports = selectedRequest.pod_external_ports || selectedRequest.port_mappings;
+                        if (!ports || ports.length === 0) return null;
+                        const sshPort = ports.find(p => p.internalPort === 22);
+                        const jupyterPort = ports.find(p => p.internalPort === 8888);
+                        const otherPorts = ports.filter(p => p.internalPort !== 22 && p.internalPort !== 8888);
+                        return (
+                          <div className="mt-4 space-y-3">
+                            <p className="text-sm font-medium text-gray-700">접속 포트 정보 (NodePort: 30000-32767)</p>
+                            {sshPort && (
+                              <div className="bg-white border p-3 rounded">
+                                <p className="text-xs font-medium text-gray-500 mb-1">SSH 접속</p>
+                                <code className="text-sm text-gray-900">
+                                  ssh {selectedRequest.ubuntu_username}@&lt;서버IP&gt; -p {sshPort.externalPort}
+                                </code>
+                              </div>
+                            )}
+                            {jupyterPort && (
+                              <div className="bg-white border p-3 rounded">
+                                <p className="text-xs font-medium text-gray-500 mb-1">Jupyter 접속</p>
+                                <code className="text-sm text-gray-900">
+                                  http://&lt;서버IP&gt;:{jupyterPort.externalPort}
+                                </code>
+                              </div>
+                            )}
+                            {otherPorts.length > 0 && (
+                              <div className="bg-white border p-3 rounded">
+                                <p className="text-xs font-medium text-gray-500 mb-1">추가 포트</p>
+                                <div className="space-y-1">
+                                  {otherPorts.map((port, idx) => (
+                                    <div key={idx} className="text-sm text-gray-900">
+                                      <code>{port.externalPort} → {port.internalPort}</code>
+                                      {port.usagePurpose && <span className="text-gray-500 ml-2">({port.usagePurpose})</span>}
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })()}
                     </div>
                   </div>
                 )}
 
-                {/* Port Mappings Information */}
-                {selectedRequest.port_mappings && selectedRequest.port_mappings.length > 0 && (
-                  <div>
-                    <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
-                      <ServerIcon className="w-5 h-5 mr-2 text-[#F68313]" />
-                      포트 매핑 정보
-                    </h3>
-                    <div className="bg-gray-50 p-4">
-                      <div className="space-y-3">
-                        {selectedRequest.port_mappings.map((port, index) => (
-                          <div key={index} className="bg-white p-3 border border-gray-300">
-                            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                              <div>
-                                <p className="text-sm font-medium text-gray-700 text-center">
-                                  외부 포트
-                                </p>
-                                <code className="block mt-1 p-1 bg-gray-100 text-sm text-center">
-                                  {port.externalPort}
-                                </code>
-                              </div>
-                              <div>
-                                <p className="text-sm font-medium text-gray-700 text-center">
-                                  내부 포트
-                                </p>
-                                <code className="block mt-1 p-1 bg-gray-100 text-sm text-center">
-                                  {port.internalPort}
-                                </code>
-                              </div>
-                              <div>
-                                <p className="text-sm font-medium text-gray-700 text-center">
-                                  상태
-                                </p>
-                                <span className={`inline-flex items-center justify-center w-full px-2 py-1 text-xs font-medium mt-1 text-center ${
-                                  port.isActive
-                                    ? "bg-green-100 text-green-800"
-                                    : "bg-gray-100 text-gray-800"
-                                }`}>
-                                  {port.isActive ? "활성" : "비활성"}
-                                </span>
-                              </div>
-                              <div>
-                                <p className="text-sm font-medium text-gray-700 text-center">
-                                  사용 목적
-                                </p>
-                                <p className="text-sm text-gray-900 mt-1 text-center">
-                                  {port.usagePurpose || "지정되지 않음"}
-                                </p>
+                {/* Port Mappings Information - pod_external_ports 우선 */}
+                {(() => {
+                  const ports = selectedRequest.pod_external_ports || selectedRequest.port_mappings;
+                  if (!ports || ports.length === 0) return null;
+                  return (
+                    <div>
+                      <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
+                        <ServerIcon className="w-5 h-5 mr-2 text-[#F68313]" />
+                        외부 포트 상세 정보
+                      </h3>
+                      <div className="bg-gray-50 p-4">
+                        <div className="space-y-3">
+                          {ports.map((port, index) => (
+                            <div key={index} className="bg-white p-3 border border-gray-300">
+                              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                                <div>
+                                  <p className="text-sm font-medium text-gray-700 text-center">
+                                    외부 포트 (NodePort)
+                                  </p>
+                                  <code className="block mt-1 p-1 bg-gray-100 text-sm text-center">
+                                    {port.externalPort}
+                                  </code>
+                                </div>
+                                <div>
+                                  <p className="text-sm font-medium text-gray-700 text-center">
+                                    내부 포트
+                                  </p>
+                                  <code className="block mt-1 p-1 bg-gray-100 text-sm text-center">
+                                    {port.internalPort}
+                                  </code>
+                                </div>
+                                <div>
+                                  <p className="text-sm font-medium text-gray-700 text-center">
+                                    상태
+                                  </p>
+                                  <span className={`inline-flex items-center justify-center w-full px-2 py-1 text-xs font-medium mt-1 text-center ${
+                                    port.isActive !== false
+                                      ? "bg-green-100 text-green-800"
+                                      : "bg-gray-100 text-gray-800"
+                                  }`}>
+                                    {port.isActive !== false ? "활성" : "비활성"}
+                                  </span>
+                                </div>
+                                <div>
+                                  <p className="text-sm font-medium text-gray-700 text-center">
+                                    사용 목적
+                                  </p>
+                                  <p className="text-sm text-gray-900 mt-1 text-center">
+                                    {port.usagePurpose || "지정되지 않음"}
+                                  </p>
+                                </div>
                               </div>
                             </div>
-                          </div>
-                        ))}
+                          ))}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                )}
+                  );
+                })()}
 
                 {/* Status History */}
                 <div>
