@@ -20,7 +20,7 @@ export const getImages = async () => {
       },
     });
     
-    if (response.status === 200) {
+    if (response.status === 200 || response.status === 201) {
       return {
         success: true,
         data: response.data
@@ -66,7 +66,7 @@ export const createImage = async (imageData) => {
       body: JSON.stringify(imageData),
     });
     
-    if (response.status === 200) {
+    if (response.status === 200 || response.status === 201) {
       return {
         success: true,
         data: response.data

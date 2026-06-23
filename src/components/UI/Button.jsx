@@ -15,7 +15,7 @@ const Button = ({
 
   const variants = {
     primary:
-      "bg-[#F68313] text-white hover:bg-[#E6750F] focus:ring-[#F68313] disabled:bg-[#F68313]/50",
+      "bg-brand-500 text-white hover:bg-brand-600 focus:ring-brand-500 disabled:bg-brand-500/50",
     secondary:
       "bg-gray-200 text-gray-900 hover:bg-gray-300 focus:ring-gray-500 disabled:bg-gray-100",
     danger:
@@ -23,7 +23,7 @@ const Button = ({
     success:
       "bg-green-600 text-white hover:bg-green-700 focus:ring-green-500 disabled:bg-green-300",
     outline:
-      "border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 focus:ring-[#F68313] disabled:bg-gray-50",
+      "border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 focus:ring-brand-500 disabled:bg-gray-50",
   };
 
   const sizes = {

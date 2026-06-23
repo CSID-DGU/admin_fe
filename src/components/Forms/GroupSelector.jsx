@@ -2,13 +2,14 @@ import { useState } from "react";
 import { UsersIcon, XMarkIcon, PlusIcon, MinusIcon } from "@heroicons/react/24/outline";
 import { requestService } from "../../services/requestService";
 
-const GroupSelector = ({ 
-  selectedGroups, 
-  availableGroups, 
-  onAddGroup, 
+const GroupSelector = ({
+  selectedGroups,
+  availableGroups,
+  onAddGroup,
   onRemoveGroup,
   onCreateGroup,
-  label = "그룹 (선택사항)" 
+  ubuntuUsername,
+  label = "그룹 (선택사항)"
 }) => {
   const [newGroupName, setNewGroupName] = useState("");
   const [showCreateForm, setShowCreateForm] = useState(false);
@@ -44,7 +45,7 @@ const GroupSelector = ({
 
     setIsCreating(true);
     try {
-      const response = await requestService.createGroup(newGroupName.trim());
+      const response = await requestService.createGroup(newGroupName.trim(), ubuntuUsername);
       
       if (response.status === 201) {
         // API 응답에서 데이터 안전하게 추출
@@ -91,7 +92,7 @@ const GroupSelector = ({
             {selectedGroups.map((gid) => (
               <span
                 key={gid}
-                className="inline-flex items-center px-3 py-1 text-sm font-medium bg-white border border-[#F68313] text-[#F68313]"
+                className="inline-flex items-center px-3 py-1 text-sm font-medium bg-white border border-brand-500 text-brand-500"
               >
                 {getGroupDisplayName(gid)}
                 <button
@@ -114,7 +115,7 @@ const GroupSelector = ({
           <button
             type="button"
             onClick={() => setShowCreateForm(!showCreateForm)}
-            className="inline-flex items-center px-3 py-1 text-xs font-medium text-[#F68313] bg-white border border-[#F68313] hover:bg-[#F68313] hover:text-white focus:outline-none"
+            className="inline-flex items-center px-3 py-1 text-xs font-medium text-brand-500 bg-white border border-brand-500 hover:bg-brand-500 hover:text-white focus:outline-none"
           >
             {showCreateForm ? (
               <MinusIcon className="w-3 h-3 mr-1" />
@@ -137,14 +138,14 @@ const GroupSelector = ({
                 onChange={(e) => setNewGroupName(e.target.value)}
                 placeholder="예: developers"
                 disabled={isCreating}
-                className="block w-full px-3 py-2 text-sm border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#F68313] focus:border-[#F68313] disabled:opacity-50 disabled:cursor-not-allowed"
+                className="block w-full px-3 py-2 text-sm border border-gray-300 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 disabled:opacity-50 disabled:cursor-not-allowed"
               />
             </div>
             <button
               type="button"
               onClick={handleCreateGroup}
               disabled={!newGroupName.trim() || isCreating}
-              className="w-full px-4 py-2 text-sm font-medium text-white bg-[#F68313] hover:bg-[#E6750F] focus:outline-none focus:ring-2 focus:ring-[#F68313] disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full px-4 py-2 text-sm font-medium text-white bg-brand-500 hover:bg-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-500 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isCreating ? "그룹 생성 중..." : "그룹 생성 및 선택"}
             </button>
@@ -158,7 +159,7 @@ const GroupSelector = ({
         <select
           value=""
           onChange={handleSelectChange}
-          className="block w-full px-3 py-2 border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-[#F68313] focus:border-[#F68313]"
+          className="block w-full px-3 py-2 border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
         >
           <option value="">기존 그룹을 추가하려면 선택하세요</option>
           {availableGroups

@@ -131,12 +131,7 @@ const RequestManagementPage = () => {
         };
         response = await requestService.rejectRequest(rejectData);
       } else {
-        // 기존 API 사용 (다른 상태들)
-        response = await requestService.updateRequestStatus(
-          request.request_id,
-          newStatus,
-          comment
-        );
+        return;
       }
 
       if (response.status === 200) {
@@ -182,12 +177,6 @@ const RequestManagementPage = () => {
             ubuntuGids: updatedRequest.ubuntuGids,
           });
         }
-      } else if (response.status === 409) {
-        setAlert({
-          type: "error",
-          message:
-            "이 신청서는 이미 처리되었습니다. 페이지를 새로고침하여 최신 상태를 확인해주세요.",
-        });
       } else {
         setAlert({
           type: "error",
@@ -198,8 +187,7 @@ const RequestManagementPage = () => {
     } catch (error) {
       console.error("Failed to update request status:", error);
 
-      // 409 상태 코드 처리
-      if (error.message && error.message.includes("409")) {
+      if (error.status === 409) {
         setAlert({
           type: "error",
           message:
@@ -229,7 +217,7 @@ const RequestManagementPage = () => {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#F68313] mx-auto"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-500 mx-auto"></div>
           <p className="mt-4 text-gray-600">신청서 목록을 불러오는 중...</p>
         </div>
       </div>
@@ -266,7 +254,7 @@ const RequestManagementPage = () => {
               onClick={() => setFilter(tab.key)}
               className={`px-4 py-2 text-sm font-medium transition-colors ${
                 filter === tab.key
-                  ? "bg-[#F68313] text-white"
+                  ? "bg-brand-500 text-white"
                   : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
               }`}
             >
@@ -386,9 +374,9 @@ const RequestManagementPage = () => {
                     </div>
                   </div>
 
-                  {/* Port Information - pod_external_ports 우선 */}
+                  {/* Port Information */}
                   {(() => {
-                    const ports = request.pod_external_ports || request.port_mappings;
+                    const ports = request.port_mappings;
                     if (!ports || ports.length === 0) return null;
                     return (
                       <div className="mt-3 pt-3 mb-4 border-t border-gray-100">
@@ -552,7 +540,7 @@ const RequestManagementPage = () => {
                 {/* User Information */}
                 <div>
                   <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
-                    <UserIcon className="w-5 h-5 mr-2 text-[#F68313]" />
+                    <UserIcon className="w-5 h-5 mr-2 text-brand-500" />
                     사용자 정보
                   </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -618,7 +606,7 @@ const RequestManagementPage = () => {
                 {/* Resource Group Information */}
                 <div>
                   <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
-                    <ServerIcon className="w-5 h-5 mr-2 text-[#F68313]" />
+                    <ServerIcon className="w-5 h-5 mr-2 text-brand-500" />
                     리소스 그룹 정보
                   </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -656,7 +644,7 @@ const RequestManagementPage = () => {
                 {/* Request Information */}
                 <div>
                   <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
-                    <DocumentTextIcon className="w-5 h-5 mr-2 text-[#F68313]" />
+                    <DocumentTextIcon className="w-5 h-5 mr-2 text-brand-500" />
                     신청 정보
                   </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -755,14 +743,14 @@ const RequestManagementPage = () => {
                     )}
                 </div>
 
-                {/* Port Information - pod_external_ports 우선 */}
+                {/* Port Information */}
                 {(() => {
-                  const ports = selectedRequest.pod_external_ports || selectedRequest.port_mappings;
+                  const ports = selectedRequest.port_mappings;
                   if (!ports || ports.length === 0) return null;
                   return (
                     <div>
                       <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
-                        <ServerIcon className="w-5 h-5 mr-2 text-[#F68313]" />
+                        <ServerIcon className="w-5 h-5 mr-2 text-brand-500" />
                         외부 포트 상세 정보
                       </h3>
                       <div className="bg-gray-50 p-4">
@@ -818,7 +806,7 @@ const RequestManagementPage = () => {
                 {/* Status History */}
                 <div>
                   <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
-                    <ClockIcon className="w-5 h-5 mr-2 text-[#F68313]" />
+                    <ClockIcon className="w-5 h-5 mr-2 text-brand-500" />
                     처리 이력
                   </h3>
                   <div className="space-y-2">

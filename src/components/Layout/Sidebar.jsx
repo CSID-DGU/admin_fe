@@ -54,7 +54,7 @@ const Sidebar = ({ isCollapsed, userRole = "USER" }) => {
       {/* Logo Section */}
       <div className="p-4 border-b border-gray-700 overflow-hidden">
         <div className="flex items-center">
-          <div className="w-8 h-8 bg-[#F68313] flex items-center justify-center flex-shrink-0">
+          <div className="w-8 h-8 bg-brand-500 flex items-center justify-center flex-shrink-0">
             <span className="text-white font-bold text-sm">AI</span>
           </div>
           <div
@@ -82,7 +82,7 @@ const Sidebar = ({ isCollapsed, userRole = "USER" }) => {
                     to={item.href}
                     className={`flex items-center px-3 py-2 transition-colors duration-200 overflow-hidden ${
                       isActive(item.href)
-                        ? "bg-[#F68313] text-white"
+                        ? "bg-brand-500 text-white"
                         : "text-gray-300 hover:bg-gray-800 hover:text-white"
                     }`}
                   >
@@ -151,7 +151,7 @@ const Sidebar = ({ isCollapsed, userRole = "USER" }) => {
                     to={item.href}
                     className={`flex items-center px-3 py-2 transition-colors duration-200 overflow-hidden ${
                       isActive(item.href)
-                        ? "bg-[#F68313] text-white"
+                        ? "bg-brand-500 text-white"
                         : "text-gray-300 hover:bg-gray-800 hover:text-white"
                     }`}
                   >
@@ -197,7 +197,7 @@ const Sidebar = ({ isCollapsed, userRole = "USER" }) => {
                     to={item.href}
                     className={`flex items-center px-3 py-2 transition-colors duration-200 overflow-hidden ${
                       isActive(item.href)
-                        ? "bg-[#F68313] text-white"
+                        ? "bg-brand-500 text-white"
                         : "text-gray-300 hover:bg-gray-800 hover:text-white"
                     }`}
                   >

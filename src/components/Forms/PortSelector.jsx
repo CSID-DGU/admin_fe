@@ -27,7 +27,7 @@ const PortUsagePurposeInput = ({ portRequest, onUpdate }) => {
       onBlur={handleBlur}
       onKeyDown={handleKeyDown}
       placeholder="사용 목적을 입력하세요"
-      className="flex-1 px-3 py-1 border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-[#F68313] focus:border-[#F68313]"
+      className="flex-1 px-3 py-1 border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
     />
   );
 };
@@ -104,7 +104,7 @@ const PortSelector = ({
             placeholder="포트 번호 (1-65535)"
             min="1"
             max="65535"
-            className="w-64 px-3 py-2 border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-[#F68313] focus:border-[#F68313]"
+            className="w-64 px-3 py-2 border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
           />
           <input
             type="text"
@@ -112,7 +112,7 @@ const PortSelector = ({
             onChange={(e) => setNewPortUsage(e.target.value)}
             onKeyPress={handleKeyPress}
             placeholder="사용 목적 (예: 웹 서버, API 서버)"
-            className="flex-1 px-3 py-2 border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-[#F68313] focus:border-[#F68313]"
+            className="flex-1 px-3 py-2 border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
           />
           <button
             type="button"
@@ -122,7 +122,7 @@ const PortSelector = ({
               parseInt(newPortInput) <= 0 ||
               parseInt(newPortInput) > 65535
             }
-            className="px-4 py-2 bg-[#F68313] text-white text-sm font-medium hover:bg-[#E6750F] focus:outline-none focus:ring-2 focus:ring-[#F68313] focus:ring-offset-2 disabled:bg-gray-300 disabled:cursor-not-allowed"
+            className="px-4 py-2 bg-brand-500 text-white text-sm font-medium hover:bg-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 disabled:bg-gray-300 disabled:cursor-not-allowed"
           >
             추가
           </button>

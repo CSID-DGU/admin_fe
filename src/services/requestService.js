@@ -156,35 +156,6 @@ export const requestService = {
     }
   },
 
-  // 관리자용 요청 상태 업데이트 (기존 함수 - 호환성 유지)
-  updateRequestStatus: async (requestId, status, comment = "") => {
-    try {
-      const accessToken = authService.getAccessToken();
-      if (!accessToken) {
-        throw new Error("인증 토큰이 없습니다.");
-      }
-
-      const response = await apiClient.request(
-        `/api/admin/requests/${requestId}`,
-        {
-          method: "PATCH",
-          headers: {
-            accept: "application/json;charset=UTF-8",
-            Authorization: `Bearer ${accessToken}`,
-            "Content-Type": "application/json;charset=UTF-8",
-          },
-          body: JSON.stringify({
-            status: status,
-            comment: comment,
-          }),
-        }
-      );
-      return response;
-    } catch (error) {
-      throw new Error(error.message || "요청 상태 업데이트에 실패했습니다.");
-    }
-  },
-
   // 요청 변경 신청
   createChangeRequest: async (requestId, changeRequestData) => {
     try {
@@ -345,11 +316,16 @@ export const requestService = {
   },
 
   // 새 그룹 생성
-  createGroup: async (groupName) => {
+  createGroup: async (groupName, ubuntuUsername) => {
     try {
       const accessToken = authService.getAccessToken();
       if (!accessToken) {
         throw new Error("인증 토큰이 없습니다.");
+      }
+
+      const body = { groupName };
+      if (ubuntuUsername) {
+        body.ubuntuUsername = ubuntuUsername;
       }
 
       const response = await apiClient.request("/api/groups", {
@@ -359,9 +335,7 @@ export const requestService = {
           Authorization: `Bearer ${accessToken}`,
           "Content-Type": "application/json;charset=UTF-8",
         },
-        body: JSON.stringify({
-          groupName: groupName,
-        }),
+        body: JSON.stringify(body),
       });
       return response;
     } catch (error) {

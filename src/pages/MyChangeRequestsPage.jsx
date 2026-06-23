@@ -175,7 +175,7 @@ const MyChangeRequestsPage = () => {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#F68313] mx-auto"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-500 mx-auto"></div>
           <p className="mt-4 text-gray-600">변경 요청 목록을 불러오는 중...</p>
         </div>
       </div>
@@ -212,7 +212,7 @@ const MyChangeRequestsPage = () => {
               onClick={() => setFilter(tab.key)}
               className={`px-4 py-2 text-sm font-medium transition-colors ${
                 filter === tab.key
-                  ? "bg-[#F68313] text-white"
+                  ? "bg-brand-500 text-white"
                   : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
               }`}
             >
@@ -390,7 +390,7 @@ const MyChangeRequestsPage = () => {
                 {/* Change Information */}
                 <div>
                   <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
-                    <ArrowsRightLeftIcon className="w-5 h-5 mr-2 text-[#F68313]" />
+                    <ArrowsRightLeftIcon className="w-5 h-5 mr-2 text-brand-500" />
                     변경 내용
                   </h3>
                   <div className="bg-blue-50 border border-blue-200 p-4 space-y-3">
@@ -424,7 +424,7 @@ const MyChangeRequestsPage = () => {
                 {/* Request Information */}
                 <div>
                   <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
-                    <DocumentTextIcon className="w-5 h-5 mr-2 text-[#F68313]" />
+                    <DocumentTextIcon className="w-5 h-5 mr-2 text-brand-500" />
                     요청 정보
                   </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -457,7 +457,7 @@ const MyChangeRequestsPage = () => {
                 {(selectedChangeRequest.status === "FULFILLED" || selectedChangeRequest.status === "DENIED") && (
                   <div>
                     <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
-                      <UserIcon className="w-5 h-5 mr-2 text-[#F68313]" />
+                      <UserIcon className="w-5 h-5 mr-2 text-brand-500" />
                       처리 결과
                     </h3>
                     <div className={`border-l-4 p-4 ${

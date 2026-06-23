@@ -43,61 +43,7 @@ const UserManagementPage = () => {
     } finally {
       setLoading(false);
     }
-  }; // 사용자 상태 토글
-  const handleToggleUserStatus = async (userId, currentStatus) => {
-    try {
-      const response = await userService.toggleUserStatus(
-        userId,
-        !currentStatus
-      );
-
-      if (response.status === 200) {
-        setAlert({
-          type: "success",
-          message: "사용자 상태가 성공적으로 변경되었습니다.",
-        });
-        loadUsers(); // 목록 새로고침
-      } else {
-        setAlert({
-          type: "error",
-          message: "사용자 상태 변경에 실패했습니다.",
-        });
-      }
-    } catch (error) {
-      console.error("사용자 상태 변경 실패:", error);
-      setAlert({
-        type: "error",
-        message: "사용자 상태 변경에 실패했습니다.",
-      });
-    }
   };
-
-  // 사용자 역할 변경
-  const handleChangeUserRole = async (userId, newRole) => {
-    try {
-      const response = await userService.changeUserRole(userId, newRole);
-
-      if (response.status === 200) {
-        setAlert({
-          type: "success",
-          message: "사용자 역할이 성공적으로 변경되었습니다.",
-        });
-        loadUsers(); // 목록 새로고침
-      } else {
-        setAlert({
-          type: "error",
-          message: "사용자 역할 변경에 실패했습니다.",
-        });
-      }
-    } catch (error) {
-      console.error("사용자 역할 변경 실패:", error);
-      setAlert({
-        type: "error",
-        message: "사용자 역할 변경에 실패했습니다.",
-      });
-    }
-  };
-
   // 사용자 삭제
   const handleDeleteUser = async (userId, userName) => {
     if (!confirm(`정말로 "${userName}" 사용자를 삭제하시겠습니까?`)) {
@@ -172,7 +118,7 @@ const UserManagementPage = () => {
         <Button
           onClick={loadUsers}
           disabled={loading}
-          className="bg-[#F68313] hover:bg-[#E6750F]"
+          className="bg-brand-500 hover:bg-brand-600"
         >
           {loading ? "새로고침 중..." : "새로고침"}
         </Button>
@@ -201,7 +147,7 @@ const UserManagementPage = () => {
               placeholder="이름, 이메일, 학번, 학과로 검색"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#F68313] focus:border-transparent text-sm"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent text-sm"
             />
           </div>
           <div>
@@ -211,7 +157,7 @@ const UserManagementPage = () => {
             <select
               value={filterRole}
               onChange={(e) => setFilterRole(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#F68313] focus:border-transparent text-sm"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent text-sm"
             >
               <option value="ALL">전체</option>
               <option value="ADMIN">관리자</option>
@@ -225,7 +171,7 @@ const UserManagementPage = () => {
             <select
               value={filterStatus}
               onChange={(e) => setFilterStatus(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#F68313] focus:border-transparent text-sm"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent text-sm"
             >
               <option value="ALL">전체</option>
               <option value="ACTIVE">활성</option>
@@ -239,7 +185,7 @@ const UserManagementPage = () => {
       <Card>
         {loading ? (
           <div className="text-center py-12">
-            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-[#F68313]"></div>
+            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-brand-500"></div>
             <p className="text-gray-600 mt-2">사용자 목록을 불러오는 중...</p>
           </div>
         ) : filteredUsers.length === 0 ? (
@@ -311,24 +257,18 @@ const UserManagementPage = () => {
                       <div className="flex flex-col space-y-2">
                         <select
                           value={user.role}
-                          onChange={(e) =>
-                            handleChangeUserRole(user.userId, e.target.value)
-                          }
-                          className="text-sm px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-[#F68313]"
+                          disabled
+                          title="백엔드 API 미구현"
+                          className="text-sm px-2 py-1 border border-gray-300 rounded bg-gray-100 text-gray-500 cursor-not-allowed"
                         >
                           <option value="USER">사용자</option>
                           <option value="ADMIN">관리자</option>
                         </select>
                         <div className="flex space-x-2">
                           <button
-                            onClick={() =>
-                              handleToggleUserStatus(user.userId, user.isActive)
-                            }
-                            className={`text-sm px-3 py-1 border ${
-                              user.isActive
-                                ? "border-yellow-500 text-yellow-600 hover:bg-yellow-50"
-                                : "border-green-500 text-green-600 hover:bg-green-50"
-                            }`}
+                            disabled
+                            title="백엔드 API 미구현"
+                            className="text-sm px-3 py-1 border border-gray-300 text-gray-400 cursor-not-allowed"
                           >
                             {user.isActive ? "비활성화" : "활성화"}
                           </button>
@@ -355,7 +295,7 @@ const UserManagementPage = () => {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
           <div className="text-center">
-            <div className="text-2xl font-bold text-[#F68313]">
+            <div className="text-2xl font-bold text-brand-500">
               {users.length}
             </div>
             <div className="text-sm text-gray-600">전체 사용자</div>

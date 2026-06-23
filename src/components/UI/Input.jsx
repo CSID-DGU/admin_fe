@@ -9,7 +9,7 @@ const Input = ({
 }) => {
   const inputClasses = `
     block w-full px-3 py-2 border text-sm
-    focus:outline-none focus:ring-2 focus:ring-[#F68313] focus:border-[#F68313]
+    focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500
     disabled:bg-gray-50 disabled:text-gray-500
     ${IconComponent ? "pl-10" : ""}
     ${

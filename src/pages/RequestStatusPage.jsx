@@ -127,7 +127,7 @@ const RequestStatusPage = () => {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#F68313] mx-auto"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-500 mx-auto"></div>
           <p className="mt-4 text-gray-600">신청 현황을 불러오는 중...</p>
         </div>
       </div>
@@ -156,7 +156,7 @@ const RequestStatusPage = () => {
         <Link to="/application">
           <Button
             variant="primary"
-            className="bg-[#F68313] hover:bg-[#E6750F] border-[#F68313] hover:border-[#E6750F]"
+            className="bg-brand-500 hover:bg-brand-600 border-brand-500 hover:border-brand-600"
           >
             <PlusIcon className="w-4 h-4 mr-1" />새 신청
           </Button>
@@ -177,7 +177,7 @@ const RequestStatusPage = () => {
               onClick={() => setFilter(tab.key)}
               className={`px-4 py-2 text-sm font-medium transition-colors ${
                 filter === tab.key
-                  ? "bg-[#F68313] text-white"
+                  ? "bg-brand-500 text-white"
                   : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
               }`}
             >
@@ -212,7 +212,7 @@ const RequestStatusPage = () => {
               <Link to="/application">
                 <Button
                   variant="primary"
-                  className="bg-[#F68313] hover:bg-[#E6750F] border-[#F68313] hover:border-[#E6750F]"
+                  className="bg-brand-500 hover:bg-brand-600 border-brand-500 hover:border-brand-600"
                 >
                   <PlusIcon className="w-4 h-4 mr-1" />
                   서버 신청하기
@@ -272,9 +272,9 @@ const RequestStatusPage = () => {
                     </div>
                   </div>
 
-                      {/* Port Information - pod_external_ports 우선, fallback to port_mappings */}
+                      {/* Port Information */}
                   {(() => {
-                    const ports = request.pod_external_ports || request.port_mappings;
+                    const ports = request.port_mappings;
                     if (!ports || ports.length === 0) return null;
                     return (
                       <div className="mt-3 pt-3 border-t border-gray-100">
@@ -418,7 +418,7 @@ const RequestStatusPage = () => {
                 {/* User Information */}
                 <div>
                   <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
-                    <UserIcon className="w-5 h-5 mr-2 text-[#F68313]" />
+                    <UserIcon className="w-5 h-5 mr-2 text-brand-500" />
                     사용자 정보
                   </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -464,7 +464,7 @@ const RequestStatusPage = () => {
                 {/* Resource Group Information */}
                 <div>
                   <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
-                    <ServerIcon className="w-5 h-5 mr-2 text-[#F68313]" />
+                    <ServerIcon className="w-5 h-5 mr-2 text-brand-500" />
                     리소스 그룹 정보
                   </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -502,7 +502,7 @@ const RequestStatusPage = () => {
                 {/* Request Information */}
                 <div>
                   <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
-                    <DocumentTextIcon className="w-5 h-5 mr-2 text-[#F68313]" />
+                    <DocumentTextIcon className="w-5 h-5 mr-2 text-brand-500" />
                     신청 정보
                   </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -593,7 +593,7 @@ const RequestStatusPage = () => {
                 {selectedRequest.status === "FULFILLED" && (
                   <div>
                     <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
-                      <ServerIcon className="w-5 h-5 mr-2 text-[#F68313]" />
+                      <ServerIcon className="w-5 h-5 mr-2 text-brand-500" />
                       서버 접속 정보
                     </h3>
                     <div className="bg-gray-50 p-4 rounded">
@@ -647,9 +647,9 @@ const RequestStatusPage = () => {
                         </div>
                       )}
 
-                      {/* SSH/Jupyter/추가 포트 접속 정보 - pod_external_ports 기준 */}
+                      {/* SSH/Jupyter/추가 포트 접속 정보 */}
                       {(() => {
-                        const ports = selectedRequest.pod_external_ports || selectedRequest.port_mappings;
+                        const ports = selectedRequest.port_mappings;
                         if (!ports || ports.length === 0) return null;
                         const sshPort = ports.find(p => p.internalPort === 22);
                         const jupyterPort = ports.find(p => p.internalPort === 8888);
@@ -693,14 +693,14 @@ const RequestStatusPage = () => {
                   </div>
                 )}
 
-                {/* Port Mappings Information - pod_external_ports 우선 */}
+                {/* Port Mappings Information */}
                 {(() => {
-                  const ports = selectedRequest.pod_external_ports || selectedRequest.port_mappings;
+                  const ports = selectedRequest.port_mappings;
                   if (!ports || ports.length === 0) return null;
                   return (
                     <div>
                       <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
-                        <ServerIcon className="w-5 h-5 mr-2 text-[#F68313]" />
+                        <ServerIcon className="w-5 h-5 mr-2 text-brand-500" />
                         외부 포트 상세 정보
                       </h3>
                       <div className="bg-gray-50 p-4">
@@ -756,7 +756,7 @@ const RequestStatusPage = () => {
                 {/* Status History */}
                 <div>
                   <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
-                    <ClockIcon className="w-5 h-5 mr-2 text-[#F68313]" />
+                    <ClockIcon className="w-5 h-5 mr-2 text-brand-500" />
                     처리 이력
                   </h3>
                   <div className="space-y-2">

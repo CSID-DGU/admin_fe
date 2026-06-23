@@ -13,8 +13,10 @@ import {
   IdentificationIcon,
   CheckCircleIcon,
 } from "@heroicons/react/24/outline";
+import { useAuth } from "../hooks/useAuth";
 
 const AccountPage = ({ user }) => {
+  const { updateUser } = useAuth();
   const [activeTab, setActiveTab] = useState("profile");
   const [formData, setFormData] = useState({
     phone: "",
@@ -127,13 +129,7 @@ const AccountPage = ({ user }) => {
           message: "휴대폰 번호가 성공적으로 업데이트되었습니다.",
         });
 
-        // 사용자 정보 다시 불러오기
-        const updatedUserResponse = await authService.getUserInfo();
-        if (updatedUserResponse.status === 200 && updatedUserResponse.data) {
-          // 부모 컴포넌트에서 전달된 user를 업데이트할 수 있도록 하는 로직 필요
-          // 현재는 props로 받고 있으므로 AuthContext를 직접 사용하거나
-          // 부모 컴포넌트에서 업데이트 콜백을 전달받아야 함
-        }
+        await updateUser();
       } else {
         throw new Error("휴대폰 번호 업데이트에 실패했습니다.");
       }
@@ -224,14 +220,14 @@ const AccountPage = ({ user }) => {
                   onClick={() => setActiveTab(tab.id)}
                   className={`group inline-flex items-center py-4 px-1 border-b-2 font-medium text-sm ${
                     activeTab === tab.id
-                      ? "border-[#F68313] text-[#F68313]"
+                      ? "border-brand-500 text-brand-500"
                       : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
                   }`}
                 >
                   <IconComponent
                     className={`mr-2 h-5 w-5 ${
                       activeTab === tab.id
-                        ? "text-[#F68313]"
+                        ? "text-brand-500"
                         : "text-gray-400 group-hover:text-gray-500"
                     }`}
                   />
@@ -344,7 +340,7 @@ const AccountPage = ({ user }) => {
                     variant="primary"
                     loading={isLoading}
                     disabled={isLoading}
-                    className="bg-[#F68313] hover:bg-[#E6750F] border-[#F68313] hover:border-[#E6750F]"
+                    className="bg-brand-500 hover:bg-brand-600 border-brand-500 hover:border-brand-600"
                   >
                     <CheckCircleIcon className="w-4 h-4 mr-1" />
                     저장
@@ -435,7 +431,7 @@ const AccountPage = ({ user }) => {
                     variant="primary"
                     loading={isLoading}
                     disabled={isLoading}
-                    className="bg-[#F68313] hover:bg-[#E6750F] border-[#F68313] hover:border-[#E6750F]"
+                    className="bg-brand-500 hover:bg-brand-600 border-brand-500 hover:border-brand-600"
                   >
                     <LockClosedIcon className="w-4 h-4 mr-1" />
                     비밀번호 변경

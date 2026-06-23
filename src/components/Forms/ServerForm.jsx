@@ -198,7 +198,7 @@ const ServerForm = ({
         {/* Basic Information Section */}
         <div>
           <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
-            <UserIcon className="w-5 h-5 mr-2 text-[#F68313]" />
+            <UserIcon className="w-5 h-5 mr-2 text-brand-500" />
             기본 정보
           </h3>
 
@@ -248,7 +248,7 @@ const ServerForm = ({
         {/* Server Configuration Section */}
         <div>
           <h3 className="text-lg font-medium text-gray-900 mb-4 mt-20 flex items-center">
-            <ServerIcon className="w-5 h-5 mr-2 text-[#F68313]" />
+            <ServerIcon className="w-5 h-5 mr-2 text-brand-500" />
             리소스 선택
           </h3>
 
@@ -263,7 +263,7 @@ const ServerForm = ({
               {/* GPU 타입이 로드되지 않았을 때 */}
               {!gpuTypes || gpuTypes.length === 0 ? (
                 <div className="text-center py-8 text-gray-500">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#F68313] mx-auto mb-2"></div>
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-500 mx-auto mb-2"></div>
                   GPU 리소스 정보를 불러오는 중...
                 </div>
               ) : (
@@ -279,7 +279,7 @@ const ServerForm = ({
                 ).map(([serverName, serverGpus]) => (
                   <div key={serverName} className="mb-6">
                     <h4 className="text-base font-medium text-gray-800 mb-3 flex items-center">
-                      <ServerIcon className="w-5 h-5 mr-2 text-[#F68313]" />
+                      <ServerIcon className="w-5 h-5 mr-2 text-brand-500" />
                       {serverName} 서버
                     </h4>
 
@@ -320,7 +320,7 @@ const ServerForm = ({
 	                              gpuGroup.availableNodes === 0
 	                                ? "bg-gray-50 border-gray-200 cursor-not-allowed"
 	                                : formData.rsgroup_id === String(gpuGroup.rsgroupId)
-	                                ? "border-[#F68313] bg-orange-50"
+	                                ? "border-brand-500 bg-orange-50"
 	                                : "border-gray-300 hover:border-gray-400"
 	                            }`}
                           >
@@ -356,8 +356,8 @@ const ServerForm = ({
                                 </div>
                               </div>
 	                              {formData.rsgroup_id === String(gpuGroup.rsgroupId) && (
-	                                <div className="w-4 h-4 border-2 border-[#F68313] rounded-full flex items-center justify-center">
-	                                  <div className="w-2 h-2 bg-[#F68313] rounded-full"></div>
+	                                <div className="w-4 h-4 border-2 border-brand-500 rounded-full flex items-center justify-center">
+	                                  <div className="w-2 h-2 bg-brand-500 rounded-full"></div>
 	                                </div>
                               )}
                             </div>
@@ -384,7 +384,7 @@ const ServerForm = ({
               {/* 컨테이너 이미지가 로드되지 않았을 때 */}
               {!containerImages || containerImages.length === 0 ? (
                 <div className="text-center py-8 text-gray-500">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#F68313] mx-auto mb-2"></div>
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-500 mx-auto mb-2"></div>
                   컨테이너 이미지 정보를 불러오는 중...
                 </div>
               ) : (
@@ -415,7 +415,7 @@ const ServerForm = ({
                 ).map(([frameworkName, frameworkImages]) => (
                   <div key={frameworkName} className="mb-6">
                     <h4 className="text-base font-medium text-gray-800 mb-3 flex items-center">
-                      <ComputerDesktopIcon className="w-5 h-5 mr-2 text-[#F68313]" />
+                      <ComputerDesktopIcon className="w-5 h-5 mr-2 text-brand-500" />
                       {frameworkName.charAt(0).toUpperCase() +
                         frameworkName.slice(1)}
                     </h4>
@@ -439,7 +439,7 @@ const ServerForm = ({
 	                            htmlFor={`image_${image.imageId}`}
 	                            className={`block p-4 border cursor-pointer transition-all ${
 	                              formData.image_id === String(image.imageId)
-	                                ? "border-[#F68313] bg-orange-50"
+	                                ? "border-brand-500 bg-orange-50"
 	                                : "border-gray-300 hover:border-gray-400"
 	                            }`}
                           >
@@ -461,8 +461,8 @@ const ServerForm = ({
                                 </div>
                               </div>
 	                              {formData.image_id === String(image.imageId) && (
-	                                <div className="w-4 h-4 border-2 border-[#F68313] rounded-full flex items-center justify-center">
-	                                  <div className="w-2 h-2 bg-[#F68313] rounded-full"></div>
+	                                <div className="w-4 h-4 border-2 border-brand-500 rounded-full flex items-center justify-center">
+	                                  <div className="w-2 h-2 bg-brand-500 rounded-full"></div>
 	                                </div>
                               )}
                             </div>
@@ -508,6 +508,7 @@ const ServerForm = ({
               onAddGroup={addGroup}
               onRemoveGroup={removeGroup}
               onCreateGroup={createGroup}
+              ubuntuUsername={formData.ubuntu_username}
             />
 
             {/* Port Selection */}
@@ -523,7 +524,7 @@ const ServerForm = ({
         {/* Usage Information Section */}
         <div>
           <h3 className="text-lg font-medium text-gray-900 mb-4 mt-20 flex items-center">
-            <DocumentTextIcon className="w-5 h-5 mr-2 text-[#F68313]" />
+            <DocumentTextIcon className="w-5 h-5 mr-2 text-brand-500" />
             사용 정보
           </h3>
 
@@ -537,7 +538,7 @@ const ServerForm = ({
                 value={formData.usage_purpose}
                 onChange={handleChange}
                 rows={4}
-                className={`block w-full px-3 py-2 border text-sm focus:outline-none focus:ring-2 focus:ring-[#F68313] focus:border-[#F68313] ${
+                className={`block w-full px-3 py-2 border text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 ${
                   errors.usage_purpose
                     ? "border-red-300 text-red-900 focus:ring-red-500 focus:border-red-500"
                     : "border-gray-300 text-gray-900"
@@ -589,7 +590,7 @@ const ServerForm = ({
             variant="primary"
             loading={isLoading}
             disabled={isLoading}
-            className="bg-[#F68313] hover:bg-[#E6750F] border-[#F68313] hover:border-[#E6750F]"
+            className="bg-brand-500 hover:bg-brand-600 border-brand-500 hover:border-brand-600"
           >
             <ServerIcon className="w-4 h-4 mr-1" />
             신청 제출

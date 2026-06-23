@@ -128,7 +128,7 @@ const ResourceMonitoringPage = ({ user }) => {
                   key={service.id}
                   className={`p-4 border-2 cursor-pointer transition-all duration-200 ${
                     selectedService === service.id
-                      ? "border-[#F68313] bg-orange-50"
+                      ? "border-brand-500 bg-orange-50"
                       : "border-gray-200 hover:border-gray-300"
                   }`}
                   onClick={() => setSelectedService(service.id)}
@@ -137,7 +137,7 @@ const ResourceMonitoringPage = ({ user }) => {
                     <IconComponent
                       className={`w-6 h-6 ${
                         selectedService === service.id
-                          ? "text-[#F68313]"
+                          ? "text-brand-500"
                           : "text-gray-400"
                       }`}
                     />
@@ -145,7 +145,7 @@ const ResourceMonitoringPage = ({ user }) => {
                       <h3
                         className={`font-medium ${
                           selectedService === service.id
-                            ? "text-[#F68313]"
+                            ? "text-brand-500"
                             : "text-gray-900"
                         }`}
                       >
@@ -185,7 +185,7 @@ const ResourceMonitoringPage = ({ user }) => {
           <div className="space-y-4">
             {isTestingIframe ? (
               <div className="text-center p-8 border border-gray-200 bg-gray-50">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#F68313] mx-auto mb-4"></div>
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-500 mx-auto mb-4"></div>
                 <p className="text-gray-600">대시보드 연결을 확인 중...</p>
               </div>
             ) : !iframeError ? (

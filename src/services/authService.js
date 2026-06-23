@@ -106,29 +106,6 @@ export const authService = {
     }
   },
 
-  // 사용자 정보 수정
-  updateUserInfo: async (userData) => {
-    try {
-      const accessToken = authService.getAccessToken();
-      if (!accessToken) {
-        throw new Error("인증 토큰이 없습니다.");
-      }
-
-      const response = await apiClient.request("/api/users/me", {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          accept: "application/json;charset=UTF-8",
-          Authorization: `Bearer ${accessToken}`,
-        },
-        body: JSON.stringify(userData),
-      });
-      return response;
-    } catch (error) {
-      throw new Error(error.message || "사용자 정보 수정에 실패했습니다.");
-    }
-  },
-
   // 휴대폰 번호 변경
   updatePhone: async (newPhone) => {
     try {

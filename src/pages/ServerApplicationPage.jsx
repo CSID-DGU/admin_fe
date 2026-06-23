@@ -51,7 +51,7 @@ const WizardNavigation = () => {
       <Button
         variant="primary"
         onClick={goNext}
-        className="bg-[#F68313] hover:bg-[#E6750F] border-[#F68313] hover:border-[#E6750F]"
+        className="bg-brand-500 hover:bg-brand-600 border-brand-500 hover:border-brand-600"
       >
         다음
         <ChevronRightIcon className="w-4 h-4 ml-1" />
@@ -67,7 +67,7 @@ const WizardContent = () => {
     return (
       <div className="flex items-center justify-center min-h-96">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#F68313] mx-auto"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-500 mx-auto"></div>
           <p className="mt-4 text-gray-600">데이터를 불러오는 중...</p>
         </div>
       </div>
@@ -177,7 +177,7 @@ const ServerApplicationPage = () => {
             }}
             className={`py-2 px-1 border-b-2 font-medium text-sm ${
               activeTab === "new"
-                ? "border-[#F68313] text-[#F68313]"
+                ? "border-brand-500 text-brand-500"
                 : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
             }`}
           >
@@ -191,7 +191,7 @@ const ServerApplicationPage = () => {
             }}
             className={`py-2 px-1 border-b-2 font-medium text-sm ${
               activeTab === "change"
-                ? "border-[#F68313] text-[#F68313]"
+                ? "border-brand-500 text-brand-500"
                 : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
             }`}
           >
@@ -218,7 +218,7 @@ const ServerApplicationPage = () => {
       ) : isChangeDataLoading ? (
         <div className="flex items-center justify-center min-h-96">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#F68313] mx-auto"></div>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-500 mx-auto"></div>
             <p className="mt-4 text-gray-600">데이터를 불러오는 중...</p>
           </div>
         </div>
