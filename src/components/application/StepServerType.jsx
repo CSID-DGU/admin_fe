@@ -21,7 +21,7 @@ const StepServerType = () => {
 
       {serverTypes.length === 0 ? (
         <div className="text-center py-12 text-gray-500">
-          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#F68313] mx-auto mb-3"></div>
+          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-brand-500 mx-auto mb-3"></div>
           서버 유형 정보를 불러오는 중...
         </div>
       ) : (
@@ -35,18 +35,18 @@ const StepServerType = () => {
                 onClick={() => handleSelect(server.name)}
                 className={`relative p-6 border-2 text-left transition-all duration-200 group
                   ${isSelected
-                    ? "border-[#F68313] bg-orange-50 shadow-md"
+                    ? "border-brand-500 bg-orange-50 shadow-md"
                     : "border-gray-200 bg-white hover:border-gray-300 hover:shadow-sm"
                   }`}
               >
                 {isSelected && (
-                  <CheckCircleIcon className="absolute top-4 right-4 w-6 h-6 text-[#F68313]" />
+                  <CheckCircleIcon className="absolute top-4 right-4 w-6 h-6 text-brand-500" />
                 )}
 
                 <div className="flex items-center mb-3">
                   <div
                     className={`p-2.5 rounded-lg ${
-                      isSelected ? "bg-[#F68313] text-white" : "bg-gray-100 text-gray-500 group-hover:bg-gray-200"
+                      isSelected ? "bg-brand-500 text-white" : "bg-gray-100 text-gray-500 group-hover:bg-gray-200"
                     }`}
                   >
                     <ServerIcon className="w-6 h-6" />
@@ -55,7 +55,7 @@ const StepServerType = () => {
 
                 <h3
                   className={`text-lg font-semibold mb-1 ${
-                    isSelected ? "text-[#F68313]" : "text-gray-900"
+                    isSelected ? "text-brand-500" : "text-gray-900"
                   }`}
                 >
                   {server.name}

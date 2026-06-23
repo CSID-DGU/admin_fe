@@ -29,7 +29,7 @@ const ReviewRow = ({ icon: Icon, label, value, onEdit }) => (
       <button
         type="button"
         onClick={onEdit}
-        className="text-xs text-[#F68313] hover:underline shrink-0 ml-4"
+        className="text-xs text-brand-500 hover:underline shrink-0 ml-4"
       >
         수정
       </button>
@@ -210,7 +210,7 @@ const StepReview = () => {
             onClick={handleSubmit}
             loading={isSubmitting}
             disabled={isSubmitting}
-            className="w-full max-w-xs bg-[#F68313] hover:bg-[#E6750F] border-[#F68313] hover:border-[#E6750F]"
+            className="w-full max-w-xs bg-brand-500 hover:bg-brand-600 border-brand-500 hover:border-brand-600"
           >
             <ServerIcon className="w-5 h-5 mr-2" />
             신청 제출

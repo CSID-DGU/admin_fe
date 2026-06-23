@@ -34,9 +34,9 @@ const ApplicationStepper = () => {
                   className={`
                     relative z-10 flex h-10 w-10 items-center justify-center rounded-full border-2 transition-all duration-200
                     ${isCompleted
-                      ? "border-[#F68313] bg-[#F68313] text-white cursor-pointer hover:bg-[#E6750F]"
+                      ? "border-brand-500 bg-brand-500 text-white cursor-pointer hover:bg-brand-600"
                       : isCurrent
-                        ? "border-[#F68313] bg-white text-[#F68313]"
+                        ? "border-brand-500 bg-white text-brand-500"
                         : "border-gray-300 bg-white text-gray-400"
                     }
                     ${isClickable ? "cursor-pointer" : "cursor-default"}
@@ -53,7 +53,7 @@ const ApplicationStepper = () => {
                 {idx < STEPS.length - 1 && (
                   <div
                     className={`h-0.5 flex-1 mx-2 transition-colors duration-200 ${
-                      isCompleted ? "bg-[#F68313]" : "bg-gray-200"
+                      isCompleted ? "bg-brand-500" : "bg-gray-200"
                     }`}
                   />
                 )}
@@ -62,7 +62,7 @@ const ApplicationStepper = () => {
               <span
                 className={`absolute -bottom-6 left-1/2 -translate-x-1/2 whitespace-nowrap text-xs font-medium transition-colors duration-200 ${
                   isCurrent
-                    ? "text-[#F68313]"
+                    ? "text-brand-500"
                     : isCompleted
                       ? "text-gray-700"
                       : "text-gray-400"

@@ -62,7 +62,7 @@ const StepServerSpec = () => {
       <div className="text-center mb-4">
         <h2 className="text-xl font-bold text-gray-900">서버 사양을 선택하세요</h2>
         <p className="text-gray-500 mt-2">
-          <span className="inline-flex items-center px-2 py-0.5 text-sm font-medium bg-orange-100 text-[#F68313] mr-1">
+          <span className="inline-flex items-center px-2 py-0.5 text-sm font-medium bg-orange-100 text-brand-500 mr-1">
             {formData.server_type}
           </span>
           서버의 GPU와 컨테이너 이미지를 선택합니다.
@@ -72,7 +72,7 @@ const StepServerSpec = () => {
       {/* GPU Selection */}
       <section>
         <h3 className="text-base font-semibold text-gray-900 mb-3 flex items-center">
-          <CpuChipIcon className="w-5 h-5 mr-2 text-[#F68313]" />
+          <CpuChipIcon className="w-5 h-5 mr-2 text-brand-500" />
           GPU 선택
         </h3>
 
@@ -95,12 +95,12 @@ const StepServerSpec = () => {
                     ${isDisabled
                       ? "border-gray-100 bg-gray-50 cursor-not-allowed opacity-60"
                       : isSelected
-                        ? "border-[#F68313] bg-orange-50 shadow-sm"
+                        ? "border-brand-500 bg-orange-50 shadow-sm"
                         : "border-gray-200 bg-white hover:border-gray-300"
                     }`}
                 >
                   {isSelected && (
-                    <CheckCircleIcon className="absolute top-3 right-3 w-5 h-5 text-[#F68313]" />
+                    <CheckCircleIcon className="absolute top-3 right-3 w-5 h-5 text-brand-500" />
                   )}
                   <div className="flex items-center justify-between">
                     <div>
@@ -140,7 +140,7 @@ const StepServerSpec = () => {
       {/* Container Image Selection */}
       <section>
         <h3 className="text-base font-semibold text-gray-900 mb-3 flex items-center">
-          <ComputerDesktopIcon className="w-5 h-5 mr-2 text-[#F68313]" />
+          <ComputerDesktopIcon className="w-5 h-5 mr-2 text-brand-500" />
           컨테이너 이미지 선택
         </h3>
 
@@ -167,12 +167,12 @@ const StepServerSpec = () => {
                         onClick={() => handleImageSelect(image.imageId)}
                         className={`relative w-full p-4 border-2 text-left transition-all duration-200
                           ${isSelected
-                            ? "border-[#F68313] bg-orange-50 shadow-sm"
+                            ? "border-brand-500 bg-orange-50 shadow-sm"
                             : "border-gray-200 bg-white hover:border-gray-300"
                           }`}
                       >
                         {isSelected && (
-                          <CheckCircleIcon className="absolute top-3 right-3 w-5 h-5 text-[#F68313]" />
+                          <CheckCircleIcon className="absolute top-3 right-3 w-5 h-5 text-brand-500" />
                         )}
                         <div>
                           <span className="font-semibold text-gray-900">

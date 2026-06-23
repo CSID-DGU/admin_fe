@@ -329,7 +329,7 @@ const ChangeRequestForm = ({
               name="new_value"
               value={changeFormData.new_value}
               onChange={handleChange}
-              className={`block w-full px-3 py-2 border text-sm h-[38px] focus:outline-none focus:ring-2 focus:ring-[#F68313] focus:border-[#F68313] ${
+              className={`block w-full px-3 py-2 border text-sm h-[38px] focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 ${
                 errors.new_value
                   ? "border-red-300 text-red-900 focus:ring-red-500 focus:border-red-500"
                   : "border-gray-300 text-gray-900"
@@ -359,7 +359,7 @@ const ChangeRequestForm = ({
             {/* 컨테이너 이미지가 로드되지 않았을 때 */}
             {!containerImages || containerImages.length === 0 ? (
               <div className="text-center py-8 text-gray-500">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#F68313] mx-auto mb-2"></div>
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-500 mx-auto mb-2"></div>
                 컨테이너 이미지 정보를 불러오는 중...
               </div>
             ) : (
@@ -391,7 +391,7 @@ const ChangeRequestForm = ({
               ).map(([frameworkName, frameworkImages]) => (
                 <div key={frameworkName} className="mb-4">
                   <h4 className="text-sm font-medium text-gray-800 mb-2 flex items-center">
-                    <ComputerDesktopIcon className="w-4 h-4 mr-2 text-[#F68313]" />
+                    <ComputerDesktopIcon className="w-4 h-4 mr-2 text-brand-500" />
                     {frameworkName.charAt(0).toUpperCase() +
                       frameworkName.slice(1)}
                   </h4>
@@ -417,7 +417,7 @@ const ChangeRequestForm = ({
                           htmlFor={`change_image_${image.imageId}`}
                           className={`block p-3 border cursor-pointer transition-all ${
 	                            changeFormData.new_value === String(image.imageId)
-                              ? "border-[#F68313] bg-orange-50"
+                              ? "border-brand-500 bg-orange-50"
                               : "border-gray-300 hover:border-gray-400"
                           }`}
                         >
@@ -439,8 +439,8 @@ const ChangeRequestForm = ({
                               </div>
                             </div>
 	                            {changeFormData.new_value === String(image.imageId) && (
-                              <div className="w-4 h-4 border-2 border-[#F68313] rounded-full flex items-center justify-center">
-                                <div className="w-2 h-2 bg-[#F68313] rounded-full"></div>
+                              <div className="w-4 h-4 border-2 border-brand-500 rounded-full flex items-center justify-center">
+                                <div className="w-2 h-2 bg-brand-500 rounded-full"></div>
                               </div>
                             )}
                           </div>
@@ -468,6 +468,7 @@ const ChangeRequestForm = ({
             onAddGroup={addGroupForChange}
             onRemoveGroup={removeGroupForChange}
             onCreateGroup={createGroupForChange}
+            ubuntuUsername={userRequests.find(r => String(r.request_id) === String(changeFormData.request_id))?.ubuntu_username}
           />
         );
       }
@@ -498,7 +499,7 @@ const ChangeRequestForm = ({
         {/* Request Selection */}
         <div>
           <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
-            <CheckCircleIcon className="w-5 h-5 mr-2 text-[#F68313]" />
+            <CheckCircleIcon className="w-5 h-5 mr-2 text-brand-500" />
             변경할 서버 선택
           </h3>
 
@@ -510,7 +511,7 @@ const ChangeRequestForm = ({
               name="request_id"
               value={changeFormData.request_id}
               onChange={handleChange}
-              className={`block w-full px-3 py-2 border text-sm h-[38px] focus:outline-none focus:ring-2 focus:ring-[#F68313] focus:border-[#F68313] ${
+              className={`block w-full px-3 py-2 border text-sm h-[38px] focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 ${
                 errors.request_id
                   ? "border-red-300 text-red-900 focus:ring-red-500 focus:border-red-500"
                   : "border-gray-300 text-gray-900"
@@ -539,7 +540,7 @@ const ChangeRequestForm = ({
         {/* Change Type Selection */}
         <div>
           <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
-            <PencilSquareIcon className="w-5 h-5 mr-2 text-[#F68313]" />
+            <PencilSquareIcon className="w-5 h-5 mr-2 text-brand-500" />
             변경 항목
           </h3>
 
@@ -552,7 +553,7 @@ const ChangeRequestForm = ({
                 name="change_type"
                 value={changeFormData.change_type}
                 onChange={handleChange}
-                className={`block w-full px-3 py-2 border text-sm h-[38px] focus:outline-none focus:ring-2 focus:ring-[#F68313] focus:border-[#F68313] ${
+                className={`block w-full px-3 py-2 border text-sm h-[38px] focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 ${
                   errors.change_type
                     ? "border-red-300 text-red-900 focus:ring-red-500 focus:border-red-500"
                     : "border-gray-300 text-gray-900"
@@ -590,7 +591,7 @@ const ChangeRequestForm = ({
         {/* Reason */}
         <div>
           <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
-            <DocumentTextIcon className="w-5 h-5 mr-2 text-[#F68313]" />
+            <DocumentTextIcon className="w-5 h-5 mr-2 text-brand-500" />
             변경 사유
           </h3>
 
@@ -603,7 +604,7 @@ const ChangeRequestForm = ({
               value={changeFormData.reason}
               onChange={handleChange}
               rows={4}
-              className={`block w-full px-3 py-2 border text-sm focus:outline-none focus:ring-2 focus:ring-[#F68313] focus:border-[#F68313] ${
+              className={`block w-full px-3 py-2 border text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 ${
                 errors.reason
                   ? "border-red-300 text-red-900 focus:ring-red-500 focus:border-red-500"
                   : "border-gray-300 text-gray-900"
@@ -647,7 +648,7 @@ const ChangeRequestForm = ({
             variant="primary"
             loading={isLoading}
             disabled={isLoading}
-            className="bg-[#F68313] hover:bg-[#E6750F] border-[#F68313] hover:border-[#E6750F]"
+            className="bg-brand-500 hover:bg-brand-600 border-brand-500 hover:border-brand-600"
           >
             <PencilSquareIcon className="w-4 h-4 mr-1" />
             변경 요청 제출

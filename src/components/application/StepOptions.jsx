@@ -78,7 +78,7 @@ const StepOptions = () => {
             onChange={handleChange}
             onBlur={handleBlur}
             rows={4}
-            className={`block w-full px-3 py-2 border text-sm focus:outline-none focus:ring-2 focus:ring-[#F68313] focus:border-[#F68313] ${
+            className={`block w-full px-3 py-2 border text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 ${
               (getFieldError("usage_purpose") || errors.usage_purpose)
                 ? "border-red-300 text-red-900"
                 : "border-gray-300 text-gray-900"
@@ -103,6 +103,7 @@ const StepOptions = () => {
           onAddGroup={addGroup}
           onRemoveGroup={removeGroup}
           onCreateGroup={handleCreateGroup}
+          ubuntuUsername={formData.ubuntu_username}
         />
 
         <PortSelector

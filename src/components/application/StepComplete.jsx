@@ -45,7 +45,7 @@ const StepComplete = () => {
           variant="primary"
           onClick={() => navigate("/requests")}
           icon={ClipboardDocumentListIcon}
-          className="bg-[#F68313] hover:bg-[#E6750F] border-[#F68313]"
+          className="bg-brand-500 hover:bg-brand-600 border-brand-500"
         >
           신청 현황 보기
         </Button>
