@@ -72,9 +72,11 @@ class ApiClient {
           sessionEventManager.triggerSessionExpired();
         }
 
-        throw new Error(
+        const err = new Error(
           errorData.message || `HTTP error! status: ${response.status}`
         );
+        err.status = response.status;
+        throw err;
       }
     } catch (error) {
       console.error("API Request Error:", error);
