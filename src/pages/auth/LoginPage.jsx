@@ -135,7 +135,7 @@ const LoginPage = ({ onLogin }) => {
                   <div className="text-sm">
                     <Link
                       to="/forgot-password"
-                      className="font-medium text-[#F68313] hover:text-[#E6750F] tracking-tight"
+                      className="font-medium text-brand-500 hover:text-brand-600 tracking-tight"
                     >
                       비밀번호를 잊으셨나요? (Forgot Password?)
                     </Link>
@@ -169,7 +169,7 @@ const LoginPage = ({ onLogin }) => {
                     계정이 없으신가요?{" "}
                     <Link
                       to="/signup"
-                      className="font-medium text-[#F68313] hover:text-[#E6750F]"
+                      className="font-medium text-brand-500 hover:text-brand-600"
                     >
                       회원가입 (Sign Up)
                     </Link>
@@ -197,7 +197,7 @@ const LoginPage = ({ onLogin }) => {
           src="/dongguk_university_picture_1.jpg"
           alt="동국대학교"
         />
-        <div className="absolute inset-0 bg-[#F68313] opacity-20"></div>
+        <div className="absolute inset-0 bg-brand-500 opacity-20"></div>
       </div>
     </div>
   );

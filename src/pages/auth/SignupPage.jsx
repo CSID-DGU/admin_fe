@@ -246,7 +246,7 @@ const SignupPage = () => {
                   <div
                     className={`flex items-center justify-center w-8 h-8 text-sm font-medium ${
                       step >= 1
-                        ? "bg-[#F68313] text-white"
+                        ? "bg-brand-500 text-white"
                         : "bg-gray-200 text-gray-600"
                     }`}
                     style={{ borderRadius: "2px" }}
@@ -255,13 +255,13 @@ const SignupPage = () => {
                   </div>
                   <div
                     className={`flex-1 h-1 mx-2 ${
-                      step >= 2 ? "bg-[#F68313]" : "bg-gray-200"
+                      step >= 2 ? "bg-brand-500" : "bg-gray-200"
                     }`}
                   ></div>
                   <div
                     className={`flex items-center justify-center w-8 h-8 text-sm font-medium ${
                       step >= 2
-                        ? "bg-[#F68313] text-white"
+                        ? "bg-brand-500 text-white"
                         : "bg-gray-200 text-gray-600"
                     }`}
                     style={{ borderRadius: "2px" }}
@@ -452,7 +452,7 @@ const SignupPage = () => {
                   이미 계정이 있으신가요?{" "}
                   <Link
                     to="/login"
-                    className="font-medium text-[#F68313] hover:text-[#E6750F]"
+                    className="font-medium text-brand-500 hover:text-brand-600"
                   >
                     로그인
                   </Link>
@@ -481,7 +481,7 @@ const SignupPage = () => {
           src="/dongguk_university_picture_1.jpg"
           alt="동국대학교"
         />
-        <div className="absolute inset-0 bg-[#F68313] opacity-20"></div>
+        <div className="absolute inset-0 bg-brand-500 opacity-20"></div>
       </div>
     </div>
   );

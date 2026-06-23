@@ -79,7 +79,7 @@ const UserDashboard = ({ user }) => {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#F68313] mx-auto"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-500 mx-auto"></div>
           <p className="mt-4 text-gray-600">대시보드 정보를 불러오는 중...</p>
         </div>
       </div>
@@ -145,7 +145,7 @@ const UserDashboard = ({ user }) => {
           <Card title="전체 서버">
             <div className="flex items-center justify-between">
               <div className="flex items-center">
-                <ServerIcon className="w-8 h-8 text-[#F68313] mr-3" />
+                <ServerIcon className="w-8 h-8 text-brand-500 mr-3" />
                 <div>
                   <p className="text-2xl font-bold text-gray-900">
                     {dashboardData.totalServers}
@@ -337,7 +337,7 @@ const UserDashboard = ({ user }) => {
                       <Button
                         variant="outline"
                         size="small"
-                        className="border-[#F68313] text-[#F68313] hover:bg-[#F68313] hover:text-white"
+                        className="border-brand-500 text-brand-500 hover:bg-brand-500 hover:text-white"
                         onClick={() => {
                           navigator.clipboard.writeText(server.serverAddress);
                           // TODO: 토스트 메시지 추가

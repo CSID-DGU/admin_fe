@@ -243,7 +243,7 @@ const AppContent = () => {
               <p className="text-gray-600 mb-8">페이지를 찾을 수 없습니다.</p>
               <a
                 href="/"
-                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium text-white bg-[#F68313] hover:bg-[#E6750F]"
+                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium text-white bg-brand-500 hover:bg-brand-600"
               >
                 홈으로 돌아가기
               </a>
