@@ -19,6 +19,7 @@ import ChangeRequestManagementPage from "./pages/admin/ChangeRequestManagementPa
 import UserManagementPage from "./pages/admin/UserManagementPage";
 import ResourceMonitoringPage from "./pages/admin/ResourceMonitoringPage";
 import ImageManagementPage from "./pages/admin/ImageManagementPage";
+import MessageTemplatePage from "./pages/admin/MessageTemplatePage";
 
 // Other Pages
 import AccountPage from "./pages/AccountPage";
@@ -197,6 +198,17 @@ const AppContent = () => {
           <ProtectedRoute requireAdmin>
             <DashboardLayout user={user} onLogout={logout}>
               <ImageManagementPage />
+            </DashboardLayout>
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/admin/message-templates"
+        element={
+          <ProtectedRoute requireAdmin>
+            <DashboardLayout user={user} onLogout={logout}>
+              <MessageTemplatePage />
             </DashboardLayout>
           </ProtectedRoute>
         }
