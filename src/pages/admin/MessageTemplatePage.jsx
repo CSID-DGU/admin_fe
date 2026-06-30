@@ -17,6 +17,7 @@ const CATEGORIES = [
 const MessageTemplatePage = () => {
   const [templates, setTemplates] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [alert, setAlert] = useState(null);
   const [editing, setEditing] = useState(null);
 
@@ -36,26 +37,49 @@ const MessageTemplatePage = () => {
     }
   };
 
-  const handleUpdate = async () => {
+  const closeModal = () => setEditing(null);
+
+  useEffect(() => {
     if (!editing) return;
-    const result = await updateMessage(editing.key, editing.value);
-    if (result.success) {
-      setAlert({ type: 'success', message: '메시지가 수정되었습니다.' });
-      setEditing(null);
-      fetchTemplates();
-    } else {
-      setAlert({ type: 'error', message: result.error });
+    const onKey = (e) => { if (e.key === 'Escape') closeModal(); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [editing]);
+
+  const handleUpdate = async () => {
+    if (!editing || saving) return;
+    if (!editing.value.trim()) {
+      setAlert({ type: 'error', message: '메시지 내용을 입력해주세요.' });
+      return;
+    }
+    setSaving(true);
+    try {
+      const result = await updateMessage(editing.key, editing.value);
+      if (result.success) {
+        setAlert({ type: 'success', message: '메시지가 수정되었습니다.' });
+        closeModal();
+        fetchTemplates();
+      } else {
+        setAlert({ type: 'error', message: result.error });
+      }
+    } finally {
+      setSaving(false);
     }
   };
 
   const handleReset = async (key) => {
-    if (!window.confirm('기본값으로 초기화하시겠습니까?')) return;
-    const result = await resetMessage(key);
-    if (result.success) {
-      setAlert({ type: 'success', message: '기본값으로 복원되었습니다.' });
-      fetchTemplates();
-    } else {
-      setAlert({ type: 'error', message: result.error });
+    if (saving || !window.confirm('기본값으로 초기화하시겠습니까?')) return;
+    setSaving(true);
+    try {
+      const result = await resetMessage(key);
+      if (result.success) {
+        setAlert({ type: 'success', message: '기본값으로 복원되었습니다.' });
+        fetchTemplates();
+      } else {
+        setAlert({ type: 'error', message: result.error });
+      }
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -125,7 +149,7 @@ const MessageTemplatePage = () => {
                             편집
                           </Button>
                           {t.overridden && (
-                            <Button size="small" variant="secondary" onClick={() => handleReset(t.key)}>
+                            <Button size="small" variant="secondary" disabled={saving} onClick={() => handleReset(t.key)}>
                               초기화
                             </Button>
                           )}
@@ -141,8 +165,8 @@ const MessageTemplatePage = () => {
       )}
 
       {editing && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white w-full max-w-2xl p-6">
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4" onClick={closeModal}>
+          <div className="bg-white w-full max-w-2xl p-6" onClick={e => e.stopPropagation()}>
             <h3 className="text-lg font-medium text-gray-900 mb-2">메시지 편집</h3>
             <p className="text-sm text-gray-500 font-mono mb-4">{editing.key}</p>
 
@@ -167,8 +191,10 @@ const MessageTemplatePage = () => {
             </div>
 
             <div className="flex justify-end gap-2">
-              <Button variant="secondary" onClick={() => setEditing(null)}>취소</Button>
-              <Button variant="primary" onClick={handleUpdate}>저장</Button>
+              <Button variant="secondary" onClick={closeModal} disabled={saving}>취소</Button>
+              <Button variant="primary" onClick={handleUpdate} disabled={saving || !editing.value.trim()}>
+                {saving ? '저장 중...' : '저장'}
+              </Button>
             </div>
           </div>
         </div>
