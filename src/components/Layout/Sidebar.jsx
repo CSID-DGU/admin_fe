@@ -10,6 +10,7 @@ import {
   ClipboardDocumentListIcon,
   ArrowsRightLeftIcon,
   PhotoIcon,
+  EnvelopeIcon,
 } from "@heroicons/react/24/outline";
 
 const Sidebar = ({ isCollapsed, userRole = "USER" }) => {
@@ -42,6 +43,7 @@ const Sidebar = ({ isCollapsed, userRole = "USER" }) => {
     { name: "리소스 모니터링", href: "/admin/monitoring", icon: ChartBarIcon },
     { name: "컨테이너 관리", href: "/admin/containers", icon: ServerIcon },
     { name: "이미지 관리", href: "/admin/images", icon: PhotoIcon },
+    { name: "양식 관리", href: "/admin/message-templates", icon: EnvelopeIcon },
     { name: "시스템 설정", href: "/admin/settings", icon: CogIcon },
   ];
 
