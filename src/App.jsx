@@ -9,6 +9,8 @@ import { useAuth } from "./hooks/useAuth";
 import ProtectedRoute from "./components/Auth/ProtectedRoute";
 import DashboardLayout from "./components/Layout/DashboardLayout";
 import { Container, Header, Icon } from "./design-system";
+import AdminConsoleApp from "./pages/decs-console/admin/AdminConsoleApp";
+import UserPortalApp from "./pages/decs-console/user/UserPortalApp";
 
 const PlaceholderPage = ({ title }) => (
   <div className="space-y-6">
@@ -73,6 +75,9 @@ const AppContent = () => {
           )
         }
       />
+      {/* DECS Console 예시 (디자인 시스템 데모) */}
+      <Route path="/decs/admin" element={<AdminConsoleApp />} />
+      <Route path="/decs/user" element={<UserPortalApp />} />
 
       {/* Protected User Routes */}
       <Route
