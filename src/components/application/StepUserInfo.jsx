@@ -1,49 +1,46 @@
 import { useApplicationForm } from "../../hooks/useApplicationForm";
-import Input from "../UI/Input";
-import { UserIcon, KeyIcon } from "@heroicons/react/24/outline";
+import { FormField, Input } from "../../design-system";
 
 const StepUserInfo = () => {
-  const { formData, handleChange, handleBlur, getFieldError, errors } =
-    useApplicationForm();
+  const { formData, updateField, getFieldError, errors } = useApplicationForm();
+
+  const err = (name) => getFieldError(name) || errors[name];
 
   return (
-    <div className="space-y-6">
-      <div className="text-center mb-8">
-        <h2 className="text-xl font-bold text-gray-900">계정 정보를 입력하세요</h2>
-        <p className="text-gray-500 mt-2">
-          서버에서 사용할 우분투 계정을 설정합니다.
-        </p>
-      </div>
-
-      <div className="max-w-lg mx-auto space-y-6">
+    <div className="max-w-lg space-y-6">
+      <FormField
+        label="우분투 계정명"
+        description="서버에 로그인할 때 쓸 이름이에요."
+        errorText={err("ubuntu_username")}
+        constraintText="소문자, 숫자, 언더스코어(_), 하이픈(-)만 사용할 수 있어요."
+        htmlFor="ubuntu_username"
+      >
         <Input
-          label="우분투 계정명"
-          name="ubuntu_username"
-          type="text"
+          id="ubuntu_username"
           value={formData.ubuntu_username}
-          onChange={handleChange}
-          onBlur={handleBlur}
-          error={getFieldError("ubuntu_username") || errors.ubuntu_username}
+          onChange={(value) => updateField("ubuntu_username", value)}
           placeholder="예: john_doe123"
-          help="소문자, 숫자, 언더스코어(_), 하이픈(-)만 사용 가능"
-          required
-          icon={UserIcon}
+          iconName="user-circle"
+          invalid={!!err("ubuntu_username")}
         />
+      </FormField>
 
+      <FormField
+        label="우분투 계정 비밀번호"
+        errorText={err("ubuntu_password")}
+        constraintText="4자 이상 입력해주세요."
+        htmlFor="ubuntu_password"
+      >
         <Input
-          label="우분투 계정 비밀번호"
-          name="ubuntu_password"
+          id="ubuntu_password"
           type="password"
           value={formData.ubuntu_password}
-          onChange={handleChange}
-          onBlur={handleBlur}
-          error={getFieldError("ubuntu_password") || errors.ubuntu_password}
+          onChange={(value) => updateField("ubuntu_password", value)}
           placeholder="비밀번호를 입력하세요"
-          help="최소 4자 이상 입력해주세요"
-          required
-          icon={KeyIcon}
+          iconName="key"
+          invalid={!!err("ubuntu_password")}
         />
-      </div>
+      </FormField>
     </div>
   );
 };

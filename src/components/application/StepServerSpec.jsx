@@ -1,10 +1,11 @@
 import { useApplication } from "../../contexts/ApplicationContext";
 import {
-  CpuChipIcon,
-  ComputerDesktopIcon,
-  ServerIcon,
-  CheckCircleIcon,
-} from "@heroicons/react/24/outline";
+  Cards,
+  FormField,
+  Header,
+  Badge,
+  StatusIndicator,
+} from "../../design-system";
 
 const StepServerSpec = () => {
   const { formData, updateField, gpuTypes, containerImages, errors } =
@@ -16,12 +17,12 @@ const StepServerSpec = () => {
     (gpu) => gpu.serverName === formData.server_type
   );
 
-  const groupedGpus = Object.entries(
+  const gpuItems = Object.values(
     filteredGpuTypes.reduce((acc, gpu) => {
       if (!hasId(gpu.rsgroupId)) return acc;
       const key = `${gpu.gpuModel}-${gpu.ramGb}GB`;
       if (!acc[key]) {
-        acc[key] = { ...gpu, availableNodes: 0, nodeIds: [] };
+        acc[key] = { ...gpu, groupKey: key, availableNodes: 0, nodeIds: [] };
       }
       acc[key].availableNodes += gpu.availableNodes || 0;
       acc[key].nodeIds.push(gpu.nodeId);
@@ -59,152 +60,118 @@ const StepServerSpec = () => {
 
   return (
     <div className="space-y-8">
-      <div className="text-center mb-4">
-        <h2 className="text-xl font-bold text-gray-900">서버 사양을 선택하세요</h2>
-        <p className="text-gray-500 mt-2">
-          <span className="inline-flex items-center px-2 py-0.5 text-sm font-medium bg-orange-100 text-brand-500 mr-1">
-            {formData.server_type}
-          </span>
-          서버의 GPU와 컨테이너 이미지를 선택합니다.
-        </p>
+      <div className="flex items-center gap-2 text-sm text-(--decs-text-secondary)">
+        선택한 서버
+        <Badge color="brand">{formData.server_type}</Badge>
       </div>
 
       {/* GPU Selection */}
-      <section>
-        <h3 className="text-base font-semibold text-gray-900 mb-3 flex items-center">
-          <CpuChipIcon className="w-5 h-5 mr-2 text-brand-500" />
-          GPU 선택
-        </h3>
-
-        {groupedGpus.length === 0 ? (
-          <p className="text-gray-500 text-sm py-4">
-            선택한 서버에 사용 가능한 GPU가 없습니다.
-          </p>
-        ) : (
-          <div className="grid grid-cols-1 gap-3">
-            {groupedGpus.map(([gpuKey, gpu]) => {
-              const isSelected = formData.rsgroup_id === String(gpu.rsgroupId);
-              const isDisabled = gpu.availableNodes === 0;
-              return (
-                <button
-                  key={gpuKey}
-                  type="button"
-                  disabled={isDisabled}
-                  onClick={() => handleGpuSelect(gpu.rsgroupId)}
-                  className={`relative w-full p-4 border-2 text-left transition-all duration-200
-                    ${isDisabled
-                      ? "border-gray-100 bg-gray-50 cursor-not-allowed opacity-60"
-                      : isSelected
-                        ? "border-brand-500 bg-orange-50 shadow-sm"
-                        : "border-gray-200 bg-white hover:border-gray-300"
-                    }`}
-                >
-                  {isSelected && (
-                    <CheckCircleIcon className="absolute top-3 right-3 w-5 h-5 text-brand-500" />
+      <section className="space-y-3">
+        <Header variant="h3">GPU 선택</Header>
+        <FormField errorText={errors.rsgroup_id}>
+          <Cards
+            items={gpuItems}
+            trackBy="groupKey"
+            columns={1}
+            selectionType="single"
+            selectedItems={gpuItems.filter(
+              (gpu) => formData.rsgroup_id === String(gpu.rsgroupId)
+            )}
+            onSelectionChange={([gpu]) => {
+              if (gpu.availableNodes === 0) return;
+              handleGpuSelect(gpu.rsgroupId);
+            }}
+            empty="선택한 서버에 사용할 수 있는 GPU가 없어요."
+            cardDefinition={{
+              header: (gpu) => (
+                <span className="inline-flex items-center gap-2">
+                  {gpu.gpuModel}
+                  {gpu.availableNodes > 0 ? (
+                    <Badge color="green">사용 가능</Badge>
+                  ) : (
+                    <Badge color="red">사용 불가</Badge>
                   )}
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className="font-semibold text-gray-900">
-                          {gpu.gpuModel}
-                        </span>
-                        <span
-                          className={`inline-flex px-2 py-0.5 text-xs font-medium ${
-                            gpu.availableNodes > 0
-                              ? "bg-green-100 text-green-700"
-                              : "bg-red-100 text-red-700"
-                          }`}
-                        >
-                          {gpu.availableNodes > 0 ? "사용 가능" : "사용 불가"}
-                        </span>
-                      </div>
-                      <p className="text-sm text-gray-500 mt-1">{gpu.description}</p>
-                      <div className="flex gap-4 text-xs text-gray-400 mt-2">
-                        <span>메모리: {gpu.ramGb}GB</span>
-                        <span>가용 노드: {gpu.availableNodes}개</span>
-                        <span>노드 ID: {gpu.nodeIds.join(", ")}</span>
-                      </div>
-                    </div>
-                  </div>
-                </button>
-              );
-            })}
-          </div>
-        )}
-
-        {errors.rsgroup_id && (
-          <p className="text-sm text-red-600 mt-2">{errors.rsgroup_id}</p>
-        )}
+                </span>
+              ),
+              sections: [
+                {
+                  id: "description",
+                  content: (gpu) => gpu.description,
+                },
+                {
+                  id: "spec",
+                  content: (gpu) => (
+                    <span className="text-(--decs-text-secondary)">
+                      메모리 {gpu.ramGb}GB · 바로 쓸 수 있는 서버{" "}
+                      {gpu.availableNodes}대 · 장비 번호{" "}
+                      {gpu.nodeIds.join(", ")}
+                    </span>
+                  ),
+                },
+              ],
+            }}
+          />
+        </FormField>
       </section>
 
       {/* Container Image Selection */}
-      <section>
-        <h3 className="text-base font-semibold text-gray-900 mb-3 flex items-center">
-          <ComputerDesktopIcon className="w-5 h-5 mr-2 text-brand-500" />
-          컨테이너 이미지 선택
-        </h3>
-
-        {groupedImages.length === 0 ? (
-          <p className="text-gray-500 text-sm py-4">
-            컨테이너 이미지 정보를 불러오는 중...
-          </p>
-        ) : (
-          <div className="space-y-6">
-            {groupedImages.map(([framework, images]) => (
-              <div key={framework}>
-                <h4 className="text-sm font-medium text-gray-700 mb-2 flex items-center">
-                  <ServerIcon className="w-4 h-4 mr-1 text-gray-400" />
-                  {framework.charAt(0).toUpperCase() + framework.slice(1)}
-                </h4>
-                <div className="grid grid-cols-1 gap-2">
-                  {images.map((image) => {
-                    const isSelected =
-                      formData.image_id === String(image.imageId);
-                    return (
-                      <button
-                        key={image.imageId}
-                        type="button"
-                        onClick={() => handleImageSelect(image.imageId)}
-                        className={`relative w-full p-4 border-2 text-left transition-all duration-200
-                          ${isSelected
-                            ? "border-brand-500 bg-orange-50 shadow-sm"
-                            : "border-gray-200 bg-white hover:border-gray-300"
-                          }`}
-                      >
-                        {isSelected && (
-                          <CheckCircleIcon className="absolute top-3 right-3 w-5 h-5 text-brand-500" />
-                        )}
-                        <div>
-                          <span className="font-semibold text-gray-900">
-                            {image.imageName} {image.imageVersion}
-                          </span>
-                          {image.description && (
-                            <p className="text-sm text-gray-500 mt-1">
-                              {image.description}
-                            </p>
-                          )}
-                          <div className="flex gap-4 text-xs text-gray-400 mt-2">
-                            <span>CUDA: {image.cudaVersion}</span>
-                            <span>ID: {image.imageId}</span>
-                          </div>
-                        </div>
-                      </button>
-                    );
-                  })}
+      <section className="space-y-3">
+        <Header variant="h3">컨테이너 이미지 선택</Header>
+        <FormField
+          errorText={errors.image_id}
+          constraintText={
+            !errors.image_id
+              ? "연구에 필요한 프레임워크와 CUDA 버전을 확인하고 골라주세요."
+              : undefined
+          }
+        >
+          {groupedImages.length === 0 ? (
+            <div className="py-4">
+              <StatusIndicator type="loading">
+                컨테이너 이미지 정보를 불러오고 있어요...
+              </StatusIndicator>
+            </div>
+          ) : (
+            <div className="space-y-6">
+              {groupedImages.map(([framework, images]) => (
+                <div key={framework} className="space-y-2">
+                  <div className="text-sm font-medium text-(--decs-text-secondary)">
+                    {framework.charAt(0).toUpperCase() + framework.slice(1)}
+                  </div>
+                  <Cards
+                    items={images}
+                    trackBy="imageId"
+                    columns={2}
+                    selectionType="single"
+                    selectedItems={images.filter(
+                      (image) => formData.image_id === String(image.imageId)
+                    )}
+                    onSelectionChange={([image]) =>
+                      handleImageSelect(image.imageId)
+                    }
+                    cardDefinition={{
+                      header: (image) =>
+                        `${image.imageName} ${image.imageVersion}`,
+                      sections: [
+                        {
+                          id: "detail",
+                          content: (image) => (
+                            <div>
+                              {image.description && <p>{image.description}</p>}
+                              <p className="text-(--decs-text-secondary)">
+                                CUDA {image.cudaVersion}
+                              </p>
+                            </div>
+                          ),
+                        },
+                      ],
+                    }}
+                  />
                 </div>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {errors.image_id && (
-          <p className="text-sm text-red-600 mt-2">{errors.image_id}</p>
-        )}
-        {!errors.image_id && (
-          <p className="text-xs text-gray-400 mt-2">
-            연구에 필요한 프레임워크와 CUDA 버전을 고려하여 선택하세요
-          </p>
-        )}
+              ))}
+            </div>
+          )}
+        </FormField>
       </section>
     </div>
   );

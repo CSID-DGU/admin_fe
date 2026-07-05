@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { ApplicationProvider, useApplication } from "../contexts/ApplicationContext";
-import ApplicationStepper from "../components/application/ApplicationStepper";
 import StepServerType from "../components/application/StepServerType";
 import StepServerSpec from "../components/application/StepServerSpec";
 import StepUserInfo from "../components/application/StepUserInfo";
@@ -14,76 +14,117 @@ import {
   normalizeGpuType,
 } from "../utils/applicationDataMapper";
 import { mapApprovedRequestDtoToApplicationModel } from "../utils/requestMapper";
-import Alert from "../components/UI/Alert";
-import Button from "../components/UI/Button";
 import {
-  ServerIcon,
-  PencilSquareIcon,
-  ChevronLeftIcon,
-  ChevronRightIcon,
-} from "@heroicons/react/24/outline";
+  Wizard,
+  Header,
+  Tabs,
+  Alert,
+  Container,
+  StatusIndicator,
+} from "../design-system";
 
-const STEP_COMPONENTS = {
-  1: StepServerType,
-  2: StepServerSpec,
-  3: StepUserInfo,
-  4: StepOptions,
-  5: StepReview,
-  6: StepComplete,
-};
-
-const WizardNavigation = () => {
-  const { currentStep, goNext, goPrev } = useApplication();
-
-  if (currentStep >= 5) return null;
-
-  return (
-    <div className="flex justify-between items-center pt-8 border-t border-gray-200 mt-8">
-      <Button
-        variant="outline"
-        onClick={goPrev}
-        disabled={currentStep === 1}
-        icon={ChevronLeftIcon}
-      >
-        이전
-      </Button>
-
-      <Button
-        variant="primary"
-        onClick={goNext}
-        className="bg-brand-500 hover:bg-brand-600 border-brand-500 hover:border-brand-600"
-      >
-        다음
-        <ChevronRightIcon className="w-4 h-4 ml-1" />
-      </Button>
-    </div>
-  );
-};
+const LoadingState = ({ children }) => (
+  <div className="flex items-center justify-center min-h-96">
+    <StatusIndicator type="loading">{children}</StatusIndicator>
+  </div>
+);
 
 const WizardContent = () => {
-  const { currentStep, isInitialLoading } = useApplication();
+  const navigate = useNavigate();
+  const {
+    currentStep,
+    goNext,
+    goToStep,
+    isInitialLoading,
+    submitApplication,
+    isSubmitting,
+  } = useApplication();
+  const [submitError, setSubmitError] = useState(null);
 
   if (isInitialLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-96">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-500 mx-auto"></div>
-          <p className="mt-4 text-gray-600">데이터를 불러오는 중...</p>
-        </div>
-      </div>
-    );
+    return <LoadingState>데이터를 불러오고 있어요...</LoadingState>;
   }
 
-  const StepComponent = STEP_COMPONENTS[currentStep];
+  if (currentStep >= 6) {
+    return <StepComplete />;
+  }
+
+  const steps = [
+    {
+      title: "서버 유형",
+      description: "사용할 서버를 골라주세요.",
+      content: <StepServerType />,
+    },
+    {
+      title: "서버 사양",
+      description: "GPU와 컨테이너 이미지를 골라주세요.",
+      content: <StepServerSpec />,
+    },
+    {
+      title: "계정 정보",
+      description: "서버에서 사용할 계정을 만들어주세요.",
+      content: <StepUserInfo />,
+    },
+    {
+      title: "추가 옵션",
+      description: "저장 공간과 사용 기간을 알려주세요.",
+      content: <StepOptions />,
+    },
+    {
+      title: "신청 검토",
+      description: "입력한 내용을 확인하고 제출해주세요.",
+      content: (
+        <div className="space-y-6">
+          {submitError && (
+            <Alert
+              type="error"
+              header="신청 제출 실패"
+              dismissible
+              onDismiss={() => setSubmitError(null)}
+            >
+              {submitError}
+            </Alert>
+          )}
+          <StepReview />
+        </div>
+      ),
+    },
+  ];
+
+  // Wizard is 0-based; the application state machine is 1-based.
+  // Forward moves go through goNext so step validation keeps gating navigation.
+  const handleNavigate = (index) => {
+    const target = index + 1;
+    if (target > currentStep) {
+      goNext();
+    } else {
+      goToStep(target);
+    }
+  };
+
+  const handleSubmit = async () => {
+    setSubmitError(null);
+    try {
+      await submitApplication();
+    } catch (err) {
+      setSubmitError(
+        err.message || "서버 신청에 실패했습니다. 다시 시도해주세요."
+      );
+    }
+  };
 
   return (
-    <div className="bg-white border border-gray-200 p-6 md:p-8">
-      <ApplicationStepper />
-      <div className="mt-12">
-        <StepComponent />
-      </div>
-      <WizardNavigation />
-    </div>
+    <Container>
+      <Wizard
+        steps={steps}
+        activeStepIndex={currentStep - 1}
+        onNavigate={handleNavigate}
+        onCancel={() => navigate("/requests")}
+        onSubmit={handleSubmit}
+        submitLabel="신청 제출"
+        isLoadingNextStep={isSubmitting}
+      />
+    </Container>
   );
 };
 
@@ -159,69 +200,21 @@ const ServerApplicationPage = () => {
     }, 100);
   };
 
-  return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">서버 관리</h1>
-        <p className="text-gray-600 mt-1">
-          새로운 서버를 신청하거나 기존 서버 정보를 변경하세요.
-        </p>
-      </div>
-
-      <div className="border-b border-gray-200">
-        <nav className="-mb-px flex space-x-8" aria-label="Tabs">
-          <button
-            onClick={() => {
-              setActiveTab("new");
-              setAlert(null);
-            }}
-            className={`py-2 px-1 border-b-2 font-medium text-sm ${
-              activeTab === "new"
-                ? "border-brand-500 text-brand-500"
-                : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-            }`}
-          >
-            <ServerIcon className="w-5 h-5 inline mr-2" />
-            서버 신청서
-          </button>
-          <button
-            onClick={() => {
-              setActiveTab("change");
-              setAlert(null);
-            }}
-            className={`py-2 px-1 border-b-2 font-medium text-sm ${
-              activeTab === "change"
-                ? "border-brand-500 text-brand-500"
-                : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-            }`}
-          >
-            <PencilSquareIcon className="w-5 h-5 inline mr-2" />
-            승인된 서버 정보 변경
-          </button>
-        </nav>
-      </div>
-
-      {alert && (
-        <Alert
-          type={alert.type}
-          onClose={() => setAlert(null)}
-          title={alert.type === "success" ? "변경 요청 완료" : "변경 요청 실패"}
-        >
-          {alert.message}
-        </Alert>
-      )}
-
-      {activeTab === "new" ? (
+  const tabs = [
+    {
+      id: "new",
+      label: "서버 신청서",
+      content: (
         <ApplicationProvider>
           <WizardContent />
         </ApplicationProvider>
-      ) : isChangeDataLoading ? (
-        <div className="flex items-center justify-center min-h-96">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-500 mx-auto"></div>
-            <p className="mt-4 text-gray-600">데이터를 불러오는 중...</p>
-          </div>
-        </div>
+      ),
+    },
+    {
+      id: "change",
+      label: "승인된 서버 정보 변경",
+      content: isChangeDataLoading ? (
+        <LoadingState>데이터를 불러오고 있어요...</LoadingState>
       ) : (
         <ChangeRequestForm
           changeFormData={changeFormData}
@@ -233,7 +226,38 @@ const ServerApplicationPage = () => {
           onUpdateAvailableGroups={setAvailableGroups}
           onSuccess={handleChangeSuccess}
         />
+      ),
+    },
+  ];
+
+  return (
+    <div className="space-y-6">
+      <Header
+        variant="h1"
+        description="새로운 서버를 신청하거나 기존 서버 정보를 변경하세요."
+      >
+        서버 관리
+      </Header>
+
+      {alert && (
+        <Alert
+          type={alert.type}
+          header={alert.type === "success" ? "변경 요청 완료" : "변경 요청 실패"}
+          dismissible
+          onDismiss={() => setAlert(null)}
+        >
+          {alert.message}
+        </Alert>
       )}
+
+      <Tabs
+        tabs={tabs}
+        activeTabId={activeTab}
+        onChange={(id) => {
+          setActiveTab(id);
+          setAlert(null);
+        }}
+      />
     </div>
   );
 };

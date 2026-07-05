@@ -1,40 +1,41 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import Card from "../UI/Card";
-import Button from "../UI/Button";
-import Input from "../UI/Input";
 import GroupSelector from "./GroupSelector";
 import PortSelector from "./PortSelector";
 import { requestService } from "../../services/requestService";
 import { validateServerForm } from "../../utils/formValidator";
 import {
-  UserIcon,
-  CalendarIcon,
-  CpuChipIcon,
-  CircleStackIcon,
-  DocumentTextIcon,
-  ComputerDesktopIcon,
-  ClockIcon,
-  ServerIcon,
-  KeyIcon,
-} from "@heroicons/react/24/outline";
+  Container,
+  Header,
+  FormField,
+  Input,
+  Cards,
+  Badge,
+  Alert,
+  Button,
+  StatusIndicator,
+} from "../../design-system";
 
-const ServerForm = ({ 
-  formData, 
-  setFormData, 
-  gpuTypes, 
-  containerImages, 
+const textareaClass = (invalid) =>
+  `block w-full px-3 py-1.5 text-sm bg-(--decs-surface-input) text-(--decs-text-body) rounded-(--decs-radius-input) border focus:outline-none focus:ring-1 focus:ring-(--decs-border-focus) focus:border-(--decs-border-focus) ${
+    invalid ? "border-(--decs-status-error)" : "border-(--decs-border-input)"
+  }`;
+
+const ServerForm = ({
+  formData,
+  setFormData,
+  gpuTypes,
+  containerImages,
   availableGroups,
   onUpdateAvailableGroups,
-  onSuccess 
+  onSuccess,
 }) => {
   const navigate = useNavigate();
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
   const hasId = (id) => id !== undefined && id !== null;
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
+  const handleFieldChange = (name, value) => {
     setFormData((prev) => ({
       ...prev,
       [name]: value,
@@ -47,6 +48,8 @@ const ServerForm = ({
       }));
     }
   };
+
+  const handleChange = (e) => handleFieldChange(e.target.name, e.target.value);
 
   // 그룹 추가 핸들러
   const addGroup = (gid) => {
@@ -73,7 +76,7 @@ const ServerForm = ({
     if (onUpdateAvailableGroups) {
       onUpdateAvailableGroups(updatedGroups);
     }
-    
+
     // GroupSelector에서 API 성공 후에 직접 addGroup을 호출하므로
     // 여기서는 addGroup을 호출하지 않음
   };
@@ -118,9 +121,7 @@ const ServerForm = ({
     }));
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
+  const handleSubmit = async () => {
     const validation = validateServerForm(formData);
     if (!validation.isValid) {
       setErrors(validation.errors);
@@ -189,415 +190,329 @@ const ServerForm = ({
     }
   };
 
+  // GPU 타입을 서버별로 그룹화
+  const groupedGpusByServer = Object.entries(
+    (gpuTypes || []).reduce((acc, gpu) => {
+      if (!acc[gpu.serverName]) {
+        acc[gpu.serverName] = [];
+      }
+      acc[gpu.serverName].push(gpu);
+      return acc;
+    }, {})
+  ).map(([serverName, serverGpus]) => [
+    serverName,
+    Object.values(
+      serverGpus.reduce((acc, gpu) => {
+        if (!hasId(gpu.rsgroupId)) return acc;
+        const key = `${gpu.gpuModel}-${gpu.ramGb}GB`;
+        if (!acc[key]) {
+          acc[key] = { ...gpu, groupKey: key, availableNodes: 0, nodeIds: [] };
+        }
+        acc[key].availableNodes += gpu.availableNodes || 0;
+        acc[key].nodeIds.push(gpu.nodeId);
+        return acc;
+      }, {})
+    ),
+  ]);
+
+  // 컨테이너 이미지를 프레임워크별로 그룹화
+  const groupedImages = Object.entries(
+    (containerImages || []).reduce((acc, image) => {
+      const frameworkName = image.imageName || image.image_name || "Unknown";
+      const imageId = image.imageId ?? image.image_id;
+      if (!hasId(imageId)) return acc;
+      const imageVersion = image.imageVersion || image.image_version;
+      const cudaVersion = image.cudaVersion || image.cuda_version;
+
+      if (!acc[frameworkName]) {
+        acc[frameworkName] = [];
+      }
+      acc[frameworkName].push({
+        ...image,
+        imageId,
+        imageName: frameworkName,
+        imageVersion,
+        cudaVersion,
+        description: image.description,
+      });
+      return acc;
+    }, {})
+  );
+
   return (
-    <Card
-      title="서버 신청서"
-      subtitle="모든 필수 항목을 정확히 입력해주세요."
+    <Container
+      header={
+        <Header variant="h2" description="모든 필수 항목을 정확히 입력해주세요.">
+          서버 신청서
+        </Header>
+      }
     >
-      <form onSubmit={handleSubmit} className="space-y-8">
+      <div className="space-y-10">
         {/* Basic Information Section */}
-        <div>
-          <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
-            <UserIcon className="w-5 h-5 mr-2 text-brand-500" />
-            기본 정보
-          </h3>
+        <section className="space-y-6">
+          <Header variant="h3">기본 정보</Header>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Input
+            <FormField
               label="우분투 계정명"
-              name="ubuntu_username"
-              type="text"
-              value={formData.ubuntu_username}
-              onChange={handleChange}
-              error={errors.ubuntu_username}
-              placeholder="예: john_doe123"
-              help="소문자, 숫자, 언더스코어(_), 하이픈(-)만 사용 가능"
-              required
-              icon={UserIcon}
-            />
+              errorText={errors.ubuntu_username}
+              constraintText="소문자, 숫자, 언더스코어(_), 하이픈(-)만 사용할 수 있어요."
+              htmlFor="ubuntu_username"
+            >
+              <Input
+                id="ubuntu_username"
+                value={formData.ubuntu_username}
+                onChange={(value) => handleFieldChange("ubuntu_username", value)}
+                placeholder="예: john_doe123"
+                iconName="user-circle"
+                invalid={!!errors.ubuntu_username}
+              />
+            </FormField>
 
-            <Input
+            <FormField
               label="우분투 계정 비밀번호"
-              name="ubuntu_password"
-              type="password"
-              value={formData.ubuntu_password}
-              onChange={handleChange}
-              error={errors.ubuntu_password}
-              placeholder="비밀번호를 입력하세요"
-              help="최소 4자 이상 입력해주세요"
-              required
-              icon={KeyIcon}
-            />
+              errorText={errors.ubuntu_password}
+              constraintText="4자 이상 입력해주세요."
+              htmlFor="ubuntu_password"
+            >
+              <Input
+                id="ubuntu_password"
+                type="password"
+                value={formData.ubuntu_password}
+                onChange={(value) => handleFieldChange("ubuntu_password", value)}
+                placeholder="비밀번호를 입력하세요"
+                iconName="key"
+                invalid={!!errors.ubuntu_password}
+              />
+            </FormField>
           </div>
 
-          <div className="grid grid-cols-1 gap-6 mt-6">
+          <FormField
+            label="사용 만료일"
+            errorText={errors.expires_at}
+            constraintText="서버 사용을 마칠 예정일이에요."
+            htmlFor="expires_at"
+          >
             <Input
-              label="사용 만료일"
-              name="expires_at"
+              id="expires_at"
               type="date"
               value={formData.expires_at}
-              onChange={handleChange}
-              error={errors.expires_at}
-              help="서버 사용 종료 예정일"
-              required
-              icon={CalendarIcon}
+              onChange={(value) => handleFieldChange("expires_at", value)}
+              invalid={!!errors.expires_at}
             />
-          </div>
-        </div>
+          </FormField>
+        </section>
 
         {/* Server Configuration Section */}
-        <div>
-          <h3 className="text-lg font-medium text-gray-900 mb-4 mt-20 flex items-center">
-            <ServerIcon className="w-5 h-5 mr-2 text-brand-500" />
-            리소스 선택
-          </h3>
+        <section className="space-y-6">
+          <Header variant="h3">리소스 선택</Header>
 
-          <div className="space-y-6">
-            {/* Resource Group Selection */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                <CpuChipIcon className="w-4 h-4 inline mr-1" />
-                GPU 기종 선택 *
-              </label>
-
-              {/* GPU 타입이 로드되지 않았을 때 */}
-              {!gpuTypes || gpuTypes.length === 0 ? (
-                <div className="text-center py-8 text-gray-500">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-500 mx-auto mb-2"></div>
-                  GPU 리소스 정보를 불러오는 중...
-                </div>
-              ) : (
-                /* GPU 타입을 서버별로 그룹화하여 표시 */
-                Object.entries(
-                  gpuTypes.reduce((acc, gpu) => {
-                    if (!acc[gpu.serverName]) {
-                      acc[gpu.serverName] = [];
-                    }
-                    acc[gpu.serverName].push(gpu);
-                    return acc;
-                  }, {})
-                ).map(([serverName, serverGpus]) => (
-                  <div key={serverName} className="mb-6">
-                    <h4 className="text-base font-medium text-gray-800 mb-3 flex items-center">
-                      <ServerIcon className="w-5 h-5 mr-2 text-brand-500" />
+          <FormField label="GPU 기종" errorText={errors.rsgroup_id}>
+            {groupedGpusByServer.length === 0 ? (
+              <div className="py-8 text-center">
+                <StatusIndicator type="loading">
+                  GPU 리소스 정보를 불러오고 있어요...
+                </StatusIndicator>
+              </div>
+            ) : (
+              <div className="space-y-6">
+                {groupedGpusByServer.map(([serverName, serverGpus]) => (
+                  <div key={serverName} className="space-y-2">
+                    <div className="text-sm font-medium text-(--decs-text-secondary)">
                       {serverName} 서버
-                    </h4>
-
-	                    <div className="grid grid-cols-1 gap-3">
-	                      {/* 각 GPU 모델별로 그룹화 */}
-	                      {Object.entries(
-	                        serverGpus.reduce((acc, gpu) => {
-	                          if (!hasId(gpu.rsgroupId)) return acc;
-	                          const key = `${gpu.gpuModel}-${gpu.ramGb}GB`;
-                          if (!acc[key]) {
-                            acc[key] = {
-                              ...gpu,
-                              availableNodes: 0,
-                              nodeIds: [],
-                            };
-                          }
-                          acc[key].availableNodes += gpu.availableNodes || 0;
-                          acc[key].nodeIds.push(gpu.nodeId);
-                          return acc;
-                        }, {})
-	                      ).map(([gpuKey, gpuGroup]) => (
-	                        <div key={`${serverName}-${gpuKey}`} className="relative">
-	                          <input
-                            type="radio"
-                            id={`rsgroup_${gpuGroup.rsgroupId}`}
-                            name="rsgroup_id"
-                            value={gpuGroup.rsgroupId}
-	                            checked={
-	                              formData.rsgroup_id === String(gpuGroup.rsgroupId)
-	                            }
-                            onChange={handleChange}
-                            disabled={gpuGroup.availableNodes === 0}
-                            className="sr-only"
-                          />
-                          <label
-                            htmlFor={`rsgroup_${gpuGroup.rsgroupId}`}
-	                            className={`block p-4 border cursor-pointer transition-all ${
-	                              gpuGroup.availableNodes === 0
-	                                ? "bg-gray-50 border-gray-200 cursor-not-allowed"
-	                                : formData.rsgroup_id === String(gpuGroup.rsgroupId)
-	                                ? "border-brand-500 bg-orange-50"
-	                                : "border-gray-300 hover:border-gray-400"
-	                            }`}
-                          >
-                            <div className="flex items-center justify-between">
-                              <div>
-                                <div className="flex items-center">
-                                  <span className="font-medium text-gray-900">
-                                    {gpuGroup.gpuModel}
-                                  </span>
-                                  <div className="ml-2">
-                                    {gpuGroup.availableNodes > 0 ? (
-                                      <span className="inline-flex px-2 py-1 text-xs font-medium bg-green-100 text-green-800">
-                                        사용 가능
-                                      </span>
-                                    ) : (
-                                      <span className="inline-flex px-2 py-1 text-xs font-medium bg-red-100 text-red-800">
-                                        사용 불가
-                                      </span>
-                                    )}
-                                  </div>
-                                </div>
-                                <p className="text-sm text-gray-600 mt-1">
-                                  {gpuGroup.description}
-                                </p>
-                                <div className="flex space-x-4 text-xs text-gray-500 mt-2">
-                                  <span>GPU 메모리: {gpuGroup.ramGb}GB</span>
-                                  <span>
-                                    사용 가능 노드: {gpuGroup.availableNodes}개
-                                  </span>
-                                  <span>
-                                    노드 ID: {gpuGroup.nodeIds.join(", ")}
-                                  </span>
-                                </div>
-                              </div>
-	                              {formData.rsgroup_id === String(gpuGroup.rsgroupId) && (
-	                                <div className="w-4 h-4 border-2 border-brand-500 rounded-full flex items-center justify-center">
-	                                  <div className="w-2 h-2 bg-brand-500 rounded-full"></div>
-	                                </div>
-                              )}
-                            </div>
-                          </label>
-                        </div>
-                      ))}
                     </div>
+                    <Cards
+                      items={serverGpus}
+                      trackBy="groupKey"
+                      columns={1}
+                      selectionType="single"
+                      selectedItems={serverGpus.filter(
+                        (gpu) => formData.rsgroup_id === String(gpu.rsgroupId)
+                      )}
+                      onSelectionChange={([gpu]) => {
+                        if (gpu.availableNodes === 0) return;
+                        handleFieldChange("rsgroup_id", String(gpu.rsgroupId));
+                      }}
+                      cardDefinition={{
+                        header: (gpu) => (
+                          <span className="inline-flex items-center gap-2">
+                            {gpu.gpuModel}
+                            {gpu.availableNodes > 0 ? (
+                              <Badge color="green">사용 가능</Badge>
+                            ) : (
+                              <Badge color="red">사용 불가</Badge>
+                            )}
+                          </span>
+                        ),
+                        sections: [
+                          {
+                            id: "description",
+                            content: (gpu) => gpu.description,
+                          },
+                          {
+                            id: "spec",
+                            content: (gpu) => (
+                              <span className="text-(--decs-text-secondary)">
+                                GPU 메모리 {gpu.ramGb}GB · 바로 쓸 수 있는 서버{" "}
+                                {gpu.availableNodes}대 · 장비 번호{" "}
+                                {gpu.nodeIds.join(", ")}
+                              </span>
+                            ),
+                          },
+                        ],
+                      }}
+                    />
                   </div>
-                ))
-              )}
+                ))}
+              </div>
+            )}
+          </FormField>
 
-              {errors.rsgroup_id && (
-                <p className="text-sm text-red-600 mt-1">{errors.rsgroup_id}</p>
-              )}
-            </div>
-
-            {/* Container Image Selection */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2 mt-10">
-                <ComputerDesktopIcon className="w-4 h-4 inline mr-1" />
-                컨테이너 이미지 *
-              </label>
-
-              {/* 컨테이너 이미지가 로드되지 않았을 때 */}
-              {!containerImages || containerImages.length === 0 ? (
-                <div className="text-center py-8 text-gray-500">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-500 mx-auto mb-2"></div>
-                  컨테이너 이미지 정보를 불러오는 중...
-                </div>
-              ) : (
-                /* 컨테이너 이미지를 프레임워크별로 그룹화하여 표시 */
-                Object.entries(
-	                  containerImages.reduce((acc, image) => {
-	                    const frameworkName =
-	                      image.imageName || image.image_name || "Unknown";
-	                    const imageId = image.imageId ?? image.image_id;
-	                    if (!hasId(imageId)) return acc;
-                    const imageVersion = image.imageVersion || image.image_version;
-                    const cudaVersion = image.cudaVersion || image.cuda_version;
-                    const description = image.description;
-
-                    if (!acc[frameworkName]) {
-                      acc[frameworkName] = [];
-                    }
-                    acc[frameworkName].push({
-                      ...image,
-                      imageId,
-                      imageName: frameworkName,
-                      imageVersion,
-                      cudaVersion,
-                      description,
-                    });
-                    return acc;
-                  }, {})
-                ).map(([frameworkName, frameworkImages]) => (
-                  <div key={frameworkName} className="mb-6">
-                    <h4 className="text-base font-medium text-gray-800 mb-3 flex items-center">
-                      <ComputerDesktopIcon className="w-5 h-5 mr-2 text-brand-500" />
+          <FormField
+            label="컨테이너 이미지"
+            errorText={errors.image_id}
+            constraintText={
+              !errors.image_id
+                ? "연구에 필요한 프레임워크와 CUDA 버전을 확인하고 골라주세요."
+                : undefined
+            }
+          >
+            {groupedImages.length === 0 ? (
+              <div className="py-8 text-center">
+                <StatusIndicator type="loading">
+                  컨테이너 이미지 정보를 불러오고 있어요...
+                </StatusIndicator>
+              </div>
+            ) : (
+              <div className="space-y-6">
+                {groupedImages.map(([frameworkName, frameworkImages]) => (
+                  <div key={frameworkName} className="space-y-2">
+                    <div className="text-sm font-medium text-(--decs-text-secondary)">
                       {frameworkName.charAt(0).toUpperCase() +
                         frameworkName.slice(1)}
-                    </h4>
-
-                    <div className="grid grid-cols-1 gap-3">
-                      {frameworkImages.map((image) => (
-                        <div
-                          key={`${frameworkName}-${image.imageId}`}
-                          className="relative"
-                        >
-                          <input
-                            type="radio"
-	                            id={`image_${image.imageId}`}
-	                            name="image_id"
-	                            value={image.imageId}
-	                            checked={formData.image_id === String(image.imageId)}
-                            onChange={handleChange}
-                            className="sr-only"
-                          />
-                          <label
-	                            htmlFor={`image_${image.imageId}`}
-	                            className={`block p-4 border cursor-pointer transition-all ${
-	                              formData.image_id === String(image.imageId)
-	                                ? "border-brand-500 bg-orange-50"
-	                                : "border-gray-300 hover:border-gray-400"
-	                            }`}
-                          >
-                            <div className="flex items-center justify-between">
-                              <div>
-                                <div className="flex items-center">
-                                  <span className="font-medium text-gray-900">
-                                    {image.imageName} {image.imageVersion}
-                                  </span>
-                                </div>
-                                {image.description && (
-                                  <p className="text-sm text-gray-600 mt-1">
-                                    {image.description}
-                                  </p>
-                                )}
-                                <div className="flex space-x-4 text-xs text-gray-500 mt-2">
-                                  <span>CUDA: {image.cudaVersion}</span>
-                                  <span>이미지 ID: {image.imageId}</span>
-                                </div>
-                              </div>
-	                              {formData.image_id === String(image.imageId) && (
-	                                <div className="w-4 h-4 border-2 border-brand-500 rounded-full flex items-center justify-center">
-	                                  <div className="w-2 h-2 bg-brand-500 rounded-full"></div>
-	                                </div>
-                              )}
-                            </div>
-                          </label>
-                        </div>
-                      ))}
                     </div>
+                    <Cards
+                      items={frameworkImages}
+                      trackBy="imageId"
+                      columns={2}
+                      selectionType="single"
+                      selectedItems={frameworkImages.filter(
+                        (image) => formData.image_id === String(image.imageId)
+                      )}
+                      onSelectionChange={([image]) =>
+                        handleFieldChange("image_id", String(image.imageId))
+                      }
+                      cardDefinition={{
+                        header: (image) =>
+                          `${image.imageName} ${image.imageVersion}`,
+                        sections: [
+                          {
+                            id: "detail",
+                            content: (image) => (
+                              <div>
+                                {image.description && <p>{image.description}</p>}
+                                <p className="text-(--decs-text-secondary)">
+                                  CUDA {image.cudaVersion}
+                                </p>
+                              </div>
+                            ),
+                          },
+                        ],
+                      }}
+                    />
                   </div>
-                ))
-              )}
+                ))}
+              </div>
+            )}
+          </FormField>
 
-              {errors.image_id && (
-                <p className="text-sm text-red-600 mt-1">{errors.image_id}</p>
-              )}
-              {!errors.image_id && (
-                <p className="text-xs text-gray-500 mt-1">
-                  연구에 필요한 프레임워크와 CUDA 버전을 고려하여 선택하세요
-                </p>
-              )}
-            </div>
-
-            <div className="grid grid-cols-1 gap-6">
-              <Input
-                label="볼륨 크기 (GB)"
-                name="volume_size_gb"
-                type="number"
-                value={formData.volume_size_gb}
-                onChange={handleChange}
-                error={errors.volume_size_gb}
-                placeholder="예: 500"
-                help="10GB ~ 2000GB 사이"
-                min="10"
-                max="2000"
-                required
-                icon={CircleStackIcon}
-              />
-            </div>
-
-            {/* Group Selection */}
-            <GroupSelector
-              selectedGroups={formData.ubuntu_gids}
-              availableGroups={availableGroups}
-              onAddGroup={addGroup}
-              onRemoveGroup={removeGroup}
-              onCreateGroup={createGroup}
-              ubuntuUsername={formData.ubuntu_username}
+          <FormField
+            label="저장 공간 (GB)"
+            errorText={errors.volume_size_gb}
+            constraintText="10GB부터 2000GB까지 신청할 수 있어요."
+            htmlFor="volume_size_gb"
+          >
+            <Input
+              id="volume_size_gb"
+              type="number"
+              value={formData.volume_size_gb}
+              onChange={(value) => handleFieldChange("volume_size_gb", value)}
+              placeholder="예: 500"
+              iconName="cube"
+              invalid={!!errors.volume_size_gb}
             />
+          </FormField>
 
-            {/* Port Selection */}
-            <PortSelector
-              selectedPorts={formData.port_requests}
-              onAddPort={addPort}
-              onRemovePort={removePort}
-              onUpdatePortUsagePurpose={updatePortUsagePurpose}
-            />
-          </div>
-        </div>
+          {/* Group Selection */}
+          <GroupSelector
+            selectedGroups={formData.ubuntu_gids}
+            availableGroups={availableGroups}
+            onAddGroup={addGroup}
+            onRemoveGroup={removeGroup}
+            onCreateGroup={createGroup}
+            ubuntuUsername={formData.ubuntu_username}
+          />
+
+          {/* Port Selection */}
+          <PortSelector
+            selectedPorts={formData.port_requests}
+            onAddPort={addPort}
+            onRemovePort={removePort}
+            onUpdatePortUsagePurpose={updatePortUsagePurpose}
+          />
+        </section>
 
         {/* Usage Information Section */}
-        <div>
-          <h3 className="text-lg font-medium text-gray-900 mb-4 mt-20 flex items-center">
-            <DocumentTextIcon className="w-5 h-5 mr-2 text-brand-500" />
-            사용 정보
-          </h3>
+        <section className="space-y-6">
+          <Header variant="h3">사용 정보</Header>
 
-          <div className="space-y-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                사용 목적 *
-              </label>
-              <textarea
-                name="usage_purpose"
-                value={formData.usage_purpose}
-                onChange={handleChange}
-                rows={4}
-                className={`block w-full px-3 py-2 border text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 ${
-                  errors.usage_purpose
-                    ? "border-red-300 text-red-900 focus:ring-red-500 focus:border-red-500"
-                    : "border-gray-300 text-gray-900"
-                }`}
-                placeholder="서버를 어떤 목적으로 사용할지 자세히 설명해주세요. (최소 10자)"
-                required
-              />
-              {errors.usage_purpose && (
-                <p className="text-sm text-red-600 mt-1">{errors.usage_purpose}</p>
-              )}
-              <p className="text-xs text-gray-500 mt-1">
-                연구 내용, 사용할 프레임워크, 예상 작업량 등을 포함해주세요
-              </p>
-            </div>
-          </div>
-        </div>
+          <FormField
+            label="사용 목적"
+            errorText={errors.usage_purpose}
+            constraintText="연구 내용, 사용할 프레임워크, 예상 작업량을 함께 적어주세요."
+            htmlFor="usage_purpose"
+          >
+            <textarea
+              id="usage_purpose"
+              name="usage_purpose"
+              value={formData.usage_purpose}
+              onChange={handleChange}
+              rows={4}
+              className={textareaClass(!!errors.usage_purpose)}
+              placeholder="서버를 어떤 목적으로 사용할지 자세히 설명해주세요. (최소 10자)"
+            />
+          </FormField>
+        </section>
 
         {/* Important Notes */}
-        <div className="bg-blue-50 border-l-4 border-blue-400 p-4">
-          <div className="flex items-start">
-            <ClockIcon className="w-5 h-5 text-blue-400 mt-0.5 mr-2" />
-            <div className="text-sm text-blue-700">
-              <h4 className="font-medium mb-2">신청 전 확인사항</h4>
-              <ul className="list-disc list-inside space-y-1">
-                <li>신청 후 관리자 승인까지 1-3일이 소요될 수 있습니다.</li>
-                <li>승인 후 서버 접속 정보가 이메일로 전송됩니다.</li>
-                <li>
-                  선택한 GPU 기종과 컨테이너 이미지에 따라 리소스가 할당됩니다.
-                </li>
-                <li>컨테이너 이미지의 CUDA 버전과 GPU 호환성을 확인해주세요.</li>
-                <li>
-                  데이터 백업은 사용자 책임이며, 정기적으로 백업하시기 바랍니다.
-                </li>
-                <li>
-                  서버 사용 규정을 준수해야 하며, 위반 시 사용이 제한될 수 있습니다.
-                </li>
-              </ul>
-            </div>
-          </div>
-        </div>
+        <Alert type="info" header="신청 전 확인사항">
+          <ul className="list-disc list-inside space-y-1">
+            <li>신청 후 관리자 승인까지 1~3일 정도 걸릴 수 있어요.</li>
+            <li>승인되면 서버 접속 정보를 이메일로 보내드려요.</li>
+            <li>선택한 GPU 기종과 컨테이너 이미지에 따라 리소스가 할당돼요.</li>
+            <li>컨테이너 이미지의 CUDA 버전과 GPU 호환성을 확인해주세요.</li>
+            <li>데이터 백업은 사용자 책임이에요. 정기적으로 백업해주세요.</li>
+            <li>서버 사용 규정을 지켜주세요. 위반 시 사용이 제한될 수 있어요.</li>
+          </ul>
+        </Alert>
 
         {/* Submit Buttons */}
-        <div className="flex justify-end space-x-3 pt-6 border-t border-gray-300">
-          <Button type="button" variant="outline" onClick={() => navigate("/dashboard")}>
+        <div className="flex justify-end gap-2 pt-6 border-t border-(--decs-border-divider)">
+          <Button variant="normal" onClick={() => navigate("/dashboard")}>
             취소
           </Button>
           <Button
-            type="submit"
             variant="primary"
+            iconName="server-stack"
             loading={isLoading}
             disabled={isLoading}
-            className="bg-brand-500 hover:bg-brand-600 border-brand-500 hover:border-brand-600"
+            onClick={handleSubmit}
           >
-            <ServerIcon className="w-4 h-4 mr-1" />
             신청 제출
           </Button>
         </div>
-      </form>
-    </Card>
+      </div>
+    </Container>
   );
 };
 

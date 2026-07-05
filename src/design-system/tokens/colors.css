@@ -1,0 +1,109 @@
+/* DECS — Color tokens
+ * Base palette inherited from Cloudscape Design System (visual refresh).
+ * The ONLY brand override is the accent scale (orange, from CSID-DGU/admin_fe).
+ * Semantic status colors stay Cloudscape so the two surfaces read identically.
+ * Rule: never hardcode a color in code — always reference a token here.
+ */
+:root {
+  /* ---- Neutral / grey ramp (Cloudscape) ---- */
+  --decs-white: #ffffff;
+  --decs-grey-100: #f2f3f3;
+  --decs-grey-150: #e9ebed;
+  --decs-grey-200: #d5dbdb;
+  --decs-grey-300: #b6bec9;
+  --decs-grey-400: #9ba7b6;
+  --decs-grey-500: #7d8998;
+  --decs-grey-550: #656871;
+  --decs-grey-600: #5f6b7a;
+  --decs-grey-700: #414d5c;
+  --decs-grey-800: #192534;
+  --decs-grey-900: #000716;
+
+  /* ---- Brand accent (orange) — the one intentional override ---- */
+  --decs-brand-50:  #fef6ee;
+  --decs-brand-100: #fdebd7;
+  --decs-brand-200: #fad3ae;
+  --decs-brand-300: #f6b47b;
+  --decs-brand-400: #f29a4e;
+  --decs-brand-500: #f68313;
+  --decs-brand-600: #e6750f;
+  --decs-brand-700: #be5a0a;
+  --decs-brand-800: #97470f;
+  --decs-brand-900: #7a3c10;
+  --decs-brand-950: #421c06;
+
+  /* ---- Cloudscape functional colors (status semantics) ---- */
+  --decs-blue-500: #539fe5;
+  --decs-blue-600: #0972d3;   /* action / link / info */
+  --decs-blue-700: #033160;   /* active / pressed */
+  --decs-red-500:  #eb6f6f;
+  --decs-red-600:  #d91515;   /* error */
+  --decs-red-700:  #8b0000;
+  --decs-green-500: #29ad32;
+  --decs-green-600: #037f0c;  /* success */
+  --decs-amber-500: #f89256;
+  --decs-amber-600: #8d6605;  /* warning text */
+  --decs-amber-icon: #e07941;
+
+  /* ================= Semantic aliases ================= */
+  /* Surfaces */
+  --decs-surface-app: #f2f3f3;          /* app/layout background */
+  --decs-surface-container: var(--decs-white);
+  --decs-surface-sunken: #fbfbfb;
+  --decs-surface-nav: var(--decs-white);
+  --decs-surface-input: var(--decs-white);
+  --decs-surface-disabled: var(--decs-grey-150);
+  --decs-surface-hover: #f4f4f4;
+  --decs-surface-selected: #f0f7ff;     /* blue-tinted row/card selection */
+  --decs-surface-selected-brand: var(--decs-brand-50);
+
+  /* Text */
+  --decs-text-heading: var(--decs-grey-900);
+  --decs-text-body: #0f141a;
+  --decs-text-secondary: var(--decs-grey-700);
+  --decs-text-inactive: var(--decs-grey-550);
+  --decs-text-disabled: var(--decs-grey-400);
+  --decs-text-link: var(--decs-blue-600);
+  --decs-text-inverse: var(--decs-white);
+
+  /* Borders / dividers */
+  --decs-border-divider: var(--decs-grey-150);
+  --decs-border-default: var(--decs-grey-500);
+  --decs-border-input: var(--decs-grey-600);
+  --decs-border-focus: var(--decs-blue-600);
+  --decs-border-container: var(--decs-grey-150);
+
+  /* Primary action = BRAND (this is what makes DECS look like DECS) */
+  --decs-action-primary: var(--decs-brand-500);
+  --decs-action-primary-hover: var(--decs-brand-600);
+  --decs-action-primary-active: var(--decs-brand-700);
+  --decs-action-primary-text: var(--decs-white);
+
+  /* Secondary/normal button */
+  --decs-action-normal-bg: var(--decs-white);
+  --decs-action-normal-border: var(--decs-grey-600);
+  --decs-action-normal-text: var(--decs-grey-700);
+  --decs-action-normal-hover-bg: #f2f8fd;
+
+  /* Status — foreground (text/icon) */
+  --decs-status-pending: var(--decs-grey-550);
+  --decs-status-in-progress: var(--decs-blue-600);
+  --decs-status-success: var(--decs-green-600);
+  --decs-status-error: var(--decs-red-600);
+  --decs-status-warning: var(--decs-amber-600);
+  --decs-status-info: var(--decs-blue-600);
+  --decs-status-stopped: var(--decs-grey-550);
+
+  /* Status — backgrounds (alerts / flashbar / badges) */
+  --decs-status-bg-info: #f0fbff;
+  --decs-status-bg-success: #f2fcf3;
+  --decs-status-bg-warning: #fffce9;
+  --decs-status-bg-error: #fff7f7;
+  --decs-status-border-info: #b8e7ff;
+  --decs-status-border-success: #b3e7b9;
+  --decs-status-border-warning: #f2d888;
+  --decs-status-border-error: #ffcfcf;
+
+  /* Focus ring */
+  --decs-focus-ring: var(--decs-blue-600);
+}

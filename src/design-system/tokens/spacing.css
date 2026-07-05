@@ -1,0 +1,22 @@
+/* DECS — Spacing tokens (Cloudscape space scale)
+ * Rule: never hardcode px for padding/margin/gap. Reference a --decs-space-* token.
+ * Admin surface leans compact; user surface leans comfortable — same scale, denser steps.
+ */
+:root {
+  --decs-space-xxxs: 2px;
+  --decs-space-xxs: 4px;
+  --decs-space-xs: 8px;
+  --decs-space-s: 12px;
+  --decs-space-m: 16px;
+  --decs-space-l: 20px;
+  --decs-space-xl: 24px;
+  --decs-space-xxl: 32px;
+  --decs-space-xxxl: 40px;
+  --decs-space-xxxxl: 48px;
+
+  /* Density presets (component internal padding) */
+  --decs-density-compact-cell-y: 6px;      /* admin tables */
+  --decs-density-compact-cell-x: 12px;
+  --decs-density-comfortable-cell-y: 12px; /* user views */
+  --decs-density-comfortable-cell-x: 16px;
+}

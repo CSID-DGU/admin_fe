@@ -1,25 +1,34 @@
 import { useState, useEffect } from "react";
 import {
-  DocumentTextIcon,
-  EyeIcon,
-  CheckIcon,
-  XMarkIcon,
-  ClockIcon,
-  UserIcon,
-  CheckCircleIcon,
-  XCircleIcon,
-  ArrowsRightLeftIcon,
-  ComputerDesktopIcon,
-} from "@heroicons/react/24/outline";
-import Card from "../../components/UI/Card";
-import Badge from "../../components/UI/Badge";
-import Button from "../../components/UI/Button";
-import Alert from "../../components/UI/Alert";
+  Container,
+  Header,
+  Table,
+  Tabs,
+  Button,
+  Modal,
+  Flashbar,
+  Alert,
+  StatusIndicator,
+  Badge,
+  KeyValuePairs,
+} from "../../design-system";
 import { requestService } from "../../services/requestService";
+
+const STATUS_META = {
+  PENDING: { type: "pending", label: "대기중" },
+  FULFILLED: { type: "success", label: "승인됨" },
+  DENIED: { type: "error", label: "거절됨" },
+};
+
+const renderStatus = (status) => {
+  const meta = STATUS_META[status];
+  if (!meta) return <StatusIndicator type="info">{status}</StatusIndicator>;
+  return <StatusIndicator type={meta.type}>{meta.label}</StatusIndicator>;
+};
 
 const ChangeRequestManagementPage = () => {
   const [changeRequests, setChangeRequests] = useState([]);
-  const [allRequests, setAllRequests] = useState([]);
+  const [, setAllRequests] = useState([]);
   const [selectedChangeRequest, setSelectedChangeRequest] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [filter, setFilter] = useState("ALL"); // ALL, PENDING, FULFILLED, DENIED
@@ -118,32 +127,6 @@ const ChangeRequestManagementPage = () => {
     PENDING: changeRequests.filter((r) => r.status === "PENDING").length,
     FULFILLED: changeRequests.filter((r) => r.status === "FULFILLED").length,
     DENIED: changeRequests.filter((r) => r.status === "DENIED").length,
-  };
-
-  const getStatusBadge = (status) => {
-    switch (status) {
-      case "PENDING":
-        return <Badge variant="warning">대기중</Badge>;
-      case "FULFILLED":
-        return <Badge variant="success">승인됨</Badge>;
-      case "DENIED":
-        return <Badge variant="danger">거절됨</Badge>;
-      default:
-        return <Badge variant="default">{status}</Badge>;
-    }
-  };
-
-  const getStatusIcon = (status) => {
-    switch (status) {
-      case "FULFILLED":
-        return <CheckCircleIcon className="w-5 h-5 text-green-500" />;
-      case "PENDING":
-        return <ClockIcon className="w-5 h-5 text-yellow-500" />;
-      case "DENIED":
-        return <XCircleIcon className="w-5 h-5 text-red-500" />;
-      default:
-        return <DocumentTextIcon className="w-5 h-5 text-gray-500" />;
-    }
   };
 
   const getChangeTypeDisplay = (changeType) => {
@@ -278,6 +261,27 @@ const ChangeRequestManagementPage = () => {
     }
   };
 
+  const promptApprove = (changeRequest) => {
+    const comment = prompt(
+      "승인 사유를 입력하세요:",
+      "변경 요청이 승인되었습니다."
+    );
+    if (comment !== null) {
+      handleStatusUpdate(
+        changeRequest,
+        "FULFILLED",
+        comment || "변경 요청이 승인되었습니다."
+      );
+    }
+  };
+
+  const promptDeny = (changeRequest) => {
+    const comment = prompt("거절 사유를 입력하세요:");
+    if (comment) {
+      handleStatusUpdate(changeRequest, "DENIED", comment);
+    }
+  };
+
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString("ko-KR", {
       year: "numeric",
@@ -288,479 +292,331 @@ const ChangeRequestManagementPage = () => {
     });
   };
 
+  const emptyText =
+    filter === "ALL"
+      ? "아직 제출된 변경 요청이 없습니다."
+      : `${
+          filter === "PENDING"
+            ? "대기중인"
+            : filter === "FULFILLED"
+            ? "승인된"
+            : "거절된"
+        } 변경 요청이 없습니다. 다른 상태의 변경 요청을 확인해보세요.`;
+
+  const columns = [
+    {
+      id: "id",
+      header: "ID",
+      width: "72px",
+      cell: (r) => `#${r.changeRequestId}`,
+    },
+    {
+      id: "requester",
+      header: "요청자",
+      minWidth: "160px",
+      cell: (r) => (
+        <div>
+          <div>{r.requestedBy.name}</div>
+          <div className="text-(--decs-text-secondary)">
+            {r.requestedBy.email}
+          </div>
+        </div>
+      ),
+    },
+    {
+      id: "changeType",
+      header: "변경 유형",
+      cell: (r) => (
+        <Badge color="blue">{getChangeTypeDisplay(r.changeType)}</Badge>
+      ),
+    },
+    {
+      id: "oldValue",
+      header: "이전 값",
+      minWidth: "120px",
+      cell: (r) => formatChangeValue(r.changeType, r.oldValue),
+    },
+    {
+      id: "newValue",
+      header: "새로운 값",
+      minWidth: "120px",
+      cell: (r) => formatChangeValue(r.changeType, r.newValue),
+    },
+    {
+      id: "createdAt",
+      header: "요청일",
+      cell: (r) => new Date(r.createdAt).toLocaleDateString("ko-KR"),
+    },
+    {
+      id: "status",
+      header: "상태",
+      cell: (r) => renderStatus(r.status),
+    },
+    {
+      id: "actions",
+      header: "작업",
+      minWidth: "150px",
+      cell: (r) => (
+        <div className="flex items-center gap-3">
+          <Button
+            variant="inline-link"
+            onClick={() => setSelectedChangeRequest(r)}
+          >
+            상세
+          </Button>
+          {r.status === "PENDING" && (
+            <>
+              <Button variant="inline-link" onClick={() => promptApprove(r)}>
+                승인
+              </Button>
+              <Button
+                variant="inline-link"
+                style={{ color: "var(--decs-status-error)" }}
+                onClick={() => promptDeny(r)}
+              >
+                거절
+              </Button>
+            </>
+          )}
+        </div>
+      ),
+    },
+  ];
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-500 mx-auto"></div>
-          <p className="mt-4 text-gray-600">변경 요청 목록을 불러오는 중...</p>
-        </div>
+        <StatusIndicator type="loading">
+          변경 요청 목록을 불러오는 중...
+        </StatusIndicator>
       </div>
     );
   }
 
+  const sel = selectedChangeRequest;
+
   return (
     <div className="space-y-6">
       {alert && (
-        <Alert type={alert.type} onClose={() => setAlert(null)}>
-          {alert.message}
-        </Alert>
+        <Flashbar
+          items={[
+            {
+              id: "page-alert",
+              type: alert.type,
+              content: alert.message,
+              dismissible: true,
+              onDismiss: () => setAlert(null),
+            },
+          ]}
+        />
       )}
 
-      {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">변경 요청 관리</h1>
-        <p className="text-gray-600 mt-1">
-          사용자들의 서버 변경 요청을 검토하고 승인/거절할 수 있습니다.
-        </p>
-      </div>
+      <Header
+        variant="h1"
+        description="사용자들의 서버 변경 요청을 검토하고 승인/거절할 수 있습니다."
+      >
+        변경 요청 관리
+      </Header>
 
-      {/* Status Filter */}
-      <Card>
-        <div className="flex space-x-1">
-          {[
-            { key: "ALL", label: "전체" },
-            { key: "PENDING", label: "대기중" },
-            { key: "FULFILLED", label: "승인됨" },
-            { key: "DENIED", label: "거절됨" },
-          ].map((tab) => (
-            <button
-              key={tab.key}
-              onClick={() => setFilter(tab.key)}
-              className={`px-4 py-2 text-sm font-medium transition-colors ${
-                filter === tab.key
-                  ? "bg-brand-500 text-white"
-                  : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
-              }`}
-            >
-              {tab.label} ({statusCounts[tab.key]})
-            </button>
-          ))}
-        </div>
-      </Card>
+      <Tabs
+        tabs={[
+          { key: "ALL", label: "전체" },
+          { key: "PENDING", label: "대기중" },
+          { key: "FULFILLED", label: "승인됨" },
+          { key: "DENIED", label: "거절됨" },
+        ].map((tab) => ({
+          id: tab.key,
+          label: `${tab.label} (${statusCounts[tab.key]})`,
+        }))}
+        activeTabId={filter}
+        onChange={setFilter}
+      />
 
-      {/* Change Requests List */}
-      {filteredChangeRequests.length === 0 ? (
-        <Card>
-          <div className="text-center py-12">
-            <ArrowsRightLeftIcon className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">
-              {filter === "ALL"
-                ? "변경 요청이 없습니다"
-                : `${
-                    filter === "PENDING"
-                      ? "대기중인"
-                      : filter === "FULFILLED"
-                      ? "승인된"
-                      : "거절된"
-                  } 변경 요청이 없습니다`}
-            </h3>
-            <p className="text-gray-600">
-              {filter === "ALL"
-                ? "아직 제출된 변경 요청이 없습니다."
-                : "다른 상태의 변경 요청을 확인해보세요."}
-            </p>
-          </div>
-        </Card>
-      ) : (
-        <div className="space-y-4">
-          {filteredChangeRequests.map((changeRequest) => (
-            <Card key={changeRequest.changeRequestId}>
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <div className="flex items-center space-x-3 mb-3">
-                    {getStatusIcon(changeRequest.status)}
-                    <h3 className="text-lg font-semibold text-gray-900">
-                      변경 요청 #{changeRequest.changeRequestId} - {changeRequest.requestedBy.name}
-                    </h3>
-                    {getStatusBadge(changeRequest.status)}
-                  </div>
-
-                  {/* Change Details */}
-                  <div className="bg-blue-50 border-l-4 border-blue-400 p-4 mb-4">
-                    <div className="flex items-center space-x-2 mb-2">
-                      <ArrowsRightLeftIcon className="w-5 h-5 text-blue-600" />
-                      <h4 className="text-sm font-semibold text-blue-800">
-                        {getChangeTypeDisplay(changeRequest.changeType)} 변경 요청
-                      </h4>
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                      <div>
-                        <p className="text-blue-700 font-medium">이전 값:</p>
-                        <p className="text-blue-900">
-                          {formatChangeValue(changeRequest.changeType, changeRequest.oldValue)}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-blue-700 font-medium">새로운 값:</p>
-                        <p className="text-blue-900">
-                          {formatChangeValue(changeRequest.changeType, changeRequest.newValue)}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="mt-3">
-                      <p className="text-blue-700 font-medium">변경 사유:</p>
-                      <p className="text-blue-900">{changeRequest.reason}</p>
-                    </div>
-                  </div>
-
-                  {/* Original Request Information */}
-                  {changeRequest.originalRequest && (
-                    <div className="border-l-4 border-gray-300 pl-4 mb-4">
-                      <h4 className="text-sm font-semibold text-gray-700 mb-2 flex items-center">
-                        <ComputerDesktopIcon className="w-4 h-4 mr-1" />
-                        원본 요청 정보 (#{changeRequest.originalRequestId})
-                      </h4>
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-sm">
-                        <div>
-                          <p className="text-gray-600 font-medium">리소스 그룹:</p>
-                          <p className="text-gray-900">{changeRequest.originalRequest.resourceGroup.resourceGroupName}</p>
-                        </div>
-                        <div>
-                          <p className="text-gray-600 font-medium">이미지:</p>
-                          <p className="text-gray-900">
-                            {changeRequest.originalRequest.imageName}:{changeRequest.originalRequest.imageVersion}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-gray-600 font-medium">Ubuntu 계정:</p>
-                          <p className="text-gray-900">{changeRequest.originalRequest.ubuntuUsername}</p>
-                        </div>
-                        <div>
-                          <p className="text-gray-600 font-medium">현재 볼륨:</p>
-                          <p className="text-gray-900">{changeRequest.originalRequest.volumeSizeGiB} GiB</p>
-                        </div>
-                        <div>
-                          <p className="text-gray-600 font-medium">만료일:</p>
-                          <p className="text-gray-900">
-                            {new Date(changeRequest.originalRequest.expiresAt).toLocaleDateString("ko-KR")}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-gray-600 font-medium">원본 상태:</p>
-                          <p className="text-gray-900">{changeRequest.originalRequest.status}</p>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* User Information */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
-                    <div>
-                      <p className="text-xs font-medium text-gray-700 uppercase tracking-tight">
-                        요청자 정보
-                      </p>
-                      <p className="text-sm text-gray-900 mt-1 tracking-tight">
-                        {changeRequest.requestedBy.email}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-xs font-medium text-gray-700 uppercase tracking-tight">
-                        요청 일시
-                      </p>
-                      <p className="text-sm text-gray-900 mt-1 tracking-tight">
-                        {formatDate(changeRequest.createdAt)}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-xs font-medium text-gray-700 uppercase tracking-tight">
-                        변경 유형
-                      </p>
-                      <p className="text-sm text-gray-900 mt-1 tracking-tight">
-                        {getChangeTypeDisplay(changeRequest.changeType)}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-xs font-medium text-gray-700 uppercase tracking-tight">
-                        처리 상태
-                      </p>
-                      <div className="mt-1">
-                        {getStatusBadge(changeRequest.status)}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Status-specific information */}
-                  {changeRequest.status === "FULFILLED" && (
-                    <div className="bg-green-50 border-l-4 border-green-400 p-3 mb-4">
-                      <div className="text-sm text-green-700">
-                        <p className="font-medium mb-1">승인 완료</p>
-                        <p>{changeRequest.adminComment || "변경 요청이 승인되었습니다."}</p>
-                      </div>
-                    </div>
-                  )}
-
-                  {changeRequest.status === "DENIED" && (
-                    <div className="bg-red-50 border-l-4 border-red-400 p-3 mb-4">
-                      <div className="text-sm text-red-700">
-                        <p className="font-medium mb-1">거절 사유</p>
-                        <p>{changeRequest.adminComment || "변경 요청이 거절되었습니다."}</p>
-                      </div>
-                    </div>
-                  )}
-
-                  {changeRequest.status === "PENDING" && (
-                    <div className="bg-yellow-50 border-l-4 border-yellow-400 p-3 mb-4">
-                      <div className="text-sm text-yellow-700">
-                        <p className="font-medium mb-1">승인 대기 중</p>
-                        <p>관리자 검토가 필요합니다.</p>
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                <div className="ml-4 flex flex-col space-y-2">
-                  <Button
-                    variant="outline"
-                    size="small"
-                    onClick={() => setSelectedChangeRequest(changeRequest)}
-                  >
-                    <EyeIcon className="w-4 h-4 mr-1" />
-                    상세보기
-                  </Button>
-
-                  {changeRequest.status === "PENDING" && (
-                    <div className="flex space-x-2">
-                      <button
-                        onClick={() => {
-                          const comment = prompt(
-                            "승인 사유를 입력하세요:",
-                            "변경 요청이 승인되었습니다."
-                          );
-                          if (comment !== null) {
-                            handleStatusUpdate(
-                              changeRequest,
-                              "FULFILLED",
-                              comment || "변경 요청이 승인되었습니다."
-                            );
-                          }
-                        }}
-                        className="px-3 py-1.5 text-sm font-medium text-green-700 bg-green-50 border border-green-200 hover:bg-green-100 transition-colors flex items-center"
-                      >
-                        <CheckIcon className="w-4 h-4 mr-1" />
-                        승인
-                      </button>
-                      <button
-                        onClick={() => {
-                          const comment = prompt("거절 사유를 입력하세요:");
-                          if (comment) {
-                            handleStatusUpdate(changeRequest, "DENIED", comment);
-                          }
-                        }}
-                        className="px-3 py-1.5 text-sm font-medium text-red-700 bg-red-50 border border-red-200 hover:bg-red-100 transition-colors flex items-center"
-                      >
-                        <XMarkIcon className="w-4 h-4 mr-1" />
-                        거절
-                      </button>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </Card>
-          ))}
-        </div>
-      )}
+      <Container disablePadding>
+        <Table
+          density="compact"
+          columns={columns}
+          items={filteredChangeRequests}
+          trackBy="changeRequestId"
+          header={
+            <Header variant="h2" counter={`(${filteredChangeRequests.length})`}>
+              변경 요청
+            </Header>
+          }
+          empty={emptyText}
+        />
+      </Container>
 
       {/* Detail Modal */}
-      {selectedChangeRequest && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6">
-              <div className="flex justify-between items-start mb-6">
-                <div>
-                  <h2 className="text-xl font-bold text-gray-900">
-                    변경 요청 상세 정보
-                  </h2>
-                  <p className="text-sm text-gray-600">
-                    Change Request ID: {selectedChangeRequest.changeRequestId}
-                  </p>
-                </div>
-                <div className="flex items-center space-x-2">
-                  {getStatusBadge(selectedChangeRequest.status)}
+      {sel && (
+        <Modal
+          visible
+          size="large"
+          onDismiss={() => setSelectedChangeRequest(null)}
+          header={`변경 요청 상세 정보 #${sel.changeRequestId}`}
+          footer={
+            <>
+              <Button
+                variant="normal"
+                onClick={() => setSelectedChangeRequest(null)}
+              >
+                닫기
+              </Button>
+              {sel.status === "PENDING" && (
+                <>
                   <Button
-                    variant="outline"
-                    size="small"
-                    onClick={() => setSelectedChangeRequest(null)}
+                    variant="normal"
+                    style={{
+                      color: "var(--decs-status-error)",
+                      borderColor: "var(--decs-status-error)",
+                    }}
+                    onClick={() => promptDeny(sel)}
                   >
-                    닫기
+                    거절
                   </Button>
+                  <Button variant="primary" onClick={() => promptApprove(sel)}>
+                    승인
+                  </Button>
+                </>
+              )}
+            </>
+          }
+        >
+          <div className="space-y-6">
+            <div>{renderStatus(sel.status)}</div>
+
+            <div>
+              <Header variant="h3">변경 내용</Header>
+              <KeyValuePairs
+                columns={2}
+                style={{ marginTop: "var(--decs-space-s)" }}
+                items={[
+                  {
+                    label: "변경 유형",
+                    value: (
+                      <Badge color="blue">
+                        {getChangeTypeDisplay(sel.changeType)}
+                      </Badge>
+                    ),
+                  },
+                  {
+                    label: "원본 요청 ID",
+                    value: `#${sel.originalRequestId}`,
+                  },
+                  {
+                    label: "이전 값",
+                    value: formatChangeValue(sel.changeType, sel.oldValue),
+                  },
+                  {
+                    label: "새로운 값",
+                    value: formatChangeValue(sel.changeType, sel.newValue),
+                  },
+                ]}
+              />
+              <div className="mt-4">
+                <div className="text-(--decs-text-inactive) mb-1">변경 사유</div>
+                <div className="bg-(--decs-surface-sunken) p-3">
+                  {sel.reason}
                 </div>
-              </div>
-
-              <div className="space-y-6">
-                {/* Change Information */}
-                <div>
-                  <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
-                    <ArrowsRightLeftIcon className="w-5 h-5 mr-2 text-brand-500" />
-                    변경 내용
-                  </h3>
-                  <div className="bg-blue-50 border border-blue-200 p-4 space-y-3">
-                    <div>
-                      <p className="text-sm font-medium text-blue-700">변경 유형</p>
-                      <p className="text-sm text-blue-900">
-                        {getChangeTypeDisplay(selectedChangeRequest.changeType)}
-                      </p>
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <p className="text-sm font-medium text-blue-700">이전 값</p>
-                        <p className="text-sm text-blue-900">
-                          {formatChangeValue(selectedChangeRequest.changeType, selectedChangeRequest.oldValue)}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium text-blue-700">새로운 값</p>
-                        <p className="text-sm text-blue-900">
-                          {formatChangeValue(selectedChangeRequest.changeType, selectedChangeRequest.newValue)}
-                        </p>
-                      </div>
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium text-blue-700">변경 사유</p>
-                      <p className="text-sm text-blue-900">{selectedChangeRequest.reason}</p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Requester Information */}
-                <div>
-                  <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
-                    <UserIcon className="w-5 h-5 mr-2 text-brand-500" />
-                    요청자 정보
-                  </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-3">
-                      <div>
-                        <p className="text-sm font-medium text-gray-700">이름</p>
-                        <p className="text-sm text-gray-900">{selectedChangeRequest.requestedBy.name}</p>
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium text-gray-700">이메일</p>
-                        <p className="text-sm text-gray-900">{selectedChangeRequest.requestedBy.email}</p>
-                      </div>
-                    </div>
-                    <div className="space-y-3">
-                      <div>
-                        <p className="text-sm font-medium text-gray-700">사용자 ID</p>
-                        <p className="text-sm text-gray-900">{selectedChangeRequest.requestedBy.userId}</p>
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium text-gray-700">요청 일시</p>
-                        <p className="text-sm text-gray-900">{formatDate(selectedChangeRequest.createdAt)}</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Original Request Information */}
-                {selectedChangeRequest.originalRequest && (
-                  <div>
-                    <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
-                      <ComputerDesktopIcon className="w-5 h-5 mr-2 text-brand-500" />
-                      원본 요청 정보
-                    </h3>
-                    <div className="bg-gray-50 border border-gray-200 p-4 space-y-3">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                          <p className="text-sm font-medium text-gray-700">원본 요청 ID</p>
-                          <p className="text-sm text-gray-900">{selectedChangeRequest.originalRequest.requestId}</p>
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium text-gray-700">리소스 그룹</p>
-                          <p className="text-sm text-gray-900">
-                            {selectedChangeRequest.originalRequest.resourceGroup.resourceGroupName}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium text-gray-700">이미지</p>
-                          <p className="text-sm text-gray-900">
-                            {selectedChangeRequest.originalRequest.imageName}:{selectedChangeRequest.originalRequest.imageVersion}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium text-gray-700">Ubuntu 계정</p>
-                          <p className="text-sm text-gray-900">{selectedChangeRequest.originalRequest.ubuntuUsername}</p>
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium text-gray-700">현재 볼륨 크기</p>
-                          <p className="text-sm text-gray-900">{selectedChangeRequest.originalRequest.volumeSizeGiB} GiB</p>
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium text-gray-700">만료일</p>
-                          <p className="text-sm text-gray-900">
-                            {new Date(selectedChangeRequest.originalRequest.expiresAt).toLocaleDateString("ko-KR")}
-                          </p>
-                        </div>
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium text-gray-700">사용 목적</p>
-                        <p className="text-sm text-gray-900">{selectedChangeRequest.originalRequest.usagePurpose}</p>
-                      </div>
-                      {selectedChangeRequest.originalRequest.portMappings.length > 0 && (
-                        <div>
-                          <p className="text-sm font-medium text-gray-700">포트 매핑</p>
-                          <div className="flex flex-wrap gap-2 mt-1">
-                            {selectedChangeRequest.originalRequest.portMappings.map((port, index) => (
-                              <span
-                                key={index}
-                                className={`inline-flex items-center px-2.5 py-0.5 text-xs font-medium ${
-                                  port.isActive
-                                    ? "bg-green-100 text-green-800"
-                                    : "bg-gray-100 text-gray-800"
-                                }`}
-                              >
-                                {port.externalPort}:{port.internalPort}
-                                {port.usagePurpose && ` (${port.usagePurpose})`}
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
-
-                {/* Action Buttons */}
-                {selectedChangeRequest.status === "PENDING" && (
-                  <div className="flex justify-end space-x-3 pt-4 border-t">
-                    <Button
-                      variant="outline"
-                      onClick={() => {
-                        const comment = prompt("거절 사유를 입력하세요:");
-                        if (comment) {
-                          handleStatusUpdate(selectedChangeRequest, "DENIED", comment);
-                        }
-                      }}
-                      className="text-red-600 border-red-200 hover:bg-red-50"
-                    >
-                      <XMarkIcon className="w-4 h-4 mr-1" />
-                      거절
-                    </Button>
-                    <Button
-                      onClick={() => {
-                        const comment = prompt(
-                          "승인 사유를 입력하세요:",
-                          "변경 요청이 승인되었습니다."
-                        );
-                        if (comment !== null) {
-                          handleStatusUpdate(
-                            selectedChangeRequest,
-                            "FULFILLED",
-                            comment || "변경 요청이 승인되었습니다."
-                          );
-                        }
-                      }}
-                      className="bg-green-600 hover:bg-green-700 text-white"
-                    >
-                      <CheckIcon className="w-4 h-4 mr-1" />
-                      승인
-                    </Button>
-                  </div>
-                )}
               </div>
             </div>
+
+            <div>
+              <Header variant="h3">요청자</Header>
+              <KeyValuePairs
+                columns={2}
+                style={{ marginTop: "var(--decs-space-s)" }}
+                items={[
+                  { label: "이름", value: sel.requestedBy.name },
+                  { label: "이메일", value: sel.requestedBy.email },
+                  { label: "사용자 ID", value: sel.requestedBy.userId },
+                  { label: "요청 일시", value: formatDate(sel.createdAt) },
+                ]}
+              />
+            </div>
+
+            {sel.originalRequest && (
+              <div>
+                <Header variant="h3">원본 요청</Header>
+                <KeyValuePairs
+                  columns={2}
+                  style={{ marginTop: "var(--decs-space-s)" }}
+                  items={[
+                    {
+                      label: "원본 요청 ID",
+                      value: `#${sel.originalRequest.requestId}`,
+                    },
+                    {
+                      label: "리소스 그룹",
+                      value:
+                        sel.originalRequest.resourceGroup.resourceGroupName,
+                    },
+                    {
+                      label: "이미지",
+                      value: `${sel.originalRequest.imageName}:${sel.originalRequest.imageVersion}`,
+                    },
+                    {
+                      label: "Ubuntu 계정",
+                      value: sel.originalRequest.ubuntuUsername,
+                    },
+                    {
+                      label: "현재 볼륨",
+                      value: `${sel.originalRequest.volumeSizeGiB} GiB`,
+                    },
+                    {
+                      label: "만료",
+                      value: new Date(
+                        sel.originalRequest.expiresAt
+                      ).toLocaleDateString("ko-KR"),
+                    },
+                    {
+                      label: "원본 상태",
+                      value: renderStatus(sel.originalRequest.status),
+                    },
+                  ]}
+                />
+                <div className="mt-4">
+                  <div className="text-(--decs-text-inactive) mb-1">
+                    사용 목적
+                  </div>
+                  <div className="bg-(--decs-surface-sunken) p-3">
+                    {sel.originalRequest.usagePurpose}
+                  </div>
+                </div>
+                {sel.originalRequest.portMappings.length > 0 && (
+                  <div className="mt-4">
+                    <div className="text-(--decs-text-inactive) mb-1">
+                      포트 매핑
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {sel.originalRequest.portMappings.map((port, index) => (
+                        <Badge
+                          key={index}
+                          color={port.isActive ? "green" : "grey"}
+                        >
+                          {port.externalPort}:{port.internalPort}
+                          {port.usagePurpose ? ` (${port.usagePurpose})` : ""}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {(sel.status === "FULFILLED" || sel.status === "DENIED") && (
+              <Alert
+                type={sel.status === "DENIED" ? "error" : "success"}
+                header={sel.status === "DENIED" ? "거절 사유" : "승인 완료"}
+              >
+                {sel.adminComment ||
+                  (sel.status === "DENIED"
+                    ? "변경 요청이 거절되었습니다."
+                    : "변경 요청이 승인되었습니다.")}
+              </Alert>
+            )}
           </div>
-        </div>
+        </Modal>
       )}
     </div>
   );

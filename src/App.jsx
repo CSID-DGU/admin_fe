@@ -8,6 +8,19 @@ import { AuthProvider } from "./contexts/AuthContext";
 import { useAuth } from "./hooks/useAuth";
 import ProtectedRoute from "./components/Auth/ProtectedRoute";
 import DashboardLayout from "./components/Layout/DashboardLayout";
+import { Container, Header, Icon } from "./design-system";
+
+const PlaceholderPage = ({ title }) => (
+  <div className="space-y-6">
+    <Header variant="h1">{title}</Header>
+    <Container>
+      <div className="flex flex-col items-center gap-3 py-12 text-(--decs-text-secondary)">
+        <Icon name="cog-6-tooth" size={24} />
+        <p className="text-sm">아직 준비하고 있어요. 곧 이곳에서 확인할 수 있어요.</p>
+      </div>
+    </Container>
+  </div>
+);
 
 // Auth Pages
 import LoginPage from "./pages/auth/LoginPage";
@@ -145,10 +158,7 @@ const AppContent = () => {
         element={
           <ProtectedRoute requireAdmin>
             <DashboardLayout user={user} onLogout={logout}>
-              <div className="text-center py-12">
-                <h2 className="text-2xl font-bold text-gray-900">신청 관리</h2>
-                <p className="text-gray-600 mt-2">개발 중입니다.</p>
-              </div>
+              <PlaceholderPage title="신청 관리" />
             </DashboardLayout>
           </ProtectedRoute>
         }
@@ -181,12 +191,7 @@ const AppContent = () => {
         element={
           <ProtectedRoute requireAdmin>
             <DashboardLayout user={user} onLogout={logout}>
-              <div className="text-center py-12">
-                <h2 className="text-2xl font-bold text-gray-900">
-                  컨테이너 관리
-                </h2>
-                <p className="text-gray-600 mt-2">개발 중입니다.</p>
-              </div>
+              <PlaceholderPage title="컨테이너 관리" />
             </DashboardLayout>
           </ProtectedRoute>
         }
@@ -219,12 +224,7 @@ const AppContent = () => {
         element={
           <ProtectedRoute requireAdmin>
             <DashboardLayout user={user} onLogout={logout}>
-              <div className="text-center py-12">
-                <h2 className="text-2xl font-bold text-gray-900">
-                  시스템 설정
-                </h2>
-                <p className="text-gray-600 mt-2">개발 중입니다.</p>
-              </div>
+              <PlaceholderPage title="시스템 설정" />
             </DashboardLayout>
           </ProtectedRoute>
         }
