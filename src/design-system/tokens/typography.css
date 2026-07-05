@@ -1,0 +1,30 @@
+/* DECS — Typography tokens
+ * Type system inherited from Cloudscape: Open Sans, with the Cloudscape type scale.
+ * Korean text uses Noto Sans KR (matches CSID-DGU/admin_fe). Both from Google Fonts.
+ * NOTE (font substitution): Open Sans + Noto Sans KR are loaded from Google Fonts
+ * rather than shipped as local binaries. These ARE the real fonts, not a swap.
+ */
+@import url('https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,400;0,600;0,700;1,400&family=Noto+Sans+KR:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+:root {
+  /* Families */
+  --decs-font-base: "Open Sans", "Noto Sans KR", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --decs-font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  /* Weights */
+  --decs-fw-regular: 400;
+  --decs-fw-medium: 600;
+  --decs-fw-bold: 700;
+
+  /* Font sizes / line-heights (Cloudscape scale) */
+  --decs-fs-body-s: 12px;   --decs-lh-body-s: 16px;
+  --decs-fs-body-m: 14px;   --decs-lh-body-m: 20px;   /* default body */
+  --decs-fs-heading-xs: 14px; --decs-lh-heading-xs: 18px;
+  --decs-fs-heading-s: 16px;  --decs-lh-heading-s: 20px;
+  --decs-fs-heading-m: 18px;  --decs-lh-heading-m: 22px;
+  --decs-fs-heading-l: 20px;  --decs-lh-heading-l: 24px;
+  --decs-fs-heading-xl: 24px; --decs-lh-heading-xl: 30px;
+  --decs-fs-display-l: 42px;  --decs-lh-display-l: 48px;
+
+  --decs-letter-spacing-heading: -0.005em;
+}

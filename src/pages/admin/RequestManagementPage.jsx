@@ -1,21 +1,31 @@
 import { useState, useEffect } from "react";
 import {
-  DocumentTextIcon,
-  EyeIcon,
-  CheckIcon,
-  XMarkIcon,
-  ClockIcon,
-  UserIcon,
-  CheckCircleIcon,
-  XCircleIcon,
-  ServerIcon,
-} from "@heroicons/react/24/outline";
-import Card from "../../components/UI/Card";
-import Badge from "../../components/UI/Badge";
-import Button from "../../components/UI/Button";
-import Alert from "../../components/UI/Alert";
+  Container,
+  Header,
+  Table,
+  Tabs,
+  Button,
+  Modal,
+  Flashbar,
+  Alert,
+  StatusIndicator,
+  Badge,
+  KeyValuePairs,
+} from "../../design-system";
 import { requestService } from "../../services/requestService";
 import { mapRequestDtoToUiModel } from "../../utils/requestMapper";
+
+const STATUS_META = {
+  PENDING: { type: "pending", label: "대기중" },
+  FULFILLED: { type: "success", label: "승인됨" },
+  DENIED: { type: "error", label: "거절됨" },
+};
+
+const renderStatus = (status) => {
+  const meta = STATUS_META[status];
+  if (!meta) return <StatusIndicator type="info">{status}</StatusIndicator>;
+  return <StatusIndicator type={meta.type}>{meta.label}</StatusIndicator>;
+};
 
 const RequestManagementPage = () => {
   const [requests, setRequests] = useState([]);
@@ -83,32 +93,6 @@ const RequestManagementPage = () => {
     DENIED: requests.filter((r) => r.status === "DENIED").length,
   };
 
-  const getStatusBadge = (status) => {
-    switch (status) {
-      case "PENDING":
-        return <Badge variant="warning">대기중</Badge>;
-      case "FULFILLED":
-        return <Badge variant="success">승인됨</Badge>;
-      case "DENIED":
-        return <Badge variant="danger">거절됨</Badge>;
-      default:
-        return <Badge variant="default">{status}</Badge>;
-    }
-  };
-
-  const getStatusIcon = (status) => {
-    switch (status) {
-      case "FULFILLED":
-        return <CheckCircleIcon className="w-5 h-5 text-green-500" />;
-      case "PENDING":
-        return <ClockIcon className="w-5 h-5 text-yellow-500" />;
-      case "DENIED":
-        return <XCircleIcon className="w-5 h-5 text-red-500" />;
-      default:
-        return <DocumentTextIcon className="w-5 h-5 text-gray-500" />;
-    }
-  };
-
   const handleStatusUpdate = async (request, newStatus, comment = "") => {
     try {
       let response;
@@ -137,12 +121,12 @@ const RequestManagementPage = () => {
       if (response.status === 200) {
         // API 응답으로 받은 업데이트된 데이터로 state 업데이트
         const updatedRequest = response.data?.data || response.data;
-        
+
         // 승인/거절 API의 경우 newStatus를 기반으로 상태 설정
-        const finalStatus = (newStatus === "FULFILLED" || newStatus === "DENIED") 
-          ? newStatus 
+        const finalStatus = (newStatus === "FULFILLED" || newStatus === "DENIED")
+          ? newStatus
           : updatedRequest.status;
-        
+
         setRequests((prev) =>
           prev.map((req) =>
             req.request_id === request.request_id
@@ -203,6 +187,27 @@ const RequestManagementPage = () => {
     }
   };
 
+  const promptApprove = (request) => {
+    const comment = prompt("승인 사유를 입력하세요:", "승인되었습니다.");
+    if (comment !== null) {
+      handleStatusUpdate(request, "FULFILLED", comment || "승인되었습니다.");
+    }
+  };
+
+  const promptDeny = (request) => {
+    const comment = prompt("거절 사유를 입력하세요:");
+    if (comment) {
+      handleStatusUpdate(request, "DENIED", comment);
+    }
+  };
+
+  const promptRevoke = (request) => {
+    const comment = prompt("승인철회 사유를 입력하세요:");
+    if (comment) {
+      handleStatusUpdate(request, "DENIED", comment);
+    }
+  };
+
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString("ko-KR", {
       year: "numeric",
@@ -213,695 +218,364 @@ const RequestManagementPage = () => {
     });
   };
 
+  const emptyText =
+    filter === "ALL"
+      ? "아직 제출된 신청서가 없습니다."
+      : `${
+          filter === "PENDING"
+            ? "대기중인"
+            : filter === "FULFILLED"
+            ? "승인된"
+            : "거절된"
+        } 신청서가 없습니다. 다른 상태의 신청서를 확인해보세요.`;
+
+  const columns = [
+    {
+      id: "id",
+      header: "ID",
+      width: "72px",
+      cell: (r) => `#${r.request_id}`,
+    },
+    {
+      id: "user",
+      header: "사용자",
+      minWidth: "160px",
+      cell: (r) => (
+        <div>
+          <div>{r.user_name}</div>
+          <div className="text-(--decs-text-secondary)">
+            {r.student_id} · {r.department}
+          </div>
+        </div>
+      ),
+    },
+    {
+      id: "rsgroup",
+      header: "리소스 그룹",
+      cell: (r) => r.rsgroup_name,
+    },
+    {
+      id: "image",
+      header: "이미지",
+      cell: (r) => `${r.image_name}:${r.image_version}`,
+    },
+    {
+      id: "volume",
+      header: "볼륨",
+      cell: (r) => `${r.volume_size_GB} GiB`,
+    },
+    {
+      id: "expires",
+      header: "만료",
+      cell: (r) => new Date(r.expires_at).toLocaleDateString("ko-KR"),
+    },
+    {
+      id: "status",
+      header: "상태",
+      cell: (r) => renderStatus(r.status),
+    },
+    {
+      id: "actions",
+      header: "작업",
+      minWidth: "180px",
+      cell: (r) => (
+        <div className="flex items-center gap-3">
+          <Button variant="inline-link" onClick={() => setSelectedRequest(r)}>
+            상세
+          </Button>
+          {r.status === "PENDING" && (
+            <>
+              <Button variant="inline-link" onClick={() => promptApprove(r)}>
+                승인
+              </Button>
+              <Button
+                variant="inline-link"
+                style={{ color: "var(--decs-status-error)" }}
+                onClick={() => promptDeny(r)}
+              >
+                거절
+              </Button>
+            </>
+          )}
+          {r.status === "FULFILLED" && (
+            <Button
+              variant="inline-link"
+              style={{ color: "var(--decs-status-error)" }}
+              onClick={() => promptRevoke(r)}
+            >
+              승인철회
+            </Button>
+          )}
+        </div>
+      ),
+    },
+  ];
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-500 mx-auto"></div>
-          <p className="mt-4 text-gray-600">신청서 목록을 불러오는 중...</p>
-        </div>
+        <StatusIndicator type="loading">
+          신청서 목록을 불러오는 중...
+        </StatusIndicator>
       </div>
     );
   }
 
+  const sel = selectedRequest;
+
   return (
     <div className="space-y-6">
       {alert && (
-        <Alert type={alert.type} onClose={() => setAlert(null)}>
-          {alert.message}
-        </Alert>
+        <Flashbar
+          items={[
+            {
+              id: "page-alert",
+              type: alert.type,
+              content: alert.message,
+              dismissible: true,
+              onDismiss: () => setAlert(null),
+            },
+          ]}
+        />
       )}
 
-      {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">신청서 관리</h1>
-        <p className="text-gray-600 mt-1">
-          사용자들의 서버 사용 신청서를 검토하고 승인/거절할 수 있습니다.
-        </p>
-      </div>
+      <Header
+        variant="h1"
+        description="사용자들의 서버 사용 신청서를 검토하고 승인/거절할 수 있습니다."
+      >
+        신청서 관리
+      </Header>
 
-      {/* Status Filter */}
-      <Card>
-        <div className="flex space-x-1">
-          {[
-            { key: "ALL", label: "전체" },
-            { key: "PENDING", label: "대기중" },
-            { key: "FULFILLED", label: "승인됨" },
-            { key: "DENIED", label: "거절됨" },
-          ].map((tab) => (
-            <button
-              key={tab.key}
-              onClick={() => setFilter(tab.key)}
-              className={`px-4 py-2 text-sm font-medium transition-colors ${
-                filter === tab.key
-                  ? "bg-brand-500 text-white"
-                  : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
-              }`}
-            >
-              {tab.label} ({statusCounts[tab.key]})
-            </button>
-          ))}
-        </div>
-      </Card>
+      <Tabs
+        tabs={[
+          { key: "ALL", label: "전체" },
+          { key: "PENDING", label: "대기중" },
+          { key: "FULFILLED", label: "승인됨" },
+          { key: "DENIED", label: "거절됨" },
+        ].map((tab) => ({
+          id: tab.key,
+          label: `${tab.label} (${statusCounts[tab.key]})`,
+        }))}
+        activeTabId={filter}
+        onChange={setFilter}
+      />
 
-      {/* Requests List */}
-      {filteredRequests.length === 0 ? (
-        <Card>
-          <div className="text-center py-12">
-            <DocumentTextIcon className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">
-              {filter === "ALL"
-                ? "신청서가 없습니다"
-                : `${
-                    filter === "PENDING"
-                      ? "대기중인"
-                      : filter === "FULFILLED"
-                      ? "승인된"
-                      : "거절된"
-                  } 신청서가 없습니다`}
-            </h3>
-            <p className="text-gray-600">
-              {filter === "ALL"
-                ? "아직 제출된 신청서가 없습니다."
-                : "다른 상태의 신청서를 확인해보세요."}
-            </p>
-          </div>
-        </Card>
-      ) : (
-        <div className="space-y-4">
-          {filteredRequests.map((request) => (
-            <Card key={request.request_id}>
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <div className="flex items-center space-x-3 mb-3">
-                    {getStatusIcon(request.status)}
-                    <h3 className="text-lg font-semibold text-gray-900">
-                      #{request.request_id} - {request.user_name}
-                    </h3>
-                    {getStatusBadge(request.status)}
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
-                    <div>
-                      <p className="text-xs font-medium text-gray-700 uppercase tracking-tight">
-                        사용자 정보
-                      </p>
-                      <p className="text-sm text-gray-900 mt-1 tracking-tight">
-                        {request.student_id} | {request.department}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-xs font-medium text-gray-700 uppercase tracking-tight">
-                        리소스 그룹
-                      </p>
-                      <p className="text-sm text-gray-900 mt-1 tracking-tight">
-                        {request.rsgroup_name}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-xs font-medium text-gray-700 uppercase tracking-tight">
-                        이미지 & 볼륨
-                      </p>
-                      <p className="text-sm text-gray-900 mt-1 tracking-tight">
-                        {request.image_name}:{request.image_version}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-xs font-medium text-gray-700 uppercase tracking-tight">
-                        만료일
-                      </p>
-                      <p className="text-sm text-gray-900 mt-1 tracking-tight">
-                        {new Date(request.expires_at).toLocaleDateString(
-                          "ko-KR"
-                        )}
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Additional Info */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4 mt-3 pt-3 border-t border-gray-100">
-                    <div>
-                      <p className="text-xs font-medium text-gray-600 tracking-tight">
-                        이메일
-                      </p>
-                      <p className="text-sm text-gray-700 mt-1 tracking-tight">
-                        {request.user_email}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-xs font-medium text-gray-600 tracking-tight">
-                        서버
-                      </p>
-                      <p className="text-sm text-gray-700 mt-1 tracking-tight">
-                        {request.server_name}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-xs font-medium text-gray-600 tracking-tight">
-                        볼륨 크기
-                      </p>
-                      <p className="text-sm text-gray-700 mt-1 tracking-tight">
-                        {request.volume_size_GB} GiB
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-xs font-medium text-gray-600 tracking-tight">
-                        Ubuntu 계정
-                      </p>
-                      <p className="text-sm text-gray-700 mt-1 tracking-tight">
-                        {request.ubuntu_username}
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Port Information */}
-                  {(() => {
-                    const ports = request.port_mappings;
-                    if (!ports || ports.length === 0) return null;
-                    return (
-                      <div className="mt-3 pt-3 mb-4 border-t border-gray-100">
-                        <p className="text-xs font-medium text-gray-700 uppercase tracking-tight mb-2">
-                          외부 포트 정보
-                        </p>
-                        <div className="flex flex-wrap gap-2">
-                          {ports.map((port, index) => (
-                            <span
-                              key={index}
-                              className={`inline-flex items-center justify-center px-2.5 py-0.5 text-xs font-medium text-center ${
-                                port.isActive !== false
-                                  ? "bg-green-100 text-green-800"
-                                  : "bg-gray-100 text-gray-800"
-                              }`}
-                            >
-                              {port.externalPort}:{port.internalPort}
-                              {port.usagePurpose && ` (${port.usagePurpose})`}
-                            </span>
-                          ))}
-                        </div>
-                        <div className="mt-3 border-b border-gray-100"></div>
-                      </div>
-                    );
-                  })()}
-
-                  <div className="mb-4">
-                    <p className="text-xs font-medium text-gray-700 uppercase tracking-tight mb-1">
-                      사용 목적
-                    </p>
-                    <p className="text-sm text-gray-900 tracking-tight">
-                      {request.usage_purpose}
-                    </p>
-                  </div>
-
-                  {/* Status-specific information */}
-                  {request.status === "FULFILLED" && request.approved_at && (
-                    <div className="bg-green-50 border-l-4 border-green-400 p-3 mb-4">
-                      <div className="text-sm text-green-700">
-                        <p className="font-medium mb-1">승인 완료</p>
-                        <p>승인일: {formatDate(request.approved_at)}</p>
-                      </div>
-                    </div>
-                  )}
-
-                  {request.status === "DENIED" && request.admin_comment && (
-                    <div className="bg-red-50 border-l-4 border-red-400 p-3 mb-4">
-                      <div className="text-sm text-red-700">
-                        <p className="font-medium mb-1">거절 사유</p>
-                        <p>{request.admin_comment}</p>
-                      </div>
-                    </div>
-                  )}
-
-                  {request.status === "PENDING" && (
-                    <div className="bg-yellow-50 border-l-4 border-yellow-400 p-3 mb-4">
-                      <div className="text-sm text-yellow-700">
-                        <p className="font-medium mb-1">승인 대기 중</p>
-                        <p>관리자 검토가 필요합니다.</p>
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                <div className="ml-4 flex flex-col space-y-2">
-                  <Button
-                    variant="outline"
-                    size="small"
-                    onClick={() => setSelectedRequest(request)}
-                  >
-                    <EyeIcon className="w-4 h-4 mr-1" />
-                    상세보기
-                  </Button>
-
-                  {request.status === "FULFILLED" && (
-                    <Button
-                      variant="outline"
-                      size="small"
-                      onClick={() => {
-                        const comment = prompt("승인철회 사유를 입력하세요:");
-                        if (comment) {
-                          handleStatusUpdate(request, "DENIED", comment);
-                        }
-                      }}
-                      className="text-red-600 border-red-200 hover:bg-red-50"
-                    >
-                      <XMarkIcon className="w-4 h-4 mr-1" />
-                      승인철회
-                    </Button>
-                  )}
-
-                  {request.status === "PENDING" && (
-                    <div className="flex space-x-2">
-                      <button
-                        onClick={() => {
-                          const comment = prompt(
-                            "승인 사유를 입력하세요:",
-                            "승인되었습니다."
-                          );
-                          if (comment !== null) {
-                            handleStatusUpdate(
-                              request,
-                              "FULFILLED",
-                              comment || "승인되었습니다."
-                            );
-                          }
-                        }}
-                        className="px-3 py-1.5 text-sm font-medium text-green-700 bg-green-50 border border-green-200 hover:bg-green-100 transition-colors flex items-center"
-                      >
-                        <CheckIcon className="w-4 h-4 mr-1" />
-                        승인
-                      </button>
-                      <button
-                        onClick={() => {
-                          const comment = prompt("거절 사유를 입력하세요:");
-                          if (comment) {
-                            handleStatusUpdate(request, "DENIED", comment);
-                          }
-                        }}
-                        className="px-3 py-1.5 text-sm font-medium text-red-700 bg-red-50 border border-red-200 hover:bg-red-100 transition-colors flex items-center"
-                      >
-                        <XMarkIcon className="w-4 h-4 mr-1" />
-                        거절
-                      </button>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </Card>
-          ))}
-        </div>
-      )}
+      <Container disablePadding>
+        <Table
+          density="compact"
+          columns={columns}
+          items={filteredRequests}
+          trackBy="request_id"
+          header={
+            <Header variant="h2" counter={`(${filteredRequests.length})`}>
+              신청서
+            </Header>
+          }
+          empty={emptyText}
+        />
+      </Container>
 
       {/* Detail Modal */}
-      {selectedRequest && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6">
-              <div className="flex justify-between items-start mb-6">
-                <div>
-                  <h2 className="text-xl font-bold text-gray-900">
-                    신청 상세 정보
-                  </h2>
-                  <p className="text-sm text-gray-600">
-                    Request ID: {selectedRequest.request_id}
-                  </p>
-                </div>
-                <div className="flex items-center space-x-2">
-                  {getStatusBadge(selectedRequest.status)}
+      {sel && (
+        <Modal
+          visible
+          size="large"
+          onDismiss={() => setSelectedRequest(null)}
+          header={`신청 상세 정보 #${sel.request_id}`}
+          footer={
+            <>
+              <Button variant="normal" onClick={() => setSelectedRequest(null)}>
+                닫기
+              </Button>
+              {sel.status === "PENDING" && (
+                <>
                   <Button
-                    variant="outline"
-                    size="small"
-                    onClick={() => setSelectedRequest(null)}
-                  >
-                    닫기
-                  </Button>
-                </div>
-              </div>
-
-              <div className="space-y-6">
-                {/* User Information */}
-                <div>
-                  <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
-                    <UserIcon className="w-5 h-5 mr-2 text-brand-500" />
-                    사용자 정보
-                  </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-3">
-                      <div>
-                        <p className="text-sm font-medium text-gray-700">
-                          이름
-                        </p>
-                        <p className="text-sm text-gray-900">
-                          {selectedRequest.user_name}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium text-gray-700">
-                          이메일
-                        </p>
-                        <p className="text-sm text-gray-900">
-                          {selectedRequest.user_email}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium text-gray-700">
-                          계정 상태
-                        </p>
-                        <p className="text-sm text-gray-900">
-                          {selectedRequest.is_active ? (
-                            <Badge variant="success">활성</Badge>
-                          ) : (
-                            <Badge variant="danger">비활성</Badge>
-                          )}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="space-y-3">
-                      <div>
-                        <p className="text-sm font-medium text-gray-700">
-                          학번
-                        </p>
-                        <p className="text-sm text-gray-900">
-                          {selectedRequest.student_id}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium text-gray-700">
-                          학과
-                        </p>
-                        <p className="text-sm text-gray-900">
-                          {selectedRequest.department}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium text-gray-700">
-                          전화번호
-                        </p>
-                        <p className="text-sm text-gray-900">
-                          {selectedRequest.user_phone || "등록되지 않음"}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Resource Group Information */}
-                <div>
-                  <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
-                    <ServerIcon className="w-5 h-5 mr-2 text-brand-500" />
-                    리소스 그룹 정보
-                  </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-3">
-                      <div>
-                        <p className="text-sm font-medium text-gray-700">
-                          리소스 그룹명
-                        </p>
-                        <p className="text-sm text-gray-900">
-                          {selectedRequest.rsgroup_name}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium text-gray-700">
-                          서버명
-                        </p>
-                        <p className="text-sm text-gray-900">
-                          {selectedRequest.server_name}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="space-y-3">
-                      <div>
-                        <p className="text-sm font-medium text-gray-700">
-                          설명
-                        </p>
-                        <p className="text-sm text-gray-900">
-                          {selectedRequest.rsgroup_description}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Request Information */}
-                <div>
-                  <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
-                    <DocumentTextIcon className="w-5 h-5 mr-2 text-brand-500" />
-                    신청 정보
-                  </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-3">
-                      <div>
-                        <p className="text-sm font-medium text-gray-700">
-                          Ubuntu 사용자명
-                        </p>
-                        <p className="text-sm text-gray-900">
-                          {selectedRequest.ubuntu_username}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium text-gray-700">
-                          볼륨 크기
-                        </p>
-                        <p className="text-sm text-gray-900">
-                          {selectedRequest.volume_size_GB} GiB
-                        </p>
-                      </div>
-                    </div>
-                    <div className="space-y-3">
-                      <div>
-                        <p className="text-sm font-medium text-gray-700">
-                          컨테이너 이미지
-                        </p>
-                        <p className="text-sm text-gray-900">
-                          {selectedRequest.image_name}:
-                          {selectedRequest.image_version}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium text-gray-700">
-                          만료일
-                        </p>
-                        <p className="text-sm text-gray-900">
-                          {new Date(
-                            selectedRequest.expires_at
-                          ).toLocaleDateString("ko-KR")}
-                        </p>
-                      </div>
-                      {selectedRequest.ubuntu_gids &&
-                        selectedRequest.ubuntu_gids.length > 0 && (
-                          <div>
-                            <p className="text-sm font-medium text-gray-700">
-                              Ubuntu GIDs
-                            </p>
-                            <p className="text-sm text-gray-900">
-                              {selectedRequest.ubuntu_gids.join(", ")}
-                            </p>
-                          </div>
-                        )}
-                      {selectedRequest.ubuntu_uid != null && (
-                        <div>
-                          <p className="text-sm font-medium text-gray-700">Ubuntu UID</p>
-                          <p className="text-sm text-gray-900">{selectedRequest.ubuntu_uid}</p>
-                        </div>
-                      )}
-                      {selectedRequest.ubuntu_gid != null && (
-                        <div>
-                          <p className="text-sm font-medium text-gray-700">Ubuntu GID (Primary)</p>
-                          <p className="text-sm text-gray-900">{selectedRequest.ubuntu_gid}</p>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                  <div className="mt-4">
-                    <p className="text-sm font-medium text-gray-700">
-                      사용 목적
-                    </p>
-                    <p className="text-sm text-gray-900 mt-1 bg-gray-50 p-3 rounded">
-                      {selectedRequest.usage_purpose}
-                    </p>
-                  </div>
-                  {selectedRequest.form_answers &&
-                    Object.keys(selectedRequest.form_answers).length > 0 && (
-                      <div className="mt-4">
-                        <p className="text-sm font-medium text-gray-700 mb-2">
-                          추가 정보
-                        </p>
-                        <div className="bg-gray-50 p-3 rounded space-y-2">
-                          {Object.entries(selectedRequest.form_answers).map(
-                            ([key, value]) => (
-                              <div key={key} className="flex justify-between">
-                                <span className="text-sm font-medium text-gray-600 capitalize">
-                                  {key.replace("_", " ")}:
-                                </span>
-                                <span className="text-sm text-gray-900">
-                                  {value}
-                                </span>
-                              </div>
-                            )
-                          )}
-                        </div>
-                      </div>
-                    )}
-                </div>
-
-                {/* Port Information */}
-                {(() => {
-                  const ports = selectedRequest.port_mappings;
-                  if (!ports || ports.length === 0) return null;
-                  return (
-                    <div>
-                      <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
-                        <ServerIcon className="w-5 h-5 mr-2 text-brand-500" />
-                        외부 포트 상세 정보
-                      </h3>
-                      <div className="bg-gray-50 p-4">
-                        <div className="space-y-3">
-                          {ports.map((port, index) => (
-                            <div key={index} className="bg-white p-3 border border-gray-300">
-                              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                                <div>
-                                  <p className="text-sm font-medium text-gray-700 text-center">
-                                    외부 포트 (NodePort)
-                                  </p>
-                                  <code className="block mt-1 p-1 bg-gray-100 text-sm text-center">
-                                    {port.externalPort}
-                                  </code>
-                                </div>
-                                <div>
-                                  <p className="text-sm font-medium text-gray-700 text-center">
-                                    내부 포트
-                                  </p>
-                                  <code className="block mt-1 p-1 bg-gray-100 text-sm text-center">
-                                    {port.internalPort}
-                                  </code>
-                                </div>
-                                <div>
-                                  <p className="text-sm font-medium text-gray-700 text-center">
-                                    상태
-                                  </p>
-                                  <span className={`inline-flex items-center justify-center w-full px-2 py-1 text-xs font-medium mt-1 text-center ${
-                                    port.isActive !== false
-                                      ? "bg-green-100 text-green-800"
-                                      : "bg-gray-100 text-gray-800"
-                                  }`}>
-                                    {port.isActive !== false ? "활성" : "비활성"}
-                                  </span>
-                                </div>
-                                <div>
-                                  <p className="text-sm font-medium text-gray-700 text-center">
-                                    사용 목적
-                                  </p>
-                                  <p className="text-sm text-gray-900 mt-1 text-center">
-                                    {port.usagePurpose || "지정되지 않음"}
-                                  </p>
-                                </div>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })()}
-
-                {/* Status History */}
-                <div>
-                  <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
-                    <ClockIcon className="w-5 h-5 mr-2 text-brand-500" />
-                    처리 이력
-                  </h3>
-                  <div className="space-y-2">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                      <span className="text-sm text-gray-900">
-                        신청 제출: {formatDate(selectedRequest.created_at)}
-                      </span>
-                    </div>
-                    {selectedRequest.approved_at && (
-                      <div className="flex items-center space-x-3">
-                        <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                        <span className="text-sm text-gray-900">
-                          승인 완료: {formatDate(selectedRequest.approved_at)}
-                        </span>
-                      </div>
-                    )}
-                    {selectedRequest.status === "DENIED" && (
-                      <div className="flex items-center space-x-3">
-                        <div className="w-2 h-2 bg-red-500 rounded-full"></div>
-                        <span className="text-sm text-gray-900">
-                          거절: {formatDate(selectedRequest.updated_at)}
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                  {selectedRequest.admin_comment && (
-                    <div className="mt-4 bg-gray-50 p-3 rounded">
-                      <p className="text-sm font-medium text-gray-700">
-                        관리자 의견
-                      </p>
-                      <p className="text-sm text-gray-900 mt-1">
-                        {selectedRequest.admin_comment}
-                      </p>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Action Buttons */}
-              {selectedRequest.status === "PENDING" && (
-                <div className="mt-6 flex justify-end space-x-3 border-t pt-4">
-                  <Button
-                    variant="success"
-                    onClick={() => {
-                      const comment = prompt(
-                        "승인 사유를 입력하세요:",
-                        "승인되었습니다."
-                      );
-                      if (comment !== null) {
-                        handleStatusUpdate(
-                          selectedRequest,
-                          "FULFILLED",
-                          comment || "승인되었습니다."
-                        );
-                      }
+                    variant="normal"
+                    style={{
+                      color: "var(--decs-status-error)",
+                      borderColor: "var(--decs-status-error)",
                     }}
+                    onClick={() => promptDeny(sel)}
                   >
-                    <CheckIcon className="w-4 h-4 mr-1" />
-                    승인
-                  </Button>
-                  <Button
-                    variant="danger"
-                    onClick={() => {
-                      const comment = prompt("거절 사유를 입력하세요:");
-                      if (comment) {
-                        handleStatusUpdate(selectedRequest, "DENIED", comment);
-                      }
-                    }}
-                  >
-                    <XMarkIcon className="w-4 h-4 mr-1" />
                     거절
                   </Button>
-                </div>
-              )}
-
-              {selectedRequest.status === "FULFILLED" && (
-                <div className="mt-6 flex justify-end space-x-3 border-t pt-4">
-                  <Button
-                    variant="danger"
-                    onClick={() => {
-                      const comment = prompt("승인철회 사유를 입력하세요:");
-                      if (comment) {
-                        handleStatusUpdate(selectedRequest, "DENIED", comment);
-                      }
-                    }}
-                  >
-                    <XMarkIcon className="w-4 h-4 mr-1" />
-                    승인철회
+                  <Button variant="primary" onClick={() => promptApprove(sel)}>
+                    승인
                   </Button>
+                </>
+              )}
+              {sel.status === "FULFILLED" && (
+                <Button
+                  variant="primary"
+                  style={{
+                    background: "var(--decs-status-error)",
+                    color: "#fff",
+                  }}
+                  onClick={() => promptRevoke(sel)}
+                >
+                  승인철회
+                </Button>
+              )}
+            </>
+          }
+        >
+          <div className="space-y-6">
+            <div>{renderStatus(sel.status)}</div>
+
+            <div>
+              <Header variant="h3">사용자</Header>
+              <KeyValuePairs
+                columns={2}
+                style={{ marginTop: "var(--decs-space-s)" }}
+                items={[
+                  { label: "이름", value: sel.user_name },
+                  { label: "학번", value: sel.student_id },
+                  { label: "이메일", value: sel.user_email },
+                  { label: "학과", value: sel.department },
+                  {
+                    label: "전화번호",
+                    value: sel.user_phone || "등록되지 않음",
+                  },
+                  {
+                    label: "계정 상태",
+                    value: sel.is_active ? (
+                      <StatusIndicator type="success">활성</StatusIndicator>
+                    ) : (
+                      <StatusIndicator type="stopped">비활성</StatusIndicator>
+                    ),
+                  },
+                ]}
+              />
+            </div>
+
+            <div>
+              <Header variant="h3">리소스 그룹</Header>
+              <KeyValuePairs
+                columns={2}
+                style={{ marginTop: "var(--decs-space-s)" }}
+                items={[
+                  { label: "리소스 그룹명", value: sel.rsgroup_name },
+                  { label: "서버", value: sel.server_name },
+                  { label: "설명", value: sel.rsgroup_description },
+                ]}
+              />
+            </div>
+
+            <div>
+              <Header variant="h3">신청 정보</Header>
+              <KeyValuePairs
+                columns={2}
+                style={{ marginTop: "var(--decs-space-s)" }}
+                items={[
+                  {
+                    label: "Ubuntu 사용자명",
+                    value: sel.ubuntu_username,
+                    copyable: true,
+                    copyText: sel.ubuntu_username,
+                  },
+                  {
+                    label: "컨테이너 이미지",
+                    value: `${sel.image_name}:${sel.image_version}`,
+                  },
+                  { label: "볼륨 크기", value: `${sel.volume_size_GB} GiB` },
+                  {
+                    label: "만료",
+                    value: new Date(sel.expires_at).toLocaleDateString("ko-KR"),
+                  },
+                  ...(sel.ubuntu_gids && sel.ubuntu_gids.length > 0
+                    ? [{ label: "Ubuntu GIDs", value: sel.ubuntu_gids.join(", ") }]
+                    : []),
+                  ...(sel.ubuntu_uid != null
+                    ? [{ label: "Ubuntu UID", value: sel.ubuntu_uid }]
+                    : []),
+                  ...(sel.ubuntu_gid != null
+                    ? [{ label: "Ubuntu GID (Primary)", value: sel.ubuntu_gid }]
+                    : []),
+                ]}
+              />
+              <div className="mt-4">
+                <div className="text-(--decs-text-inactive) mb-1">사용 목적</div>
+                <div className="bg-(--decs-surface-sunken) p-3">
+                  {sel.usage_purpose}
+                </div>
+              </div>
+              {sel.form_answers &&
+                Object.keys(sel.form_answers).length > 0 && (
+                  <div className="mt-4">
+                    <div className="text-(--decs-text-inactive) mb-1">
+                      추가 정보
+                    </div>
+                    <KeyValuePairs
+                      columns={2}
+                      items={Object.entries(sel.form_answers).map(
+                        ([key, value]) => ({
+                          label: key.replace("_", " "),
+                          value,
+                        })
+                      )}
+                    />
+                  </div>
+                )}
+            </div>
+
+            {sel.port_mappings && sel.port_mappings.length > 0 && (
+              <div>
+                <Header variant="h3">외부 포트</Header>
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {sel.port_mappings.map((port, index) => (
+                    <Badge
+                      key={index}
+                      color={port.isActive !== false ? "green" : "grey"}
+                    >
+                      {port.externalPort}:{port.internalPort}
+                      {port.usagePurpose ? ` (${port.usagePurpose})` : ""}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div>
+              <Header variant="h3">처리 이력</Header>
+              <div className="space-y-2 mt-2">
+                <StatusIndicator type="info">
+                  신청 제출: {formatDate(sel.created_at)}
+                </StatusIndicator>
+                {sel.approved_at && (
+                  <div>
+                    <StatusIndicator type="success">
+                      승인 완료: {formatDate(sel.approved_at)}
+                    </StatusIndicator>
+                  </div>
+                )}
+                {sel.status === "DENIED" && (
+                  <div>
+                    <StatusIndicator type="error">
+                      거절: {formatDate(sel.updated_at)}
+                    </StatusIndicator>
+                  </div>
+                )}
+                {sel.status === "PENDING" && (
+                  <div>
+                    <StatusIndicator type="pending">
+                      관리자 검토 대기 중
+                    </StatusIndicator>
+                  </div>
+                )}
+              </div>
+              {sel.admin_comment && (
+                <div className="mt-3">
+                  <Alert
+                    type={sel.status === "DENIED" ? "error" : "info"}
+                    header="관리자 의견"
+                  >
+                    {sel.admin_comment}
+                  </Alert>
                 </div>
               )}
             </div>
           </div>
-        </div>
+        </Modal>
       )}
     </div>
   );

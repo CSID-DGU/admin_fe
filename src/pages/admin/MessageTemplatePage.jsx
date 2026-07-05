@@ -1,9 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { getMessages, updateMessage, resetMessage } from '../../services/messageService';
-import Card from '../../components/UI/Card';
-import Button from '../../components/UI/Button';
-import Alert from '../../components/UI/Alert';
-import Badge from '../../components/UI/Badge';
+import {
+  Alert,
+  Badge,
+  Button,
+  Container,
+  FormField,
+  Header,
+  Modal,
+  StatusIndicator,
+  Table,
+} from '../../design-system';
 
 const CATEGORIES = [
   { label: '만료 알림', prefixes: ['notification.expired', 'notification.pre-expiry'] },
@@ -20,6 +27,7 @@ const MessageTemplatePage = () => {
   const [saving, setSaving] = useState(false);
   const [alert, setAlert] = useState(null);
   const [editing, setEditing] = useState(null);
+  const [resetTarget, setResetTarget] = useState(null); // 초기화 확인 Modal 대상 key
 
   useEffect(() => { fetchTemplates(); }, []);
 
@@ -67,8 +75,10 @@ const MessageTemplatePage = () => {
     }
   };
 
+  // 확인은 Modal에서 처리
   const handleReset = async (key) => {
-    if (saving || !window.confirm('기본값으로 초기화하시겠습니까?')) return;
+    if (saving) return;
+    setResetTarget(null);
     setSaving(true);
     try {
       const result = await resetMessage(key);
@@ -93,112 +103,174 @@ const MessageTemplatePage = () => {
   const uncategorized = templates.filter(t => !categorized.has(t.key));
   if (uncategorized.length) grouped.push({ label: '기타', items: uncategorized });
 
-  return (
-    <div className="p-6">
-      {alert && (
-        <div className="mb-4">
-          <Alert type={alert.type} message={alert.message} onClose={() => setAlert(null)} />
+  const columns = [
+    {
+      id: 'key',
+      header: '키',
+      cell: (t) => (
+        <code className="font-(family-name:--decs-font-mono) text-(--decs-text-body)">{t.key}</code>
+      ),
+    },
+    {
+      id: 'currentValue',
+      header: '현재 값',
+      minWidth: '280px',
+      cell: (t) => <p className="truncate max-w-md m-0">{t.currentValue}</p>,
+    },
+    {
+      id: 'status',
+      header: '상태',
+      width: '100px',
+      cell: (t) => (
+        <Badge color={t.overridden ? 'amber' : 'grey'}>
+          {t.overridden ? '수정됨' : '기본값'}
+        </Badge>
+      ),
+    },
+    {
+      id: 'actions',
+      header: '작업',
+      width: '180px',
+      cell: (t) => (
+        <div className="flex gap-2">
+          <Button
+            iconName="pencil-square"
+            onClick={() => setEditing({ key: t.key, value: t.currentValue, defaultValue: t.defaultValue })}
+          >
+            편집
+          </Button>
+          {t.overridden && (
+            <Button disabled={saving} onClick={() => setResetTarget(t.key)}>
+              초기화
+            </Button>
+          )}
         </div>
-      )}
+      ),
+    },
+  ];
 
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">양식 관리</h1>
-        <p className="text-gray-600 mt-1">알림 메시지 템플릿을 관리합니다.</p>
-      </div>
+  return (
+    <div className="space-y-6">
+      <Header variant="h1" description="알림 메시지 템플릿을 관리합니다.">
+        양식 관리
+      </Header>
+
+      {alert && (
+        <Alert type={alert.type} dismissible onDismiss={() => setAlert(null)}>
+          {alert.message}
+        </Alert>
+      )}
 
       {loading ? (
-        <div className="text-center py-12">
-          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-brand-500"></div>
-          <p className="mt-2 text-gray-600">로딩 중...</p>
-        </div>
+        <Container>
+          <div className="flex justify-center py-12">
+            <StatusIndicator type="in-progress">불러오는 중</StatusIndicator>
+          </div>
+        </Container>
       ) : templates.length === 0 ? (
-        <div className="text-center py-12 text-gray-500">등록된 메시지 템플릿이 없습니다.</div>
+        <Container>
+          <div className="text-center py-12 text-(--decs-text-secondary)">
+            등록된 메시지 템플릿이 없습니다.
+          </div>
+        </Container>
       ) : (
-        <div className="space-y-6">
-          {grouped.map(group => (
-            <Card key={group.label}>
-              <h2 className="text-lg font-medium text-gray-900 mb-4">{group.label}</h2>
-              <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">키</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">현재 값</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">상태</th>
-                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">작업</th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {group.items.map(t => (
-                      <tr key={t.key} className="hover:bg-gray-50">
-                        <td className="px-6 py-4 text-sm text-gray-900 font-mono whitespace-nowrap">{t.key}</td>
-                        <td className="px-6 py-4 text-sm text-gray-700 max-w-md">
-                          <p className="truncate">{t.currentValue}</p>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <Badge variant={t.overridden ? 'warning' : 'default'}>
-                            {t.overridden ? '수정됨' : '기본값'}
-                          </Badge>
-                        </td>
-                        <td className="px-6 py-4 text-right whitespace-nowrap space-x-2">
-                          <Button
-                            size="small"
-                            variant="outline"
-                            onClick={() => setEditing({ key: t.key, value: t.currentValue, defaultValue: t.defaultValue })}
-                          >
-                            편집
-                          </Button>
-                          {t.overridden && (
-                            <Button size="small" variant="secondary" disabled={saving} onClick={() => handleReset(t.key)}>
-                              초기화
-                            </Button>
-                          )}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </Card>
-          ))}
-        </div>
+        grouped.map(group => (
+          <Container key={group.label} disablePadding>
+            <Table
+              density="compact"
+              trackBy="key"
+              columns={columns}
+              items={group.items}
+              header={
+                <Header variant="h2" counter={`(${group.items.length})`}>
+                  {group.label}
+                </Header>
+              }
+            />
+          </Container>
+        ))
       )}
 
-      {editing && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4" onClick={closeModal}>
-          <div className="bg-white w-full max-w-2xl p-6" onClick={e => e.stopPropagation()}>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">메시지 편집</h3>
-            <p className="text-sm text-gray-500 font-mono mb-4">{editing.key}</p>
+      {/* 편집 Modal */}
+      <Modal
+        visible={!!editing}
+        onDismiss={closeModal}
+        header="메시지 편집"
+        size="large"
+        footer={
+          <>
+            <Button onClick={closeModal} disabled={saving}>취소</Button>
+            <Button
+              variant="primary"
+              loading={saving}
+              disabled={!editing?.value.trim()}
+              onClick={handleUpdate}
+            >
+              저장
+            </Button>
+          </>
+        }
+      >
+        {editing && (
+          <div className="space-y-4">
+            <code className="block font-(family-name:--decs-font-mono) text-(--decs-text-secondary)">
+              {editing.key}
+            </code>
 
             {editing.defaultValue && editing.defaultValue !== editing.value && (
-              <div className="bg-gray-50 border-l-4 border-gray-300 p-3 mb-4">
-                <p className="text-xs font-medium text-gray-500 mb-1">기본값</p>
-                <p className="text-sm text-gray-700 whitespace-pre-wrap">{editing.defaultValue}</p>
+              <div className="bg-(--decs-surface-sunken) border border-(--decs-border-divider) p-3">
+                <p className="text-(--decs-text-inactive) mb-1 m-0">기본값</p>
+                <p className="text-(--decs-text-body) whitespace-pre-wrap m-0">
+                  {editing.defaultValue}
+                </p>
               </div>
             )}
 
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-1">메시지 내용</label>
+            <FormField
+              label="메시지 내용"
+              constraintText={`플레이스홀더: {0} = 사용자명, {1} = 서버명 등 (위치에 따라 다름)`}
+              htmlFor="template-value"
+            >
               <textarea
-                className="w-full border border-gray-300 p-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
+                id="template-value"
+                className="w-full border border-(--decs-border-input) bg-(--decs-surface-input) text-(--decs-text-body) p-3 focus:outline-none focus:border-(--decs-border-focus) focus:ring-1 focus:ring-(--decs-border-focus)"
+                style={{ borderRadius: 'var(--decs-radius-input)', fontFamily: 'var(--decs-font-base)', fontSize: 'var(--decs-fs-body-m)' }}
                 rows={5}
                 value={editing.value}
                 onChange={e => setEditing({ ...editing, value: e.target.value })}
               />
-              <p className="text-xs text-gray-500 mt-1">
-                플레이스홀더: {'{0}'} = 사용자명, {'{1}'} = 서버명 등 (위치에 따라 다름)
-              </p>
-            </div>
-
-            <div className="flex justify-end gap-2">
-              <Button variant="secondary" onClick={closeModal} disabled={saving}>취소</Button>
-              <Button variant="primary" onClick={handleUpdate} disabled={saving || !editing.value.trim()}>
-                {saving ? '저장 중...' : '저장'}
-              </Button>
-            </div>
+            </FormField>
           </div>
-        </div>
-      )}
+        )}
+      </Modal>
+
+      {/* 초기화 확인 Modal */}
+      <Modal
+        visible={!!resetTarget}
+        onDismiss={() => setResetTarget(null)}
+        header="기본값으로 초기화"
+        size="small"
+        footer={
+          <>
+            <Button onClick={() => setResetTarget(null)} disabled={saving}>취소</Button>
+            <Button
+              variant="primary"
+              style={{ background: 'var(--decs-status-error)', color: '#fff' }}
+              loading={saving}
+              onClick={() => handleReset(resetTarget)}
+            >
+              초기화
+            </Button>
+          </>
+        }
+      >
+        {resetTarget && (
+          <p className="m-0">
+            <code className="font-(family-name:--decs-font-mono)">{resetTarget}</code>
+            의 수정된 값이 삭제되고 기본값으로 복원됩니다.
+          </p>
+        )}
+      </Modal>
     </div>
   );
 };

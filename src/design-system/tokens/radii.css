@@ -1,0 +1,10 @@
+/* DECS — Border radius tokens (Cloudscape visual refresh) */
+:root {
+  --decs-radius-badge: 4px;
+  --decs-radius-item: 8px;      /* rows, dropdown items */
+  --decs-radius-input: 8px;
+  --decs-radius-button: 20px;   /* Cloudscape pill-ish buttons */
+  --decs-radius-alert: 12px;
+  --decs-radius-container: 16px;
+  --decs-radius-popover: 8px;
+}

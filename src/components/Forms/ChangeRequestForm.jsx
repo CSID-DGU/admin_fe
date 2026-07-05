@@ -1,22 +1,25 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import Card from "../UI/Card";
-import Button from "../UI/Button";
-import Input from "../UI/Input";
 import GroupSelector from "./GroupSelector";
 import PortSelector from "./PortSelector";
 import { requestService } from "../../services/requestService";
 import { validateChangeRequestForm } from "../../utils/formValidator";
 import {
-  CheckCircleIcon,
-  PencilSquareIcon,
-  DocumentTextIcon,
-  CpuChipIcon,
-  CircleStackIcon,
-  CalendarIcon,
-  ComputerDesktopIcon,
-  ClockIcon,
-} from "@heroicons/react/24/outline";
+  Container,
+  Header,
+  FormField,
+  Input,
+  Select,
+  Cards,
+  Alert,
+  Button,
+  StatusIndicator,
+} from "../../design-system";
+
+const textareaClass = (invalid) =>
+  `block w-full px-3 py-1.5 text-sm bg-(--decs-surface-input) text-(--decs-text-body) rounded-(--decs-radius-input) border focus:outline-none focus:ring-1 focus:ring-(--decs-border-focus) focus:border-(--decs-border-focus) ${
+    invalid ? "border-(--decs-status-error)" : "border-(--decs-border-input)"
+  }`;
 
 const ChangeRequestForm = ({
   changeFormData,
@@ -33,9 +36,7 @@ const ChangeRequestForm = ({
   const [isLoading, setIsLoading] = useState(false);
   const hasId = (id) => id !== undefined && id !== null;
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-
+  const handleFieldChange = (name, value) => {
     // change_type이 변경될 때 new_value 초기화
     if (name === "change_type") {
       let initialValue = "";
@@ -62,6 +63,8 @@ const ChangeRequestForm = ({
       }));
     }
   };
+
+  const handleChange = (e) => handleFieldChange(e.target.name, e.target.value);
 
   // 그룹 추가 핸들러 (변경 요청용)
   const addGroupForChange = (gid) => {
@@ -96,7 +99,7 @@ const ChangeRequestForm = ({
       const updatedGroups = [...availableGroups, newGroup];
       onUpdateAvailableGroups(updatedGroups);
     }
-    
+
     // GroupSelector에서 API 성공 후에 직접 addGroupForChange를 호출하므로
     // 여기서는 addGroupForChange를 호출하지 않음
   };
@@ -158,7 +161,7 @@ const ChangeRequestForm = ({
     const selectedRequest = userRequests.find(
       (req) => req.request_id === parseInt(changeFormData.request_id)
     );
-    
+
     if (!selectedRequest) return null;
 
     switch (changeType) {
@@ -171,21 +174,19 @@ const ChangeRequestForm = ({
       case "IMAGE_ID":
         return `${selectedRequest.image_name} ${selectedRequest.image_version}`;
       case "GROUPS":
-        return selectedRequest.group_names.length > 0 
-          ? selectedRequest.group_names.join(", ") 
+        return selectedRequest.group_names.length > 0
+          ? selectedRequest.group_names.join(", ")
           : "설정된 그룹 없음";
       case "INTERNAL_PORTS":
-        return selectedRequest.port_mappings.length > 0 
-          ? selectedRequest.port_mappings.map(port => port.internalPort).join(", ")
+        return selectedRequest.port_mappings.length > 0
+          ? selectedRequest.port_mappings.map((port) => port.internalPort).join(", ")
           : "설정된 포트 없음";
       default:
         return null;
     }
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
+  const handleSubmit = async () => {
     const validation = validateChangeRequestForm(changeFormData);
     if (!validation.isValid) {
       setErrors(validation.errors);
@@ -198,29 +199,29 @@ const ChangeRequestForm = ({
       // API 명세에 맞게 changeType 매핑
       const changeTypeMapping = {
         "VOLUME_SIZE": "VOLUME_SIZE",
-        "EXPIRES_AT": "EXPIRES_AT", 
+        "EXPIRES_AT": "EXPIRES_AT",
         "RSGROUP_ID": "RESOURCE_GROUP",
         "IMAGE_ID": "IMAGE_ID",
         "GROUPS": "GROUP",
-        "INTERNAL_PORTS": "PORT"
+        "INTERNAL_PORTS": "PORT",
       };
 
       // newValue 형식 처리
       let formattedNewValue = changeFormData.new_value;
-      
+
       // PORT나 GROUP 타입인 경우 JSON string으로 변환
       if (changeFormData.change_type === "INTERNAL_PORTS") {
         // 포트 배열을 API 명세에 맞는 형식으로 변환
         const ports = JSON.parse(changeFormData.new_value || "[]");
-        const formattedPorts = ports.map(port => ({
+        const formattedPorts = ports.map((port) => ({
           internalPort: parseInt(port.internalPort),
-          usagePurpose: port.usagePurpose
+          usagePurpose: port.usagePurpose,
         }));
         formattedNewValue = JSON.stringify(formattedPorts);
       } else if (changeFormData.change_type === "GROUPS") {
         // 그룹 배열을 정수 배열로 변환하여 JSON string으로
         const groups = JSON.parse(changeFormData.new_value || "[]");
-        const formattedGroups = groups.map(group => parseInt(group));
+        const formattedGroups = groups.map((group) => parseInt(group));
         formattedNewValue = JSON.stringify(formattedGroups);
       }
 
@@ -264,7 +265,7 @@ const ChangeRequestForm = ({
   // GPU 타입들을 그룹화하는 함수
   const groupGpuTypes = () => {
     const grouped = {};
-    
+
     gpuTypes.forEach((gpu) => {
       if (!hasId(gpu.rsgroupId)) return;
       const key = `${gpu.gpuModel}_${gpu.ramGb}GB`;
@@ -273,7 +274,7 @@ const ChangeRequestForm = ({
           gpuModel: gpu.gpuModel,
           ramGb: gpu.ramGb,
           nodes: [],
-          rsgroupIds: []
+          rsgroupIds: [],
         };
       }
       grouped[key].nodes.push(gpu.nodeId);
@@ -283,179 +284,139 @@ const ChangeRequestForm = ({
     return Object.values(grouped);
   };
 
+  // 컨테이너 이미지를 프레임워크별로 그룹화
+  const groupContainerImages = () =>
+    Object.entries(
+      containerImages.reduce((acc, image) => {
+        const frameworkName = image.imageName || image.image_name || "Unknown";
+        const imageId = image.imageId ?? image.image_id;
+        if (!hasId(imageId)) return acc;
+        const imageVersion = image.imageVersion || image.image_version;
+        const cudaVersion = image.cudaVersion || image.cuda_version;
+
+        if (!acc[frameworkName]) {
+          acc[frameworkName] = [];
+        }
+        acc[frameworkName].push({
+          ...image,
+          imageId,
+          imageName: frameworkName,
+          imageVersion,
+          cudaVersion,
+          description: image.description,
+        });
+        return acc;
+      }, {})
+    );
+
   const getNewValueInput = () => {
     const { change_type } = changeFormData;
 
     switch (change_type) {
       case "VOLUME_SIZE":
         return (
-          <Input
-            label="새로운 볼륨 크기 (GB)"
-            name="new_value"
-            type="number"
-            value={changeFormData.new_value}
-            onChange={handleChange}
-            error={errors.new_value}
-            placeholder="예: 1000"
-            help="10GB ~ 2000GB 사이"
-            min="10"
-            max="2000"
-            required
-            icon={CircleStackIcon}
-          />
+          <FormField
+            label="새로운 저장 공간 (GB)"
+            errorText={errors.new_value}
+            constraintText="10GB부터 2000GB까지 신청할 수 있어요."
+            htmlFor="change_new_value"
+          >
+            <Input
+              id="change_new_value"
+              type="number"
+              value={changeFormData.new_value}
+              onChange={(value) => handleFieldChange("new_value", value)}
+              placeholder="예: 1000"
+              iconName="cube"
+              invalid={!!errors.new_value}
+            />
+          </FormField>
         );
       case "EXPIRES_AT":
         return (
-          <Input
+          <FormField
             label="새로운 만료일"
-            name="new_value"
-            type="date"
-            value={changeFormData.new_value}
-            onChange={handleChange}
-            error={errors.new_value}
-            help="서버 사용 종료 예정일"
-            required
-            icon={CalendarIcon}
-          />
+            errorText={errors.new_value}
+            constraintText="서버 사용을 마칠 예정일이에요."
+            htmlFor="change_new_value"
+          >
+            <Input
+              id="change_new_value"
+              type="date"
+              value={changeFormData.new_value}
+              onChange={(value) => handleFieldChange("new_value", value)}
+              invalid={!!errors.new_value}
+            />
+          </FormField>
         );
       case "RSGROUP_ID":
         return (
-          <div className="space-y-1">
-            <label className="block text-sm font-medium text-gray-700">
-              <CpuChipIcon className="w-4 h-4 inline mr-1" />
-              새로운 GPU 기종 *
-            </label>
-            <select
-              name="new_value"
-              value={changeFormData.new_value}
-              onChange={handleChange}
-              className={`block w-full px-3 py-2 border text-sm h-[38px] focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 ${
-                errors.new_value
-                  ? "border-red-300 text-red-900 focus:ring-red-500 focus:border-red-500"
-                  : "border-gray-300 text-gray-900"
-              }`}
-              required
-            >
-              <option value="">GPU 기종을 선택하세요</option>
-              {groupGpuTypes().map((group, index) => (
-                <option key={index} value={group.rsgroupIds[0]}>
-                  {group.gpuModel} ({group.ramGb}GB, 가용 노드 {group.nodes.join(", ")})
-                </option>
-              ))}
-            </select>
-            {errors.new_value && (
-              <p className="text-sm text-red-600">{errors.new_value}</p>
-            )}
-          </div>
+          <FormField label="새로운 GPU 기종" errorText={errors.new_value}>
+            <Select
+              options={groupGpuTypes().map((group) => ({
+                value: String(group.rsgroupIds[0]),
+                label: `${group.gpuModel} (${group.ramGb}GB)`,
+                description: `가용 노드 ${group.nodes.join(", ")}`,
+              }))}
+              selectedValue={changeFormData.new_value}
+              onChange={(value) => handleFieldChange("new_value", value)}
+              placeholder="GPU 기종을 선택하세요"
+              invalid={!!errors.new_value}
+            />
+          </FormField>
         );
       case "IMAGE_ID":
         return (
-          <div className="space-y-4">
-            <label className="block text-sm font-medium text-gray-700">
-              <ComputerDesktopIcon className="w-4 h-4 inline mr-1" />
-              새로운 컨테이너 이미지 *
-            </label>
-
-            {/* 컨테이너 이미지가 로드되지 않았을 때 */}
+          <FormField label="새로운 컨테이너 이미지" errorText={errors.new_value}>
             {!containerImages || containerImages.length === 0 ? (
-              <div className="text-center py-8 text-gray-500">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-500 mx-auto mb-2"></div>
-                컨테이너 이미지 정보를 불러오는 중...
+              <div className="py-8 text-center">
+                <StatusIndicator type="loading">
+                  컨테이너 이미지 정보를 불러오고 있어요...
+                </StatusIndicator>
               </div>
             ) : (
-              /* 컨테이너 이미지를 프레임워크별로 그룹화하여 표시 */
-              Object.entries(
-                containerImages.reduce((acc, image) => {
-                  const frameworkName =
-                    image.imageName || image.image_name || "Unknown";
-                  const imageId = image.imageId ?? image.image_id;
-                  if (!hasId(imageId)) return acc;
-                  const imageVersion =
-                    image.imageVersion || image.image_version;
-                  const cudaVersion = image.cudaVersion || image.cuda_version;
-                  const description = image.description;
-
-                  if (!acc[frameworkName]) {
-                    acc[frameworkName] = [];
-                  }
-                  acc[frameworkName].push({
-                    ...image,
-                    imageId,
-                    imageName: frameworkName,
-                    imageVersion,
-                    cudaVersion,
-                    description,
-                  });
-                  return acc;
-                }, {})
-              ).map(([frameworkName, frameworkImages]) => (
-                <div key={frameworkName} className="mb-4">
-                  <h4 className="text-sm font-medium text-gray-800 mb-2 flex items-center">
-                    <ComputerDesktopIcon className="w-4 h-4 mr-2 text-brand-500" />
-                    {frameworkName.charAt(0).toUpperCase() +
-                      frameworkName.slice(1)}
-                  </h4>
-
-                  <div className="grid grid-cols-1 gap-2">
-                    {frameworkImages.map((image) => (
-                      <div
-                        key={`change-${frameworkName}-${image.imageId}`}
-                        className="relative"
-                      >
-                        <input
-                          type="radio"
-                          id={`change_image_${image.imageId}`}
-                          name="new_value"
-	                          value={image.imageId}
-	                          checked={
-	                            changeFormData.new_value === String(image.imageId)
-	                          }
-                          onChange={handleChange}
-                          className="sr-only"
-                        />
-                        <label
-                          htmlFor={`change_image_${image.imageId}`}
-                          className={`block p-3 border cursor-pointer transition-all ${
-	                            changeFormData.new_value === String(image.imageId)
-                              ? "border-brand-500 bg-orange-50"
-                              : "border-gray-300 hover:border-gray-400"
-                          }`}
-                        >
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <div className="flex items-center">
-                                <span className="font-medium text-gray-900 text-sm">
-                                  {image.imageName} {image.imageVersion}
-                                </span>
-                              </div>
-                              {image.description && (
-                                <p className="text-xs text-gray-600 mt-1">
-                                  {image.description}
+              <div className="space-y-4">
+                {groupContainerImages().map(([frameworkName, frameworkImages]) => (
+                  <div key={frameworkName} className="space-y-2">
+                    <div className="text-sm font-medium text-(--decs-text-secondary)">
+                      {frameworkName.charAt(0).toUpperCase() +
+                        frameworkName.slice(1)}
+                    </div>
+                    <Cards
+                      items={frameworkImages}
+                      trackBy="imageId"
+                      columns={2}
+                      selectionType="single"
+                      selectedItems={frameworkImages.filter(
+                        (image) =>
+                          changeFormData.new_value === String(image.imageId)
+                      )}
+                      onSelectionChange={([image]) =>
+                        handleFieldChange("new_value", String(image.imageId))
+                      }
+                      cardDefinition={{
+                        header: (image) =>
+                          `${image.imageName} ${image.imageVersion}`,
+                        sections: [
+                          {
+                            id: "detail",
+                            content: (image) => (
+                              <div>
+                                {image.description && <p>{image.description}</p>}
+                                <p className="text-(--decs-text-secondary)">
+                                  CUDA {image.cudaVersion}
                                 </p>
-                              )}
-                              <div className="flex space-x-4 text-xs text-gray-500 mt-1">
-                                <span>CUDA: {image.cudaVersion}</span>
-                                <span>ID: {image.imageId}</span>
                               </div>
-                            </div>
-	                            {changeFormData.new_value === String(image.imageId) && (
-                              <div className="w-4 h-4 border-2 border-brand-500 rounded-full flex items-center justify-center">
-                                <div className="w-2 h-2 bg-brand-500 rounded-full"></div>
-                              </div>
-                            )}
-                          </div>
-                        </label>
-                      </div>
-                    ))}
+                            ),
+                          },
+                        ],
+                      }}
+                    />
                   </div>
-                </div>
-              ))
+                ))}
+              </div>
             )}
-
-            {errors.new_value && (
-              <p className="text-sm text-red-600">{errors.new_value}</p>
-            )}
-          </div>
+          </FormField>
         );
       case "GROUPS": {
         const currentGroups = changeFormData.new_value
@@ -468,7 +429,11 @@ const ChangeRequestForm = ({
             onAddGroup={addGroupForChange}
             onRemoveGroup={removeGroupForChange}
             onCreateGroup={createGroupForChange}
-            ubuntuUsername={userRequests.find(r => String(r.request_id) === String(changeFormData.request_id))?.ubuntu_username}
+            ubuntuUsername={
+              userRequests.find(
+                (r) => String(r.request_id) === String(changeFormData.request_id)
+              )?.ubuntu_username
+            }
           />
         );
       }
@@ -491,171 +456,116 @@ const ChangeRequestForm = ({
   };
 
   return (
-    <Card
-      title="서버 정보 변경 요청"
-      subtitle="승인된 서버의 설정을 변경할 수 있습니다."
+    <Container
+      header={
+        <Header
+          variant="h2"
+          description="승인된 서버의 설정을 변경할 수 있어요."
+        >
+          서버 정보 변경 요청
+        </Header>
+      }
     >
-      <form onSubmit={handleSubmit} className="space-y-8">
+      <div className="space-y-8">
         {/* Request Selection */}
-        <div>
-          <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
-            <CheckCircleIcon className="w-5 h-5 mr-2 text-brand-500" />
-            변경할 서버 선택
-          </h3>
-
-          <div className="space-y-1">
-            <label className="block text-sm font-medium text-gray-700">
-              승인된 서버 *
-            </label>
-            <select
-              name="request_id"
-              value={changeFormData.request_id}
-              onChange={handleChange}
-              className={`block w-full px-3 py-2 border text-sm h-[38px] focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 ${
-                errors.request_id
-                  ? "border-red-300 text-red-900 focus:ring-red-500 focus:border-red-500"
-                  : "border-gray-300 text-gray-900"
-              }`}
-              required
-            >
-              <option value="">변경할 서버를 선택하세요</option>
-              {userRequests.map((request) => (
-                <option key={request.request_id} value={request.request_id}>
-                  {request.server_name} - {request.gpu_model} ({request.image_name} {request.image_version}) - {request.ubuntu_username} (
-                  {request.volume_size_gb}GB, 만료: {request.expires_at})
-                </option>
-              ))}
-            </select>
-            {errors.request_id && (
-              <p className="text-sm text-red-600">{errors.request_id}</p>
-            )}
-            {!errors.request_id && (
-              <p className="text-sm text-gray-500">
-                변경하고자 하는 승인된 서버를 선택하세요
-              </p>
-            )}
-          </div>
-        </div>
+        <FormField
+          label="변경할 서버"
+          errorText={errors.request_id}
+          constraintText={
+            !errors.request_id
+              ? "변경하고 싶은 승인된 서버를 골라주세요."
+              : undefined
+          }
+        >
+          <Select
+            options={userRequests.map((request) => ({
+              value: String(request.request_id),
+              label: `${request.server_name} - ${request.gpu_model} (${request.image_name} ${request.image_version}) - ${request.ubuntu_username}`,
+              description: `${request.volume_size_gb}GB, 만료: ${request.expires_at}`,
+            }))}
+            selectedValue={String(changeFormData.request_id)}
+            onChange={(value) => handleFieldChange("request_id", value)}
+            placeholder="변경할 서버를 선택하세요"
+            invalid={!!errors.request_id}
+          />
+        </FormField>
 
         {/* Change Type Selection */}
-        <div>
-          <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
-            <PencilSquareIcon className="w-5 h-5 mr-2 text-brand-500" />
-            변경 항목
-          </h3>
+        <div className="space-y-4">
+          <FormField label="변경할 항목" errorText={errors.change_type}>
+            <Select
+              options={[
+                { value: "VOLUME_SIZE", label: "저장 공간" },
+                { value: "EXPIRES_AT", label: "사용 만료일" },
+                { value: "RSGROUP_ID", label: "GPU 기종" },
+                { value: "IMAGE_ID", label: "컨테이너 이미지" },
+                { value: "GROUPS", label: "그룹" },
+                { value: "INTERNAL_PORTS", label: "개방 포트" },
+              ]}
+              selectedValue={changeFormData.change_type}
+              onChange={(value) => handleFieldChange("change_type", value)}
+              placeholder="변경할 항목을 선택하세요"
+              invalid={!!errors.change_type}
+            />
+          </FormField>
 
-          <div className="space-y-4">
-            <div className="space-y-1">
-              <label className="block text-sm font-medium text-gray-700">
-                변경할 항목 *
-              </label>
-              <select
-                name="change_type"
-                value={changeFormData.change_type}
-                onChange={handleChange}
-                className={`block w-full px-3 py-2 border text-sm h-[38px] focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 ${
-                  errors.change_type
-                    ? "border-red-300 text-red-900 focus:ring-red-500 focus:border-red-500"
-                    : "border-gray-300 text-gray-900"
-                }`}
-                required
-              >
-                <option value="">변경할 항목을 선택하세요</option>
-                <option value="VOLUME_SIZE">볼륨 크기</option>
-                <option value="EXPIRES_AT">사용 만료일</option>
-                <option value="RSGROUP_ID">GPU 기종</option>
-                <option value="IMAGE_ID">컨테이너 이미지</option>
-                <option value="GROUPS">그룹</option>
-                <option value="INTERNAL_PORTS">개방 포트</option>
-              </select>
-              {errors.change_type && (
-                <p className="text-sm text-red-600">{errors.change_type}</p>
-              )}
-            </div>
+          {/* 현재 값 표시 */}
+          {changeFormData.request_id && changeFormData.change_type && (
+            <Alert type="info" header="현재 설정값">
+              {getSelectedRequestCurrentValue(changeFormData.change_type)}
+            </Alert>
+          )}
 
-            {/* 현재 값 표시 */}
-            {changeFormData.request_id && changeFormData.change_type && (
-              <div className="bg-blue-50 border border-blue-200 p-4">
-                <h4 className="text-sm font-medium text-blue-900 mb-2">현재 설정값</h4>
-                <p className="text-sm text-blue-800">
-                  {getSelectedRequestCurrentValue(changeFormData.change_type)}
-                </p>
-              </div>
-            )}
-
-            {/* Dynamic input based on change type */}
-            {changeFormData.change_type && <div>{getNewValueInput()}</div>}
-          </div>
+          {/* Dynamic input based on change type */}
+          {changeFormData.change_type && <div>{getNewValueInput()}</div>}
         </div>
 
         {/* Reason */}
-        <div>
-          <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
-            <DocumentTextIcon className="w-5 h-5 mr-2 text-brand-500" />
-            변경 사유
-          </h3>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              변경 사유 *
-            </label>
-            <textarea
-              name="reason"
-              value={changeFormData.reason}
-              onChange={handleChange}
-              rows={4}
-              className={`block w-full px-3 py-2 border text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 ${
-                errors.reason
-                  ? "border-red-300 text-red-900 focus:ring-red-500 focus:border-red-500"
-                  : "border-gray-300 text-gray-900"
-              }`}
-              placeholder="변경이 필요한 이유를 자세히 설명해주세요. (최소 10자)"
-              required
-            />
-            {errors.reason && (
-              <p className="text-sm text-red-600 mt-1">{errors.reason}</p>
-            )}
-            <p className="text-xs text-gray-500 mt-1">
-              연구 진행 상황 변화, 리소스 부족, 기타 사유 등을 포함해주세요
-            </p>
-          </div>
-        </div>
+        <FormField
+          label="변경 사유"
+          errorText={errors.reason}
+          constraintText="연구 진행 상황 변화, 리소스 부족 등 변경이 필요한 이유를 적어주세요."
+          htmlFor="change_reason"
+        >
+          <textarea
+            id="change_reason"
+            name="reason"
+            value={changeFormData.reason}
+            onChange={handleChange}
+            rows={4}
+            className={textareaClass(!!errors.reason)}
+            placeholder="변경이 필요한 이유를 자세히 설명해주세요. (최소 10자)"
+          />
+        </FormField>
 
         {/* Important Notes for Change Request */}
-        <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4">
-          <div className="flex items-start">
-            <ClockIcon className="w-5 h-5 text-yellow-400 mt-0.5 mr-2" />
-            <div className="text-sm text-yellow-700">
-              <h4 className="font-medium mb-2">변경 요청 주의사항</h4>
-              <ul className="list-disc list-inside space-y-1">
-                <li>변경 요청 후 관리자 승인까지 1-3일이 소요될 수 있습니다.</li>
-                <li>승인 전까지는 기존 설정으로 서버가 운영됩니다.</li>
-                <li>일부 변경사항은 서버 재시작이 필요할 수 있습니다.</li>
-                <li>변경 요청이 거절될 경우 사유가 안내됩니다.</li>
-                <li>중요한 데이터는 변경 전에 반드시 백업하시기 바랍니다.</li>
-              </ul>
-            </div>
-          </div>
-        </div>
+        <Alert type="warning" header="변경 요청 주의사항">
+          <ul className="list-disc list-inside space-y-1">
+            <li>변경 요청 후 관리자 승인까지 1~3일 정도 걸릴 수 있어요.</li>
+            <li>승인 전까지는 기존 설정으로 서버가 운영돼요.</li>
+            <li>일부 변경사항은 서버 재시작이 필요할 수 있어요.</li>
+            <li>변경 요청이 거절되면 사유를 안내해드려요.</li>
+            <li>중요한 데이터는 변경 전에 꼭 백업해주세요.</li>
+          </ul>
+        </Alert>
 
         {/* Submit Buttons */}
-        <div className="flex justify-end space-x-3 pt-6 border-t border-gray-300">
-          <Button type="button" variant="outline" onClick={() => navigate("/dashboard")}>
+        <div className="flex justify-end gap-2 pt-6 border-t border-(--decs-border-divider)">
+          <Button variant="normal" onClick={() => navigate("/dashboard")}>
             취소
           </Button>
           <Button
-            type="submit"
             variant="primary"
+            iconName="pencil-square"
             loading={isLoading}
             disabled={isLoading}
-            className="bg-brand-500 hover:bg-brand-600 border-brand-500 hover:border-brand-600"
+            onClick={handleSubmit}
           >
-            <PencilSquareIcon className="w-4 h-4 mr-1" />
             변경 요청 제출
           </Button>
         </div>
-      </form>
-    </Card>
+      </div>
+    </Container>
   );
 };
 
