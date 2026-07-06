@@ -1,9 +1,8 @@
 // ContainerManagement — Table + 검색/필터 + 행 상세 + Pagination
 import React from "react";
 import { Table, Header, Container, StatusIndicator, Badge, Button, Input, Select, Pagination } from "../../../design-system";
-import { DECS_ADMIN } from "./data";
 
-function ContainerManagement({ onOpenDetail, containers = DECS_ADMIN.containers }) {
+function ContainerManagement({ onOpenDetail, containers = [] }) {
   const all = containers;
   const [q, setQ] = React.useState("");
   const [statusFilter, setStatusFilter] = React.useState("all");
@@ -54,7 +53,7 @@ function ContainerManagement({ onOpenDetail, containers = DECS_ADMIN.containers 
           columns={[
             { id: "name", header: "이름", sortingField: "name", cell: (c) => <a href="#" onClick={(e) => { e.preventDefault(); onOpenDetail(c); }} style={{ color: "var(--decs-text-link)", fontWeight: 600, textDecoration: "none" }}>{c.name}</a> },
             { id: "user", header: "사용자", sortingField: "user", cell: (c) => c.user },
-            { id: "gpu", header: "GPU", cell: (c) => <Badge color="brand">{c.gpu}</Badge> },
+            { id: "gpu", header: "리소스 그룹", cell: (c) => <Badge color="brand">{c.gpu}</Badge> },
             { id: "node", header: "노드", sortingField: "node", cell: (c) => c.node },
             { id: "status", header: "상태", cell: (c) => <StatusIndicator type={c.status}>{c.label}</StatusIndicator> },
             { id: "expires", header: "만료", sortingField: "expires", cell: (c) => <span style={{ color: "var(--decs-text-secondary)" }}>{c.expires}</span> },

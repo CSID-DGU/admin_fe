@@ -19,7 +19,7 @@ export function useDecsAdminData() {
   useEffect(() => {
     let cancelled = false;
 
-    Promise.allSettled([podService.getAllPods(), userService.getAllUsers()]).then(
+    Promise.allSettled([podService.getActiveContainers(), userService.getAllUsers()]).then(
       ([podsResult, usersResult]) => {
         if (cancelled) return;
 

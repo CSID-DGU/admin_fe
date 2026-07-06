@@ -274,7 +274,7 @@ const RequestStatusPage = () => {
         variant="h1"
         description="신청한 서버의 진행 상태를 한눈에 확인할 수 있어요."
         actions={
-          <Link to="/application">
+          <Link to="/decs/user/request">
             <Button variant="primary" iconName="plus">
               새 신청
             </Button>

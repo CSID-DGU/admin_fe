@@ -45,7 +45,7 @@ export function useDecsUserData() {
     let cancelled = false;
 
     Promise.allSettled([
-      requestService.getDashboardServers("ALL"),
+      requestService.getApprovedRequests(),
       requestService.getUserRequests(),
       requestService.getGpuTypes(),
       requestService.getContainerImages(),
@@ -68,8 +68,8 @@ export function useDecsUserData() {
             jobTitle: "내 서버",
             daysLeft: vm.daysLeft ?? daysLeft(dto.expiresAt),
             expiresText: formatExpiresText(vm.expiresAt),
-            sshCommand: vm.serverAddress || "—",
-            jupyterUrl: "—",
+            sshCommand: vm.sshCommand || "—",
+            jupyterUrl: vm.jupyterUrl || "—",
           });
         } else if (!servers) {
           hasError = true;
