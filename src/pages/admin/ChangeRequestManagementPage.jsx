@@ -241,7 +241,7 @@ const ChangeRequestManagementPage = () => {
       console.error("Failed to update change request status:", error);
 
       // 409 상태 코드 처리 (이미 처리된 요청)
-      if (error.message && error.message.includes("409")) {
+      if (error.status === 409 || (error.message && error.message.includes("409"))) {
         setAlert({
           type: "error",
           message: "이미 처리된 변경 요청입니다. 페이지를 새로고침해주세요.",

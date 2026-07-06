@@ -30,6 +30,7 @@ export const authService = {
       });
       return response;
     } catch (error) {
+      if (error.status) throw error; // API 에러는 status 보존 위해 원본 유지
       throw new Error(error.message || "인증번호 전송에 실패했습니다.");
     }
   },
@@ -44,6 +45,7 @@ export const authService = {
       });
       return response;
     } catch (error) {
+      if (error.status) throw error; // API 에러는 status 보존 위해 원본 유지
       throw new Error(error.message || "인증번호 검증에 실패했습니다.");
     }
   },
@@ -61,6 +63,7 @@ export const authService = {
       });
       return response;
     } catch (error) {
+      if (error.status) throw error; // API 에러는 status 보존 위해 원본 유지
       throw new Error(error.message || "회원가입에 실패했습니다.");
     }
   },
@@ -81,6 +84,7 @@ export const authService = {
       });
       return response;
     } catch (error) {
+      if (error.status) throw error; // API 에러는 status 보존 위해 원본 유지
       throw new Error(error.message || "로그인에 실패했습니다.");
     }
   },
@@ -102,6 +106,7 @@ export const authService = {
       });
       return response;
     } catch (error) {
+      if (error.status) throw error; // API 에러는 status 보존 위해 원본 유지
       throw new Error(error.message || "사용자 정보 조회에 실패했습니다.");
     }
   },
@@ -125,6 +130,7 @@ export const authService = {
       });
       return response;
     } catch (error) {
+      if (error.status) throw error; // API 에러는 status 보존 위해 원본 유지
       throw new Error(error.message || "휴대폰 번호 변경에 실패했습니다.");
     }
   },
@@ -151,6 +157,7 @@ export const authService = {
       });
       return response;
     } catch (error) {
+      if (error.status) throw error; // API 에러는 status 보존 위해 원본 유지
       throw new Error(error.message || "비밀번호 변경에 실패했습니다.");
     }
   },

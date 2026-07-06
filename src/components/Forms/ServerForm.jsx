@@ -498,7 +498,7 @@ const ServerForm = ({
 
         {/* Submit Buttons */}
         <div className="flex justify-end gap-2 pt-6 border-t border-(--decs-border-divider)">
-          <Button variant="normal" onClick={() => navigate("/dashboard")}>
+          <Button variant="normal" onClick={() => navigate("/requests")}>
             취소
           </Button>
           <Button
