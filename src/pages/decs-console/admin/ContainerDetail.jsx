@@ -1,5 +1,5 @@
 // ContainerDetail — 섹션(Container+Header) · 스펙(KeyValuePairs) · 탭(개요/로그/이벤트)
-import { Container, Header, KeyValuePairs, Tabs, StatusIndicator, Badge, BreadcrumbGroup } from "../../../design-system";
+import { Container, Header, KeyValuePairs, Tabs, StatusIndicator, BreadcrumbGroup } from "../../../design-system";
 
 function ContainerDetail({ item, onBack }) {
   const c = item;
@@ -36,21 +36,20 @@ function ContainerDetail({ item, onBack }) {
 
   const logs = (
     <div style={{ color: "var(--decs-text-secondary)", fontSize: "var(--decs-fs-body-s)", padding: "16px 0", textAlign: "center" }}>
-      로그 스트림은 추후 구현 예정입니다
+      표시할 로그 데이터가 없습니다.
     </div>
   );
 
   const events = (
     <div style={{ color: "var(--decs-text-secondary)", fontSize: "var(--decs-fs-body-s)", padding: "16px 0", textAlign: "center" }}>
-      이벤트 타임라인은 추후 구현 예정입니다
+      표시할 이벤트 데이터가 없습니다.
     </div>
   );
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "var(--decs-space-m)" }}>
       <BreadcrumbGroup items={[{ text: "컨테이너", href: "#" }, { text: c.name }]} onFollow={(it) => { if (it.href) onBack(); }} />
-      <Header variant="h1"
-        actions={<Badge color="grey">작업 기능 추후 구현</Badge>}>
+      <Header variant="h1">
         <span style={{ display: "inline-flex", alignItems: "center", gap: 10 }}>{c.name}</span>
       </Header>
       <Tabs tabs={[

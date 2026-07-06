@@ -36,7 +36,7 @@ function AdminDashboard({ onOpenContainers, containers = [], users = [] }) {
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1.4fr", gap: "var(--decs-space-l)", alignItems: "start" }}>
         <Container header={<Header variant="h2">GPU 클러스터 사용률</Header>}>
           <div style={{ color: "var(--decs-text-secondary)", fontSize: "var(--decs-fs-body-s)", padding: "16px 0", textAlign: "center" }}>
-            실시간 사용률은 추후 구현 예정입니다
+            사용률 데이터는 현재 표시되지 않습니다.
           </div>
         </Container>
 
