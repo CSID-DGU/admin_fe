@@ -36,8 +36,7 @@ function ContainerManagement({ onOpenDetail, containers = [] }) {
 
       <Container disablePadding header={
         <div style={{ display: "flex", flexDirection: "column", gap: "var(--decs-space-s)" }}>
-          <Header variant="h2" counter={`(${rows.length})`}
-            actions={<Badge color="grey">작업 기능 추후 구현</Badge>}>
+          <Header variant="h2" counter={`(${rows.length})`}>
             컨테이너
           </Header>
           <div style={{ display: "flex", gap: "var(--decs-space-s)" }}>
