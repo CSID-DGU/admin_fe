@@ -1,12 +1,17 @@
 import React from "react";
-import { AppLayout, SideNavigation, Container } from "../../../design-system";
+import { AppLayout, SideNavigation, Container, Flashbar } from "../../../design-system";
 import UserDashboard from "./UserDashboard";
 import RequestWizard from "./RequestWizard";
 import UserContainerDetail from "./UserContainerDetail";
+import { useAuth } from "../../../hooks/useAuth";
+import { useDecsUserData } from "../../../hooks/useDecsUserData";
 import donggukLogo from "../../../assets/dongguk_university_logo.svg";
 
 function UserPortalApp() {
   const [page, setPage] = React.useState("dashboard");
+  const { user } = useAuth();
+  const { server, expiryDays, activities, gpuOptions, envOptions, error } = useDecsUserData();
+  const userName = user?.name;
 
   const nav = {
     header: { text: "DECS", href: "#dashboard" },
@@ -24,9 +29,9 @@ function UserPortalApp() {
   };
 
   let content;
-  if (page === "dashboard") content = <UserDashboard onRequest={() => setPage("request")} onConnect={() => setPage("detail")} onExtend={() => setPage("detail")} onDetail={() => setPage("detail")} />;
-  else if (page === "request") content = <RequestWizard onCancel={() => setPage("dashboard")} onDone={() => setPage("dashboard")} />;
-  else if (page === "detail") content = <UserContainerDetail onBack={() => setPage("dashboard")} onExtend={() => setPage("detail")} />;
+  if (page === "dashboard") content = <UserDashboard onRequest={() => setPage("request")} onConnect={() => setPage("detail")} onExtend={() => setPage("detail")} onDetail={() => setPage("detail")} {...(userName ? { userName } : {})} {...(server ? { server, expiryDays } : {})} {...(activities ? { activities } : {})} />;
+  else if (page === "request") content = <RequestWizard onCancel={() => setPage("dashboard")} onDone={() => setPage("dashboard")} {...(gpuOptions ? { gpuOptions } : {})} {...(envOptions ? { envOptions } : {})} />;
+  else if (page === "detail") content = <UserContainerDetail onBack={() => setPage("dashboard")} onExtend={() => setPage("detail")} {...(server ? { server } : {})} />;
   else content = <Placeholder page={page} />;
 
   return (
@@ -40,6 +45,7 @@ function UserPortalApp() {
         navigation={<SideNavigation {...nav} />}
         navigationWidth={240}
       >
+        {error ? <div style={{ marginBottom: "var(--decs-space-m)" }}><Flashbar items={[{ id: "decs-user-data", type: "warning", header: error, dismissible: false }]} /></div> : null}
         {content}
       </AppLayout>
     </div>
