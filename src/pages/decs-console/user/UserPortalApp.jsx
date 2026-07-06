@@ -1,65 +1,122 @@
 import React from "react";
-import { AppLayout, SideNavigation, Container, Flashbar } from "../../../design-system";
+import { Navigate, Route, Routes, useLocation, useNavigate } from "react-router-dom";
+import { AppLayout, SideNavigation, Flashbar } from "../../../design-system";
 import UserDashboard from "./UserDashboard";
 import RequestWizard from "./RequestWizard";
 import UserContainerDetail from "./UserContainerDetail";
 import { useAuth } from "../../../hooks/useAuth";
 import { useDecsUserData } from "../../../hooks/useDecsUserData";
+import { requestService } from "../../../services/requestService";
+import RequestStatusPage from "../../RequestStatusPage";
+import MyChangeRequestsPage from "../../MyChangeRequestsPage";
+import AccountPage from "../../AccountPage";
+import ResourceMonitoringPage from "../../ResourceMonitoringPage";
 import donggukLogo from "../../../assets/dongguk_university_logo.svg";
 
 function UserPortalApp() {
-  const [page, setPage] = React.useState("dashboard");
-  const { user } = useAuth();
+  const location = useLocation();
+  const navigate = useNavigate();
+  const { user, logout } = useAuth();
   const { server, expiryDays, activities, gpuOptions, envOptions, error } = useDecsUserData();
-  const userName = user?.name;
+  const [submitError, setSubmitError] = React.useState(null);
+  const userName = user?.name || user?.email || "사용자";
+  const isAdmin = user?.role === "ADMIN";
 
   const nav = {
-    header: { text: "DECS", href: "#dashboard" },
-    activeHref: "#" + page,
-    onFollow: (it) => { const p = (it.href || "").slice(1); if (p) setPage(p); },
+    header: { text: "DECS", href: "/decs/user" },
+    activeHref: getActiveHref(location.pathname),
+    onFollow: (it) => navigate(it.href),
     items: [
-      { text: "대시보드", href: "#dashboard", icon: "home" },
-      { text: "내 컨테이너", href: "#detail", icon: "cube" },
-      { text: "GPU 신청", href: "#request", icon: "plus" },
-      { text: "사용 기록", href: "#history", icon: "chart-bar" },
+      { text: "대시보드", href: "/decs/user", icon: "home" },
+      { text: "내 컨테이너", href: "/decs/user/container", icon: "cube" },
+      { text: "GPU 신청", href: "/decs/user/request", icon: "plus" },
+      { text: "신청 현황", href: "/decs/user/requests", icon: "clipboard" },
+      { text: "변경 요청 현황", href: "/decs/user/change-requests", icon: "arrow-path" },
       { type: "divider" },
-      { text: "공지사항", href: "#notice", icon: "bell" },
-      { text: "도움말", href: "#help", icon: "information-circle" },
+      { text: "리소스 모니터링", href: "/decs/user/monitoring", icon: "chart-bar" },
+      { text: "계정 설정", href: "/decs/user/account", icon: "user-circle" },
     ],
   };
 
-  let content;
-  if (page === "dashboard") content = <UserDashboard onRequest={() => setPage("request")} onConnect={() => setPage("detail")} onExtend={() => setPage("detail")} onDetail={() => setPage("detail")} {...(userName ? { userName } : {})} {...(server ? { server, expiryDays } : {})} {...(activities ? { activities } : {})} />;
-  else if (page === "request") content = <RequestWizard onCancel={() => setPage("dashboard")} onDone={() => setPage("dashboard")} {...(gpuOptions ? { gpuOptions } : {})} {...(envOptions ? { envOptions } : {})} />;
-  else if (page === "detail") content = <UserContainerDetail onBack={() => setPage("dashboard")} onExtend={() => setPage("detail")} {...(server ? { server } : {})} />;
-  else content = <Placeholder page={page} />;
+  const utilities = [
+    { iconName: "bell", ariaLabel: "알림", badge: 1 },
+    {
+      type: "menu",
+      iconName: "user-circle",
+      text: userName,
+      items: [
+        ...(isAdmin ? [{ text: "관리자 콘솔로", onClick: () => navigate("/decs/admin") }] : []),
+        ...(isAdmin ? [{ type: "divider" }] : []),
+        { text: "로그아웃", onClick: () => { logout(); navigate("/login"); } },
+      ],
+    },
+  ];
+
+  async function submitRequest(form) {
+    setSubmitError(null);
+    try {
+      const response = await requestService.createRequest(toRequestPayload(form));
+      if (response.status !== 200 && response.status !== 201) {
+        throw new Error("신청에 실패했습니다.");
+      }
+      navigate("/decs/user/requests");
+    } catch (error) {
+      setSubmitError(error.message || "신청에 실패했습니다.");
+      throw error;
+    }
+  }
 
   return (
     <div style={{ height: "100vh" }}>
       <AppLayout
-        identity={{ title: "DGU GPU 포털", href: "#dashboard", logo: donggukLogo, onFollow: () => setPage("dashboard") }}
-        utilities={[
-          { iconName: "bell", ariaLabel: "알림", badge: 1 },
-          { type: "menu", iconName: "user-circle", text: "현진" },
-        ]}
+        identity={{ title: "DGU GPU 포털", href: "/decs/user", logo: donggukLogo, onFollow: () => navigate("/decs/user") }}
+        utilities={utilities}
         navigation={<SideNavigation {...nav} />}
         navigationWidth={240}
       >
         {error ? <div style={{ marginBottom: "var(--decs-space-m)" }}><Flashbar items={[{ id: "decs-user-data", type: "warning", header: error, dismissible: false }]} /></div> : null}
-        {content}
+        {submitError ? <div style={{ marginBottom: "var(--decs-space-m)" }}><Flashbar items={[{ id: "decs-request-submit", type: "error", header: submitError, dismissible: false }]} /></div> : null}
+        <Routes>
+          <Route index element={<UserDashboard userName={userName} server={server} expiryDays={expiryDays} activities={activities ?? []} onRequest={() => navigate("/decs/user/request")} onConnect={() => navigate("/decs/user/container")} onExtend={() => navigate("/decs/user/container")} onDetail={() => navigate("/decs/user/container")} />} />
+          <Route path="request" element={<RequestWizard onCancel={() => navigate("/decs/user")} onDone={() => navigate("/decs/user/requests")} gpuOptions={gpuOptions ?? []} envOptions={envOptions ?? []} onSubmit={submitRequest} />} />
+          <Route path="container" element={<UserContainerDetail onBack={() => navigate("/decs/user")} onExtend={() => navigate("/decs/user/container")} server={server} />} />
+          <Route path="requests" element={<RequestStatusPage />} />
+          <Route path="change-requests" element={<MyChangeRequestsPage />} />
+          <Route path="account" element={<AccountPage user={user} />} />
+          <Route path="monitoring" element={<ResourceMonitoringPage />} />
+          <Route path="*" element={<Navigate to="/decs/user" replace />} />
+        </Routes>
       </AppLayout>
     </div>
   );
 }
 
-function Placeholder({ page }) {
-  const t = { history: "사용 기록", notice: "공지사항", help: "도움말" };
-  return (
-    <div style={{ maxWidth: 820, margin: "0 auto" }}>
-      <h1 style={{ fontSize: "var(--decs-fs-heading-xl)", fontWeight: 700, color: "var(--decs-text-heading)" }}>{t[page] || page}</h1>
-      <Container><div style={{ color: "var(--decs-text-secondary)", padding: "24px 0", textAlign: "center" }}>사용자 화면은 목적 언어와 Cards 중심으로 단순하게 구성합니다.</div></Container>
-    </div>
-  );
+function getActiveHref(pathname) {
+  if (pathname.startsWith("/decs/user/container")) return "/decs/user/container";
+  if (pathname.startsWith("/decs/user/request") && !pathname.startsWith("/decs/user/requests")) return "/decs/user/request";
+  if (pathname.startsWith("/decs/user/requests")) return "/decs/user/requests";
+  if (pathname.startsWith("/decs/user/change-requests")) return "/decs/user/change-requests";
+  if (pathname.startsWith("/decs/user/account")) return "/decs/user/account";
+  if (pathname.startsWith("/decs/user/monitoring")) return "/decs/user/monitoring";
+  return "/decs/user";
+}
+
+function toRequestPayload(form) {
+  const expiresAt = new Date();
+  expiresAt.setDate(expiresAt.getDate() + Number(form.period || 14));
+
+  return {
+    resourceGroupId: parseInt(form.gpu, 10),
+    imageId: parseInt(form.env, 10),
+    ubuntuUsername: form.ubuntuUsername,
+    ubuntuPassword: window.btoa(unescape(encodeURIComponent(form.ubuntuPassword))),
+    volumeSizeGiB: parseInt(form.volumeSizeGiB, 10),
+    usagePurpose: form.usagePurpose,
+    formAnswers: { purpose: form.purpose },
+    expiresAt: expiresAt.toISOString(),
+    ubuntuGids: [],
+    portRequests: [],
+  };
 }
 
 export default UserPortalApp;
