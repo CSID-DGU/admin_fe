@@ -34,6 +34,18 @@ function mapActivity(request) {
   };
 }
 
+function getImageDate(imageVersion) {
+  const match = String(imageVersion ?? "").match(/(\d{6})(?!.*\d{6})/);
+  return match ? Number(match[1]) : 0;
+}
+
+function sortImagesByLatest(a, b) {
+  const bImageId = Number(b.imageId ?? 0);
+  const aImageId = Number(a.imageId ?? 0);
+  if (bImageId !== aImageId) return bImageId - aImageId;
+  return getImageDate(b.imageVersion) - getImageDate(a.imageVersion);
+}
+
 export function useDecsUserData() {
   const [server, setServer] = useState(undefined);
   const [activities, setActivities] = useState(undefined);
@@ -120,7 +132,9 @@ export function useDecsUserData() {
       if (imagesResult.status === "fulfilled" && imagesResult.value?.status === 200) {
         const images = getArrayData(imagesResult.value);
         if (images) {
-          const options = images.map((im) => ({
+          const decsImages = images.filter((im) => im.imageName === "dguailab/decs");
+          const visibleImages = decsImages.length > 0 ? decsImages : images;
+          const options = [...visibleImages].sort(sortImagesByLatest).map((im) => ({
             value: String(im.imageId),
             label: [im.imageName, im.imageVersion].filter(Boolean).join(" "),
             description: im.description ?? undefined,
