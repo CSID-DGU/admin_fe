@@ -1,6 +1,6 @@
-// RequestWizard — 사용 목적 → GPU → 기간 → 개발 환경 → 확인 (Wizard + 고급설정 ExpandableSection)
+// RequestWizard — 사용 목적 → GPU → 기간 → 개발 환경 → 확인
 import React from "react";
-import { Wizard, Cards, FormField, Select, Input, ExpandableSection, KeyValuePairs, Alert, Container, Header, StatusIndicator, Button, Badge, Table } from "../../../design-system";
+import { Wizard, Cards, FormField, Select, Input, KeyValuePairs, Alert, Container, Header, StatusIndicator, Button, Badge, Table } from "../../../design-system";
 
 function RequestWizard({ onCancel, onDone, gpuOptions: gpuOptionsProp, envOptions: envOptionsProp, groupOptions: groupOptionsProp, onSubmit: onSubmitProp }) {
   const [step, setStep] = React.useState(0);
@@ -10,7 +10,7 @@ function RequestWizard({ onCancel, onDone, gpuOptions: gpuOptionsProp, envOption
   const [env, setEnv] = React.useState("");
   const [ubuntuUsername, setUbuntuUsername] = React.useState("");
   const [ubuntuPassword, setUbuntuPassword] = React.useState("");
-  const [volumeSizeGiB, setVolumeSizeGiB] = React.useState("20");
+  const [volumeSizeGiB] = React.useState("20");
   const [submitting, setSubmitting] = React.useState(false);
   const [done, setDone] = React.useState(false);
   const [error, setError] = React.useState(null);
@@ -172,7 +172,7 @@ function RequestWizard({ onCancel, onDone, gpuOptions: gpuOptionsProp, envOption
     },
     {
       title: "개발 환경",
-      description: "자주 쓰는 환경을 미리 준비해 드려요. 세부 설정은 필요할 때만 열어 보세요.",
+      description: "컨테이너 환경과 접속 계정을 설정해 주세요.",
       content: (
         <div style={{ maxWidth: 520, display: "flex", flexDirection: "column", gap: "var(--decs-space-m)" }}>
           <FormField label="기본 환경 (이미지)">
@@ -195,49 +195,42 @@ function RequestWizard({ onCancel, onDone, gpuOptions: gpuOptionsProp, envOption
               invalid={!!ubuntuPasswordError}
             />
           </FormField>
-          <ExpandableSection headerText="고급 설정 보기" variant="container">
-            <div style={{ display: "flex", flexDirection: "column", gap: "var(--decs-space-m)", paddingTop: 4 }}>
-              <FormField label="저장공간 (GiB)">
-                <Input value={volumeSizeGiB} onChange={setVolumeSizeGiB} type="number" />
-              </FormField>
-              <FormField label="공유 그룹 (선택)">
-                <div style={{ display: "flex", gap: "var(--decs-space-xs)" }}>
-                  <Select selectedValue={selectedGroupId} onChange={setSelectedGroupId} options={groupSelectOptions} placeholder="공유 그룹 선택" style={{ flex: 1 }} />
-                  <Button iconName="plus" onClick={addGroup} disabled={!selectedGroupId || selectedGroupIds.has(selectedGroupId)} ariaLabel="공유 그룹 추가">추가</Button>
-                </div>
-                {selectedGroups.length > 0 ? (
-                  <div style={{ display: "flex", flexWrap: "wrap", gap: "var(--decs-space-xs)", marginTop: "var(--decs-space-xs)" }}>
-                    {selectedGroups.map((group) => (
-                      <span key={group.value} style={{ display: "inline-flex", alignItems: "center", gap: 2 }}>
-                        <Badge color="blue">{group.label}</Badge>
-                        <Button variant="icon" iconName="x-mark" onClick={() => removeGroup(group.value)} ariaLabel={`공유 그룹 ${group.label} 제거`} />
-                      </span>
-                    ))}
-                  </div>
-                ) : null}
-              </FormField>
-              <FormField label="추가 포트 (선택)" errorText={portError}>
-                <div style={{ display: "grid", gridTemplateColumns: "150px minmax(0, 1fr) auto", gap: "var(--decs-space-xs)" }}>
-                  <Input value={portNumber} onChange={(value) => { setPortNumber(value); setPortError(null); }} type="number" placeholder="포트 번호 1-65535" invalid={!!portError} />
-                  <Input value={portPurpose} onChange={setPortPurpose} placeholder="사용 목적 예: TensorBoard" />
-                  <Button iconName="plus" onClick={addPort} ariaLabel="추가 포트 추가">추가</Button>
-                </div>
-                {portRequests.length > 0 ? (
-                  <Table
-                    density="compact"
-                    trackBy="internalPort"
-                    items={portRequests}
-                    style={{ marginTop: "var(--decs-space-xs)" }}
-                    columns={[
-                      { id: "port", header: "포트", cell: (p) => p.internalPort },
-                      { id: "purpose", header: "목적", cell: (p) => p.usagePurpose },
-                      { id: "remove", header: "", width: 60, cell: (p) => <Button variant="icon" iconName="trash" onClick={() => removePort(p.internalPort)} ariaLabel={`추가 포트 ${p.internalPort} 제거`} /> },
-                    ]}
-                  />
-                ) : null}
-              </FormField>
+          <FormField label="공유 그룹 (선택)">
+            <div style={{ display: "flex", gap: "var(--decs-space-xs)" }}>
+              <Select selectedValue={selectedGroupId} onChange={setSelectedGroupId} options={groupSelectOptions} placeholder="공유 그룹 선택" style={{ flex: 1 }} />
+              <Button iconName="plus" onClick={addGroup} disabled={!selectedGroupId || selectedGroupIds.has(selectedGroupId)} ariaLabel="공유 그룹 추가">추가</Button>
             </div>
-          </ExpandableSection>
+            {selectedGroups.length > 0 ? (
+              <div style={{ display: "flex", flexWrap: "wrap", gap: "var(--decs-space-xs)", marginTop: "var(--decs-space-xs)" }}>
+                {selectedGroups.map((group) => (
+                  <span key={group.value} style={{ display: "inline-flex", alignItems: "center", gap: 2 }}>
+                    <Badge color="blue">{group.label}</Badge>
+                    <Button variant="icon" iconName="x-mark" onClick={() => removeGroup(group.value)} ariaLabel={`공유 그룹 ${group.label} 제거`} />
+                  </span>
+                ))}
+              </div>
+            ) : null}
+          </FormField>
+          <FormField label="추가 포트 (선택)" errorText={portError}>
+            <div style={{ display: "grid", gridTemplateColumns: "150px minmax(0, 1fr) auto", gap: "var(--decs-space-xs)" }}>
+              <Input value={portNumber} onChange={(value) => { setPortNumber(value); setPortError(null); }} type="number" placeholder="포트 번호 1-65535" invalid={!!portError} />
+              <Input value={portPurpose} onChange={setPortPurpose} placeholder="사용 목적 예: TensorBoard" />
+              <Button iconName="plus" onClick={addPort} ariaLabel="추가 포트 추가">추가</Button>
+            </div>
+            {portRequests.length > 0 ? (
+              <Table
+                density="compact"
+                trackBy="internalPort"
+                items={portRequests}
+                style={{ marginTop: "var(--decs-space-xs)" }}
+                columns={[
+                  { id: "port", header: "포트", cell: (p) => p.internalPort },
+                  { id: "purpose", header: "목적", cell: (p) => p.usagePurpose },
+                  { id: "remove", header: "", width: 60, cell: (p) => <Button variant="icon" iconName="trash" onClick={() => removePort(p.internalPort)} ariaLabel={`추가 포트 ${p.internalPort} 제거`} /> },
+                ]}
+              />
+            ) : null}
+          </FormField>
         </div>
       ),
     },
@@ -252,7 +245,6 @@ function RequestWizard({ onCancel, onDone, gpuOptions: gpuOptionsProp, envOption
             { label: "사용 기간", value: period + "일" },
             { label: "개발 환경", value: envOptions.find((o) => o.value === env)?.label ?? env },
             { label: "Ubuntu 사용자명", value: ubuntuUsername || <span style={{ color: "var(--decs-status-warning)", fontWeight: 700 }}>미입력</span> },
-            { label: "저장공간", value: `${volumeSizeGiB || "—"} GiB` },
             { label: "공유 그룹", value: selectedGroups.length > 0 ? selectedGroups.map((g) => g.label).join(", ") : "—" },
             { label: "추가 포트", value: portRequests.length > 0 ? portRequests.map((p) => `${p.internalPort} (${p.usagePurpose})`).join(", ") : "—" },
           ]} />
