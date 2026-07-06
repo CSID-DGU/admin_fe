@@ -25,6 +25,20 @@ function getStatusLabel(status) {
   return "거절됨";
 }
 
+function getGpuOptionTitle(gpuType) {
+  const resourceGroupName = gpuType.resourceGroupName ?? "GPU";
+  const serverName = gpuType.serverName ?? gpuType.nodeId ?? gpuType.rsgroupId;
+
+  return serverName ? `${resourceGroupName} — ${serverName}` : resourceGroupName;
+}
+
+function getGpuOptionDescription(gpuType) {
+  const description = gpuType.description ?? "";
+  const nodeLabel = gpuType.nodeId ? `노드 ${gpuType.nodeId}` : null;
+
+  return [description, nodeLabel].filter(Boolean).join(" · ");
+}
+
 function mapActivity(request) {
   const createdAt = request.createdAt ?? request.created_at;
 
@@ -103,8 +117,8 @@ export function useDecsUserData() {
         if (gpuTypes) {
           const options = gpuTypes.map((g) => ({
             id: String(g.rsgroupId),
-            title: g.resourceGroupName,
-            desc: g.description ?? "",
+            title: getGpuOptionTitle(g),
+            desc: getGpuOptionDescription(g),
             memory: g.ramGb ? `${g.ramGb} GB` : "—",
           }));
           if (options.length > 0) {
