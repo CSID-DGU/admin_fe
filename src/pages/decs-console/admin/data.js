@@ -15,3 +15,6 @@ export const DECS_ADMIN = {
     { id: "u3", name: "박정우", account: "jwpark", role: "ADMIN", gpuHours: 96, active: 1 },
   ],
 };
+
+export const MOCK_DETAIL_SPEC = { image: "pytorch:2.3-cuda12.1", cpuMem: "16 vCPU · 128 GiB", volume: "workspace-114 · 200 GiB", uidGid: "1027 / 1027" };
+export const MOCK_DETAIL_ACCESS = { host: "gpu.dgu.ac.kr", port: "32107", sshCommand: (user) => `ssh ${user}@gpu.dgu.ac.kr -p 32107` };

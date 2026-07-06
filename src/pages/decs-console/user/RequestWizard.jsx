@@ -2,7 +2,18 @@
 import React from "react";
 import { Wizard, Cards, FormField, Select, Input, ExpandableSection, KeyValuePairs, Alert, Container, Header, StatusIndicator, Button } from "../../../design-system";
 
-function RequestWizard({ onCancel, onDone }) {
+const DEFAULT_GPU_OPTIONS = [
+  { id: "a100-1", title: "A100 40GB", desc: "대부분의 실험에 충분", memory: "40 GB" },
+  { id: "h100-2", title: "H100 80GB × 2", desc: "대용량 학습에 권장", memory: "160 GB" },
+];
+
+const DEFAULT_ENV_OPTIONS = [
+  { value: "pytorch", label: "PyTorch 2.3 (CUDA 12.1)", description: "가장 많이 쓰는 환경" },
+  { value: "tf", label: "TensorFlow 2.16" },
+  { value: "plain", label: "Ubuntu 22.04 (빈 환경)" },
+];
+
+function RequestWizard({ onCancel, onDone, gpuOptions: gpuOptionsProp, envOptions: envOptionsProp, onSubmit: onSubmitProp }) {
   const [step, setStep] = React.useState(0);
   const [purpose, setPurpose] = React.useState([]);
   const [gpu, setGpu] = React.useState([]);
@@ -16,10 +27,8 @@ function RequestWizard({ onCancel, onDone }) {
     { id: "train", title: "대용량 모델 학습용", desc: "큰 배치와 오랜 학습 시간이 필요해요" },
     { id: "infer", title: "추론 서버용", desc: "모델을 띄워 요청을 처리해요" },
   ];
-  const gpuOptions = [
-    { id: "a100-1", title: "A100 40GB", desc: "대부분의 실험에 충분", memory: "40 GB" },
-    { id: "h100-2", title: "H100 80GB × 2", desc: "대용량 학습에 권장", memory: "160 GB" },
-  ];
+  const gpuOptions = gpuOptionsProp ?? DEFAULT_GPU_OPTIONS;
+  const envOptions = envOptionsProp ?? DEFAULT_ENV_OPTIONS;
 
   if (done) {
     return (
@@ -70,11 +79,7 @@ function RequestWizard({ onCancel, onDone }) {
       content: (
         <div style={{ maxWidth: 520, display: "flex", flexDirection: "column", gap: "var(--decs-space-m)" }}>
           <FormField label="기본 환경 (이미지)">
-            <Select selectedValue={env} onChange={setEnv} options={[
-              { value: "pytorch", label: "PyTorch 2.3 (CUDA 12.1)", description: "가장 많이 쓰는 환경" },
-              { value: "tf", label: "TensorFlow 2.16" },
-              { value: "plain", label: "Ubuntu 22.04 (빈 환경)" },
-            ]} />
+            <Select selectedValue={env} onChange={setEnv} options={envOptions} />
           </FormField>
           <ExpandableSection headerText="고급 설정 보기" variant="container">
             <div style={{ display: "flex", flexDirection: "column", gap: "var(--decs-space-m)", paddingTop: 4 }}>
@@ -97,7 +102,7 @@ function RequestWizard({ onCancel, onDone }) {
             { label: "사용 목적", value: (purposeOptions.find((o) => o.id === purpose[0]?.id) || {}).title || "기본 실험용" },
             { label: "GPU", value: (gpuOptions.find((o) => o.id === gpu[0]?.id) || {}).title || "A100 40GB" },
             { label: "사용 기간", value: period + "일" },
-            { label: "개발 환경", value: env === "pytorch" ? "PyTorch 2.3" : env === "tf" ? "TensorFlow 2.16" : "Ubuntu 22.04" },
+            { label: "개발 환경", value: envOptions.find((o) => o.value === env)?.label ?? env },
           ]} />
         </Container>
       ),
@@ -105,6 +110,10 @@ function RequestWizard({ onCancel, onDone }) {
   ];
 
   function submit() {
+    if (onSubmitProp) {
+      setSubmitting(true);
+      return Promise.resolve(onSubmitProp({ purpose: purpose[0]?.id, gpu: gpu[0]?.id, period, env })).then(() => setDone(true)).finally(() => setSubmitting(false));
+    }
     setSubmitting(true);
     setTimeout(() => { setSubmitting(false); setDone(true); }, 1100);
   }

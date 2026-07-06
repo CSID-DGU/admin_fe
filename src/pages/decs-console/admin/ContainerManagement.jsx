@@ -3,8 +3,8 @@ import React from "react";
 import { Table, Header, Container, StatusIndicator, Badge, Button, Input, Select, Pagination } from "../../../design-system";
 import { DECS_ADMIN } from "./data";
 
-function ContainerManagement({ onOpenDetail }) {
-  const all = DECS_ADMIN.containers;
+function ContainerManagement({ onOpenDetail, containers = DECS_ADMIN.containers }) {
+  const all = containers;
   const [q, setQ] = React.useState("");
   const [statusFilter, setStatusFilter] = React.useState("all");
   const [sort, setSort] = React.useState({ col: null, desc: false });

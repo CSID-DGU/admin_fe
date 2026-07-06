@@ -1,8 +1,8 @@
 // ContainerDetail — 섹션(Container+Header) · 스펙(KeyValuePairs) · 탭(개요/로그/이벤트)
 import { Container, Header, KeyValuePairs, Tabs, StatusIndicator, Badge, BreadcrumbGroup } from "../../../design-system";
-import { DECS_ADMIN } from "./data";
+import { DECS_ADMIN, MOCK_DETAIL_SPEC, MOCK_DETAIL_ACCESS } from "./data";
 
-function ContainerDetail({ item, onBack }) {
+function ContainerDetail({ item, onBack, spec = MOCK_DETAIL_SPEC, access = MOCK_DETAIL_ACCESS }) {
   const c = item || DECS_ADMIN.containers[0];
 
   const overview = (
@@ -12,20 +12,20 @@ function ContainerDetail({ item, onBack }) {
           { label: "상태", value: <StatusIndicator type={c.status}>{c.label}</StatusIndicator> },
           { label: "GPU", value: c.gpu },
           { label: "노드", value: c.node },
-          { label: "이미지", value: "pytorch:2.3-cuda12.1" },
-          { label: "CPU / Memory", value: "16 vCPU · 128 GiB" },
-          { label: "볼륨 (PVC)", value: "workspace-114 · 200 GiB" },
-          { label: "uid / gid", value: "1027 / 1027" },
-          { label: "네임스페이스", value: "ns-hjkim" },
+          { label: "이미지", value: spec.image },
+          { label: "CPU / Memory", value: spec.cpuMem },
+          { label: "볼륨 (PVC)", value: spec.volume },
+          { label: "uid / gid", value: spec.uidGid },
+          { label: "네임스페이스", value: `ns-${c.user}` },
           { label: "만료", value: c.expires },
         ]} />
       </Container>
       <Container header={<Header variant="h2">접속 정보</Header>}>
         <KeyValuePairs columns={2} items={[
-          { label: "SSH 호스트", value: "gpu.dgu.ac.kr", copyable: true },
-          { label: "포트", value: "32107", copyable: true },
+          { label: "SSH 호스트", value: access.host, copyable: true },
+          { label: "포트", value: access.port, copyable: true },
           { label: "계정", value: c.user, copyable: true },
-          { label: "접속 명령", value: `ssh ${c.user}@gpu.dgu.ac.kr -p 32107`, copyable: true },
+          { label: "접속 명령", value: access.sshCommand(c.user), copyable: true },
         ]} />
       </Container>
     </div>
