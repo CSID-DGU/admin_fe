@@ -46,11 +46,47 @@ function sortImagesByLatest(a, b) {
   return getImageDate(b.imageVersion) - getImageDate(a.imageVersion);
 }
 
+function normalizeGpuOption(gpu) {
+  const rsgroupId = gpu.rsgroupId ?? gpu.rsgroup_id ?? gpu.resourceGroupId ?? gpu.resource_group_id ?? gpu.id;
+  const nodeId = gpu.nodeId ?? gpu.node_id ?? gpu.nodeName ?? gpu.node_name;
+  return {
+    rsgroupId,
+    resourceGroupName: gpu.resourceGroupName ?? gpu.resource_group_name ?? gpu.gpuModel ?? gpu.gpu_model ?? "GPU",
+    serverName: gpu.serverName ?? gpu.server_name ?? "—",
+    ramGb: gpu.ramGb ?? gpu.ram_gb ?? gpu.ramGiB ?? gpu.ram_gib,
+    availableNodes: gpu.availableNodes ?? gpu.available_nodes ?? gpu.availableNodeCount ?? gpu.available_node_count ?? 0,
+    nodeId,
+    description: gpu.description ?? "",
+  };
+}
+
+function buildGpuOptions(gpuTypes) {
+  return Object.values(
+    gpuTypes.reduce((acc, rawGpu) => {
+      const gpu = normalizeGpuOption(rawGpu);
+      if (gpu.rsgroupId == null) return acc;
+      const key = String(gpu.rsgroupId);
+      if (!acc[key]) {
+        acc[key] = { id: key, title: gpu.resourceGroupName, desc: "", memory: gpu.ramGb ? `${gpu.ramGb} GB` : "—", availableNodes: 0, serverNames: [], nodeIds: [] };
+      }
+      acc[key].availableNodes += Number(gpu.availableNodes) || 0;
+      if (gpu.serverName && !acc[key].serverNames.includes(gpu.serverName)) acc[key].serverNames.push(gpu.serverName);
+      if (gpu.nodeId && !acc[key].nodeIds.includes(gpu.nodeId)) acc[key].nodeIds.push(gpu.nodeId);
+      return acc;
+    }, {})
+  ).map((option) => ({
+    ...option,
+    desc: `서버 ${option.serverNames.join(", ") || "—"}`,
+    memory: `${option.memory} · 가용 노드 ${option.nodeIds.length || option.availableNodes || 1}개${option.nodeIds.length ? ` · ${option.nodeIds.join(", ")}` : ""}`,
+  }));
+}
+
 export function useDecsUserData() {
   const [server, setServer] = useState(undefined);
   const [activities, setActivities] = useState(undefined);
   const [gpuOptions, setGpuOptions] = useState(undefined);
   const [envOptions, setEnvOptions] = useState(undefined);
+  const [groupOptions, setGroupOptions] = useState(undefined);
   const [error, setError] = useState(null);
 
   useEffect(() => {
@@ -61,7 +97,8 @@ export function useDecsUserData() {
       requestService.getUserRequests(),
       requestService.getGpuTypes(),
       requestService.getContainerImages(),
-    ]).then(([serversResult, requestsResult, gpuTypesResult, imagesResult]) => {
+      requestService.getGroups(),
+    ]).then(([serversResult, requestsResult, gpuTypesResult, imagesResult, groupsResult]) => {
       if (cancelled) return;
 
       let hasError = false;
@@ -113,12 +150,7 @@ export function useDecsUserData() {
       if (gpuTypesResult.status === "fulfilled" && gpuTypesResult.value?.status === 200) {
         const gpuTypes = getArrayData(gpuTypesResult.value);
         if (gpuTypes) {
-          const options = gpuTypes.map((g) => ({
-            id: String(g.rsgroupId),
-            title: g.resourceGroupName,
-            desc: g.description ?? "",
-            memory: g.ramGb ? `${g.ramGb} GB` : "—",
-          }));
+          const options = buildGpuOptions(gpuTypes);
           if (options.length > 0) {
             setGpuOptions(options);
           }
@@ -149,6 +181,22 @@ export function useDecsUserData() {
         hasError = true;
       }
 
+      if (groupsResult.status === "fulfilled" && groupsResult.value?.status === 200) {
+        const groups = getArrayData(groupsResult.value);
+        if (groups) {
+          setGroupOptions(groups.map((g) => ({
+            value: String(g.ubuntuGid ?? g.ubuntu_gid),
+            label: `${g.groupName ?? g.group_name} (${g.ubuntuGid ?? g.ubuntu_gid})`,
+            groupName: g.groupName ?? g.group_name,
+            ubuntuGid: g.ubuntuGid ?? g.ubuntu_gid,
+          })).filter((g) => g.value !== "undefined"));
+        } else {
+          hasError = true;
+        }
+      } else {
+        hasError = true;
+      }
+
       if (hasError) {
         setError(ERROR_MESSAGE);
       }
@@ -164,5 +212,5 @@ export function useDecsUserData() {
       ? server.daysLeft
       : null;
 
-  return { server, expiryDays, activities, gpuOptions, envOptions, error };
+  return { server, expiryDays, activities, gpuOptions, envOptions, groupOptions, error };
 }
