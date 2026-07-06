@@ -22,8 +22,7 @@ const ProtectedRoute = ({ children, requireAdmin = false }) => {
   }
 
   if (requireAdmin && user?.role !== "ADMIN") {
-    // Redirect to application page if not admin
-    return <Navigate to="/application" replace />;
+    return <Navigate to="/decs/user" replace />;
   }
 
   return children;
