@@ -17,7 +17,7 @@ function UserPortalApp() {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, logout } = useAuth();
-  const { server, expiryDays, activities, gpuOptions, envOptions, error } = useDecsUserData();
+  const { server, expiryDays, activities, gpuOptions, envOptions, groupOptions, error } = useDecsUserData();
   const [submitError, setSubmitError] = React.useState(null);
   const userName = user?.name || user?.email || "사용자";
   const isAdmin = user?.role === "ADMIN";
@@ -78,7 +78,7 @@ function UserPortalApp() {
         {submitError ? <div style={{ marginBottom: "var(--decs-space-m)" }}><Flashbar items={[{ id: "decs-request-submit", type: "error", header: submitError, dismissible: false }]} /></div> : null}
         <Routes>
           <Route index element={<UserDashboard userName={userName} server={server} expiryDays={expiryDays} activities={activities ?? []} onRequest={() => navigate("/decs/user/request")} onConnect={() => navigate("/decs/user/container")} onExtend={() => navigate("/decs/user/container")} onDetail={() => navigate("/decs/user/container")} />} />
-          <Route path="request" element={<RequestWizard onCancel={() => navigate("/decs/user")} onDone={() => navigate("/decs/user/requests")} gpuOptions={gpuOptions ?? []} envOptions={envOptions ?? []} onSubmit={submitRequest} />} />
+          <Route path="request" element={<RequestWizard onCancel={() => navigate("/decs/user")} onDone={() => navigate("/decs/user/requests")} gpuOptions={gpuOptions ?? []} envOptions={envOptions ?? []} groupOptions={groupOptions ?? []} onSubmit={submitRequest} />} />
           <Route path="container" element={<UserContainerDetail onBack={() => navigate("/decs/user")} onExtend={() => navigate("/decs/user/container")} server={server} />} />
           <Route path="requests" element={<RequestStatusPage />} />
           <Route path="change-requests" element={<MyChangeRequestsPage />} />
@@ -114,8 +114,8 @@ function toRequestPayload(form) {
     usagePurpose: form.usagePurpose,
     formAnswers: { purpose: form.purpose },
     expiresAt: expiresAt.toISOString(),
-    ubuntuGids: [],
-    portRequests: [],
+    ubuntuGids: (form.ubuntuGids ?? []).map((gid) => parseInt(gid, 10)),
+    portRequests: form.portRequests ?? [],
   };
 }
 
