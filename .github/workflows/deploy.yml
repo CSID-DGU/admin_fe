@@ -77,7 +77,7 @@ jobs:
         if: failure()
         run: |
           echo "=== Recent Pod Logs ==="
-          kubectl logs -n ${{ env.K8S_NAMESPACE }} -l app=ailab-frontend --tail=100
+          kubectl logs -n ${{ env.K8S_NAMESPACE }} -l app=ailab-frontend --tail=100 || true
 
           echo "=== Pod Events ==="
-          kubectl get events -n ${{ env.K8S_NAMESPACE }} --sort-by='.lastTimestamp'
+          kubectl get events -n ${{ env.K8S_NAMESPACE }} --sort-by='.lastTimestamp' || true
