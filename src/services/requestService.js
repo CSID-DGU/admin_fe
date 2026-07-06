@@ -22,6 +22,7 @@ export const requestService = {
       });
       return response;
     } catch (error) {
+      if (error.status) throw error; // API 에러는 status 보존 위해 원본 유지
       throw new Error(error.message || "서버 신청에 실패했습니다.");
     }
   },
@@ -43,6 +44,7 @@ export const requestService = {
       });
       return response;
     } catch (error) {
+      if (error.status) throw error; // API 에러는 status 보존 위해 원본 유지
       throw new Error(error.message || "리소스 그룹 조회에 실패했습니다.");
     }
   },
@@ -64,6 +66,7 @@ export const requestService = {
       });
       return response;
     } catch (error) {
+      if (error.status) throw error; // API 에러는 status 보존 위해 원본 유지
       throw new Error(error.message || "컨테이너 이미지 조회에 실패했습니다.");
     }
   },
@@ -85,6 +88,7 @@ export const requestService = {
       });
       return response;
     } catch (error) {
+      if (error.status) throw error; // API 에러는 status 보존 위해 원본 유지
       throw new Error(error.message || "요청 목록 조회에 실패했습니다.");
     }
   },
@@ -106,6 +110,7 @@ export const requestService = {
       });
       return response;
     } catch (error) {
+      if (error.status) throw error; // API 에러는 status 보존 위해 원본 유지
       throw new Error(error.message || "모든 요청 목록 조회에 실패했습니다.");
     }
   },
@@ -129,6 +134,7 @@ export const requestService = {
       });
       return response;
     } catch (error) {
+      if (error.status) throw error; // API 에러는 status 보존 위해 원본 유지
       throw new Error(error.message || "요청 승인에 실패했습니다.");
     }
   },
@@ -152,6 +158,7 @@ export const requestService = {
       });
       return response;
     } catch (error) {
+      if (error.status) throw error; // API 에러는 status 보존 위해 원본 유지
       throw new Error(error.message || "요청 거절에 실패했습니다.");
     }
   },
@@ -175,6 +182,7 @@ export const requestService = {
       });
       return response;
     } catch (error) {
+      if (error.status) throw error; // API 에러는 status 보존 위해 원본 유지
       throw new Error(error.message || "변경 요청에 실패했습니다.");
     }
   },
@@ -196,6 +204,7 @@ export const requestService = {
       });
       return response;
     } catch (error) {
+      if (error.status) throw error; // API 에러는 status 보존 위해 원본 유지
       throw new Error(error.message || "변경 요청 목록 조회에 실패했습니다.");
     }
   },
@@ -222,6 +231,7 @@ export const requestService = {
       });
       return response;
     } catch (error) {
+      if (error.status) throw error; // API 에러는 status 보존 위해 원본 유지
       throw new Error(error.message || "변경 요청 승인에 실패했습니다.");
     }
   },
@@ -248,6 +258,7 @@ export const requestService = {
       });
       return response;
     } catch (error) {
+      if (error.status) throw error; // API 에러는 status 보존 위해 원본 유지
       throw new Error(error.message || "변경 요청 거절에 실패했습니다.");
     }
   },
@@ -269,6 +280,7 @@ export const requestService = {
       });
       return response;
     } catch (error) {
+      if (error.status) throw error; // API 에러는 status 보존 위해 원본 유지
       throw new Error(error.message || "변경 요청 목록 조회에 실패했습니다.");
     }
   },
@@ -290,6 +302,7 @@ export const requestService = {
       });
       return response;
     } catch (error) {
+      if (error.status) throw error; // API 에러는 status 보존 위해 원본 유지
       throw new Error(error.message || "GPU 타입 조회에 실패했습니다.");
     }
   },
@@ -311,6 +324,7 @@ export const requestService = {
       });
       return response;
     } catch (error) {
+      if (error.status) throw error; // API 에러는 status 보존 위해 원본 유지
       throw new Error(error.message || "그룹 목록 조회에 실패했습니다.");
     }
   },
@@ -339,6 +353,7 @@ export const requestService = {
       });
       return response;
     } catch (error) {
+      if (error.status) throw error; // API 에러는 status 보존 위해 원본 유지
       throw new Error(error.message || "그룹 생성에 실패했습니다.");
     }
   },
@@ -363,6 +378,7 @@ export const requestService = {
       );
       return response;
     } catch (error) {
+      if (error.status) throw error; // API 에러는 status 보존 위해 원본 유지
       throw new Error(error.message || "대시보드 서버 조회에 실패했습니다.");
     }
   },
@@ -384,6 +400,7 @@ export const requestService = {
       });
       return response;
     } catch (error) {
+      if (error.status) throw error; // API 에러는 status 보존 위해 원본 유지
       throw new Error(error.message || "승인된 서버 목록 조회에 실패했습니다.");
     }
   },

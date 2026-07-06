@@ -1,14 +1,16 @@
 import React from "react";
-import { AppLayout, SideNavigation, Header, Container } from "../../../design-system";
+import { AppLayout, SideNavigation, Header, Container, Flashbar } from "../../../design-system";
 import AdminDashboard from "./AdminDashboard";
 import ContainerManagement from "./ContainerManagement";
 import ContainerDetail from "./ContainerDetail";
 import { DECS_ADMIN } from "./data";
+import { useDecsAdminData } from "../../../hooks/useDecsAdminData";
 import donggukLogo from "../../../assets/dongguk_university_logo.svg";
 
 function AdminConsoleApp() {
   const [page, setPage] = React.useState("dashboard");
   const [detail, setDetail] = React.useState(null);
+  const { containers, users, error } = useDecsAdminData();
 
   const nav = {
     header: { text: "DECS Admin", href: "#dashboard" },
@@ -17,11 +19,10 @@ function AdminConsoleApp() {
     items: [
       { text: "대시보드", href: "#dashboard", icon: "home" },
       { text: "사용자 관리", href: "#users", icon: "users" },
-      { text: "컨테이너 관리", href: "#containers", icon: "cube", badge: DECS_ADMIN.containers.length },
+      { text: "컨테이너 관리", href: "#containers", icon: "cube", badge: containers ? containers.length : DECS_ADMIN.containers.length },
       { type: "divider" },
       { type: "section", text: "시스템", items: [
         { text: "GPU 자원", href: "#resources", icon: "cpu-chip" },
-        { text: "노드 관리", href: "#nodes", icon: "server-stack" },
         { text: "이미지", href: "#images", icon: "folder" },
         { text: "설정", href: "#settings", icon: "cog-6-tooth" },
       ]},
@@ -30,8 +31,8 @@ function AdminConsoleApp() {
 
   let content;
   if (detail) content = <ContainerDetail item={detail} onBack={() => setDetail(null)} />;
-  else if (page === "dashboard") content = <AdminDashboard onOpenContainers={() => setPage("containers")} />;
-  else if (page === "containers") content = <ContainerManagement onOpenDetail={(c) => setDetail(c)} />;
+  else if (page === "dashboard") content = <AdminDashboard onOpenContainers={() => setPage("containers")} {...(containers ? { containers } : {})} {...(users ? { users } : {})} />;
+  else if (page === "containers") content = <ContainerManagement onOpenDetail={(c) => setDetail(c)} {...(containers ? { containers } : {})} />;
   else content = <PlaceholderPage page={page} />;
 
   return (
@@ -45,6 +46,7 @@ function AdminConsoleApp() {
         navigation={<SideNavigation {...nav} />}
         navigationWidth={248}
       >
+        {error ? <div style={{ marginBottom: "var(--decs-space-m)" }}><Flashbar items={[{ id: "decs-admin-data", type: "warning", header: error, dismissible: false }]} /></div> : null}
         {content}
       </AppLayout>
     </div>
@@ -52,7 +54,7 @@ function AdminConsoleApp() {
 }
 
 function PlaceholderPage({ page }) {
-  const titles = { users: "사용자 관리", resources: "GPU 자원 관리", nodes: "노드 관리", images: "이미지 관리", settings: "시스템 설정" };
+  const titles = { users: "사용자 관리", resources: "GPU 자원 관리", images: "이미지 관리", settings: "시스템 설정" };
   return (
     <div>
       <Header variant="h1">{titles[page] || page}</Header>

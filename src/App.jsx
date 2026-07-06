@@ -76,8 +76,22 @@ const AppContent = () => {
         }
       />
       {/* DECS Console 예시 (디자인 시스템 데모) */}
-      <Route path="/decs/admin" element={<AdminConsoleApp />} />
-      <Route path="/decs/user" element={<UserPortalApp />} />
+      <Route
+        path="/decs/admin"
+        element={
+          <ProtectedRoute requireAdmin>
+            <AdminConsoleApp />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/decs/user"
+        element={
+          <ProtectedRoute requireAdmin>
+            <UserPortalApp />
+          </ProtectedRoute>
+        }
+      />
 
       {/* Protected User Routes */}
       <Route
