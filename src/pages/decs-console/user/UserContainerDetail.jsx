@@ -1,5 +1,5 @@
 // UserContainerDetail — 접속·상태 이해 (친절한 문구 + 복사 가능한 접속 정보)
-import { Container, Header, KeyValuePairs, StatusIndicator, Button, Alert, ExpandableSection, ProgressBar, Badge } from "../../../design-system";
+import { Container, Header, KeyValuePairs, StatusIndicator, Button, Alert, ExpandableSection, Badge } from "../../../design-system";
 
 function UserContainerDetail({ onBack, onExtend }) {
   return (
@@ -30,10 +30,8 @@ function UserContainerDetail({ onBack, onExtend }) {
 
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "var(--decs-space-m)" }}>
         <Container header={<Header variant="h2">사용량</Header>}>
-          <div style={{ display: "flex", flexDirection: "column", gap: "var(--decs-space-m)" }}>
-            <ProgressBar label="GPU" value={72} />
-            <ProgressBar label="메모리" value={61} />
-            <ProgressBar label="저장공간" value={38} description="76 / 200 GiB" />
+          <div style={{ color: "var(--decs-text-secondary)", fontSize: 13, padding: "16px 0", textAlign: "center" }}>
+            사용량 지표는 추후 구현 예정입니다
           </div>
         </Container>
         <Container header={<Header variant="h2">사용 기간</Header>}>

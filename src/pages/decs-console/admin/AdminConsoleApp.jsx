@@ -21,7 +21,6 @@ function AdminConsoleApp() {
       { type: "divider" },
       { type: "section", text: "시스템", items: [
         { text: "GPU 자원", href: "#resources", icon: "cpu-chip" },
-        { text: "노드 관리", href: "#nodes", icon: "server-stack" },
         { text: "이미지", href: "#images", icon: "folder" },
         { text: "설정", href: "#settings", icon: "cog-6-tooth" },
       ]},
@@ -52,7 +51,7 @@ function AdminConsoleApp() {
 }
 
 function PlaceholderPage({ page }) {
-  const titles = { users: "사용자 관리", resources: "GPU 자원 관리", nodes: "노드 관리", images: "이미지 관리", settings: "시스템 설정" };
+  const titles = { users: "사용자 관리", resources: "GPU 자원 관리", images: "이미지 관리", settings: "시스템 설정" };
   return (
     <div>
       <Header variant="h1">{titles[page] || page}</Header>

@@ -87,7 +87,7 @@ const AppContent = () => {
       <Route
         path="/decs/user"
         element={
-          <ProtectedRoute>
+          <ProtectedRoute requireAdmin>
             <UserPortalApp />
           </ProtectedRoute>
         }

@@ -12,21 +12,6 @@ function StatCard({ label, value, sub, accent }) {
   );
 }
 
-function GpuUsage({ name, pct }) {
-  const status = pct >= 85 ? "error" : pct >= 60 ? "in-progress" : "success";
-  return (
-    <div style={{ marginBottom: "var(--decs-space-m)" }}>
-      <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, marginBottom: 4 }}>
-        <span style={{ fontWeight: 600 }}>{name}</span>
-        <span style={{ color: "var(--decs-text-secondary)" }}>{pct}%</span>
-      </div>
-      <div style={{ height: 6, background: "var(--decs-grey-200)", borderRadius: 999 }}>
-        <div style={{ width: pct + "%", height: "100%", borderRadius: 999, background: status === "error" ? "var(--decs-status-error)" : status === "in-progress" ? "var(--decs-brand-500)" : "var(--decs-status-success)" }} />
-      </div>
-    </div>
-  );
-}
-
 function AdminDashboard({ onOpenContainers }) {
   const data = DECS_ADMIN;
   const running = data.containers.filter((c) => c.status === "success").length;
@@ -52,9 +37,9 @@ function AdminDashboard({ onOpenContainers }) {
 
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1.4fr", gap: "var(--decs-space-l)", alignItems: "start" }}>
         <Container header={<Header variant="h2">GPU 클러스터 사용률</Header>}>
-          <GpuUsage name="H100 (16 GPU)" pct={85} />
-          <GpuUsage name="A100 (32 GPU)" pct={42} />
-          <GpuUsage name="스토리지 (120 TB)" pct={67} />
+          <div style={{ color: "var(--decs-text-secondary)", fontSize: 13, padding: "16px 0", textAlign: "center" }}>
+            실시간 사용률은 추후 구현 예정입니다
+          </div>
         </Container>
 
         <Container disablePadding header={<Header variant="h2" counter={`(${data.containers.length})`} actions={<Button variant="link" onClick={onOpenContainers}>전체 보기</Button>}>최근 컨테이너</Header>}>
