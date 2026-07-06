@@ -14,18 +14,50 @@ function RequestWizard({ onCancel, onDone, gpuOptions: gpuOptionsProp, envOption
   const [submitting, setSubmitting] = React.useState(false);
   const [done, setDone] = React.useState(false);
   const [error, setError] = React.useState(null);
+  const [envErrors, setEnvErrors] = React.useState({});
 
   const purposeOptions = [
     { id: "basic", title: "기본 실험용", desc: "간단한 코드 검증과 소규모 실험" },
     { id: "train", title: "대용량 모델 학습용", desc: "큰 배치와 오랜 학습 시간이 필요해요" },
     { id: "infer", title: "추론 서버용", desc: "모델을 띄워 요청을 처리해요" },
   ];
-  const gpuOptions = gpuOptionsProp ?? [];
-  const envOptions = envOptionsProp ?? [];
+  const gpuOptions = React.useMemo(() => gpuOptionsProp ?? [], [gpuOptionsProp]);
+  const envOptions = React.useMemo(() => envOptionsProp ?? [], [envOptionsProp]);
+  const ubuntuUsernamePattern = /^[a-z][a-z0-9_-]{2,49}$/;
+  const ubuntuUsernameFormatError = ubuntuUsername && !ubuntuUsernamePattern.test(ubuntuUsername)
+    ? "소문자로 시작하고 소문자·숫자·_·-만 사용해 3~50자로 입력해주세요."
+    : null;
+  const ubuntuPasswordLengthError = ubuntuPassword && ubuntuPassword.length < 8
+    ? "비밀번호는 8자 이상 입력해주세요."
+    : null;
+  const ubuntuUsernameError = envErrors.ubuntuUsername || ubuntuUsernameFormatError;
+  const ubuntuPasswordError = envErrors.ubuntuPassword || ubuntuPasswordLengthError;
 
   React.useEffect(() => {
     if (!env && envOptions.length > 0) setEnv(String(envOptions[0].value));
   }, [env, envOptions]);
+
+  function validateDevelopmentStep() {
+    const nextErrors = {};
+    if (!ubuntuUsername) {
+      nextErrors.ubuntuUsername = "Ubuntu 사용자명을 입력해주세요.";
+    } else if (!ubuntuUsernamePattern.test(ubuntuUsername)) {
+      nextErrors.ubuntuUsername = "소문자로 시작하고 소문자·숫자·_·-만 사용해 3~50자로 입력해주세요.";
+    }
+    if (!ubuntuPassword) {
+      nextErrors.ubuntuPassword = "Ubuntu 비밀번호를 입력해주세요.";
+    } else if (ubuntuPassword.length < 8) {
+      nextErrors.ubuntuPassword = "비밀번호는 8자 이상 입력해주세요.";
+    }
+    setEnvErrors(nextErrors);
+    return Object.keys(nextErrors).length === 0;
+  }
+
+  function handleNavigate(nextStep) {
+    setError(null);
+    if (step === 3 && nextStep > step && !validateDevelopmentStep()) return;
+    setStep(nextStep);
+  }
 
   if (done) {
     return (
@@ -78,14 +110,25 @@ function RequestWizard({ onCancel, onDone, gpuOptions: gpuOptionsProp, envOption
           <FormField label="기본 환경 (이미지)">
             <Select selectedValue={env} onChange={setEnv} options={envOptions} />
           </FormField>
+          <FormField label="Ubuntu 사용자명 (필수)" errorText={ubuntuUsernameError}>
+            <Input
+              value={ubuntuUsername}
+              onChange={(value) => { setUbuntuUsername(value); setEnvErrors((prev) => ({ ...prev, ubuntuUsername: null })); }}
+              placeholder="소문자·숫자, 3~50자 (SSH 로그인 계정)"
+              invalid={!!ubuntuUsernameError}
+            />
+          </FormField>
+          <FormField label="Ubuntu 비밀번호 (필수)" errorText={ubuntuPasswordError}>
+            <Input
+              value={ubuntuPassword}
+              onChange={(value) => { setUbuntuPassword(value); setEnvErrors((prev) => ({ ...prev, ubuntuPassword: null })); }}
+              placeholder="SSH 접속에 사용할 비밀번호"
+              type="password"
+              invalid={!!ubuntuPasswordError}
+            />
+          </FormField>
           <ExpandableSection headerText="고급 설정 보기" variant="container">
             <div style={{ display: "flex", flexDirection: "column", gap: "var(--decs-space-m)", paddingTop: 4 }}>
-              <FormField label="Ubuntu 사용자명">
-                <Input value={ubuntuUsername} onChange={setUbuntuUsername} />
-              </FormField>
-              <FormField label="Ubuntu 비밀번호">
-                <Input value={ubuntuPassword} onChange={setUbuntuPassword} type="password" />
-              </FormField>
               <FormField label="저장공간 (GiB)">
                 <Input value={volumeSizeGiB} onChange={setVolumeSizeGiB} type="number" />
               </FormField>
@@ -104,7 +147,7 @@ function RequestWizard({ onCancel, onDone, gpuOptions: gpuOptionsProp, envOption
             { label: "GPU", value: (gpuOptions.find((o) => o.id === gpu[0]?.id) || {}).title || "—" },
             { label: "사용 기간", value: period + "일" },
             { label: "개발 환경", value: envOptions.find((o) => o.value === env)?.label ?? env },
-            { label: "Ubuntu 사용자명", value: ubuntuUsername || "—" },
+            { label: "Ubuntu 사용자명", value: ubuntuUsername || <span style={{ color: "var(--decs-status-warning)", fontWeight: 700 }}>미입력</span> },
             { label: "저장공간", value: `${volumeSizeGiB || "—"} GiB` },
           ]} />
         </Container>
@@ -115,8 +158,17 @@ function RequestWizard({ onCancel, onDone, gpuOptions: gpuOptionsProp, envOption
   function submit() {
     const selectedPurpose = purposeOptions.find((o) => o.id === purpose[0]?.id);
     const selectedGpu = gpu[0];
-    if (!selectedPurpose || !selectedGpu || !env || !ubuntuUsername || !ubuntuPassword || !volumeSizeGiB) {
-      setError("필수 신청 정보를 모두 입력해주세요.");
+    const missingFields = [
+      !selectedPurpose ? "사용 목적" : null,
+      !selectedGpu ? "GPU" : null,
+      !env ? "개발 환경" : null,
+      !ubuntuUsername ? "Ubuntu 사용자명" : null,
+      !ubuntuPassword ? "Ubuntu 비밀번호" : null,
+      !volumeSizeGiB ? "저장공간" : null,
+    ].filter(Boolean);
+    const developmentValid = validateDevelopmentStep();
+    if (missingFields.length > 0 || !developmentValid) {
+      setError(`필수 신청 정보를 확인해주세요: ${missingFields.join(", ") || "Ubuntu 계정 정보"}`);
       return undefined;
     }
 
@@ -143,7 +195,7 @@ function RequestWizard({ onCancel, onDone, gpuOptions: gpuOptionsProp, envOption
       <Header variant="h1">GPU 신청</Header>
       {error ? <div style={{ marginBottom: "var(--decs-space-m)" }}><Alert type="error">{error}</Alert></div> : null}
       <Container>
-        <Wizard steps={steps} activeStepIndex={step} onNavigate={setStep} onCancel={onCancel} onSubmit={submit} submitLabel="신청하기" isLoadingNextStep={submitting} />
+        <Wizard steps={steps} activeStepIndex={step} onNavigate={handleNavigate} onCancel={onCancel} onSubmit={submit} submitLabel="신청하기" isLoadingNextStep={submitting} />
       </Container>
     </div>
   );
