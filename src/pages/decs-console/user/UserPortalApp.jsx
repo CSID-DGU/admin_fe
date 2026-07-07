@@ -102,9 +102,6 @@ function getActiveHref(pathname) {
 }
 
 function toRequestPayload(form) {
-  const expiresAt = new Date();
-  expiresAt.setDate(expiresAt.getDate() + Number(form.period || 14));
-
   return {
     resourceGroupId: parseInt(form.gpu, 10),
     imageId: parseInt(form.env, 10),
@@ -113,7 +110,7 @@ function toRequestPayload(form) {
     volumeSizeGiB: parseInt(form.volumeSizeGiB, 10),
     usagePurpose: form.usagePurpose,
     formAnswers: { purpose: form.purpose },
-    expiresAt: expiresAt.toISOString(),
+    expiresAt: form.expiresAt,
     ubuntuGids: (form.ubuntuGids ?? []).map((gid) => parseInt(gid, 10)),
     portRequests: form.portRequests ?? [],
   };

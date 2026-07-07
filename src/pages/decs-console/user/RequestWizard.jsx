@@ -4,9 +4,13 @@ import { Wizard, Cards, FormField, Select, Input, KeyValuePairs, Alert, Containe
 
 function RequestWizard({ onCancel, onDone, gpuOptions: gpuOptionsProp, envOptions: envOptionsProp, groupOptions: groupOptionsProp, onSubmit: onSubmitProp }) {
   const [step, setStep] = React.useState(0);
-  const [purpose, setPurpose] = React.useState([]);
+  const [purpose, setPurpose] = React.useState("");
   const [gpu, setGpu] = React.useState([]);
-  const [period, setPeriod] = React.useState("14");
+  const [expiresDate, setExpiresDate] = React.useState(() => {
+    const d = new Date();
+    d.setDate(d.getDate() + 14);
+    return d.toISOString().split("T")[0];
+  });
   const [env, setEnv] = React.useState("");
   const [ubuntuUsername, setUbuntuUsername] = React.useState("");
   const [ubuntuPassword, setUbuntuPassword] = React.useState("");
@@ -23,11 +27,6 @@ function RequestWizard({ onCancel, onDone, gpuOptions: gpuOptionsProp, envOption
   const [portRequests, setPortRequests] = React.useState([]);
   const [portError, setPortError] = React.useState(null);
 
-  const purposeOptions = [
-    { id: "basic", title: "기본 실험용", desc: "간단한 코드 검증과 소규모 실험" },
-    { id: "train", title: "대용량 모델 학습용", desc: "큰 배치와 오랜 학습 시간이 필요해요" },
-    { id: "infer", title: "추론 서버용", desc: "모델을 띄워 요청을 처리해요" },
-  ];
   const gpuOptions = React.useMemo(() => gpuOptionsProp ?? [], [gpuOptionsProp]);
   const envOptions = React.useMemo(() => envOptionsProp ?? [], [envOptionsProp]);
   const groupOptions = React.useMemo(() => groupOptionsProp ?? [], [groupOptionsProp]);
@@ -64,13 +63,28 @@ function RequestWizard({ onCancel, onDone, gpuOptions: gpuOptionsProp, envOption
   }
 
   function validateStep(nextStep) {
-    if (step === 0 && nextStep > step && purpose.length === 0) {
-      setStepErrors((prev) => ({ ...prev, purpose: "사용 목적을 선택해주세요." }));
+    if (step === 0 && nextStep > step && purpose.trim().length < 5) {
+      setStepErrors((prev) => ({ ...prev, purpose: "사용 목적을 5자 이상 적어주세요." }));
       return false;
     }
     if (step === 1 && nextStep > step && gpu.length === 0) {
       setStepErrors((prev) => ({ ...prev, gpu: "GPU를 선택해주세요." }));
       return false;
+    }
+    if (step === 2 && nextStep > step) {
+      const picked = new Date(expiresDate);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const maxDate = new Date();
+      maxDate.setDate(maxDate.getDate() + 365);
+      if (!expiresDate || Number.isNaN(picked.getTime()) || picked <= today) {
+        setStepErrors((prev) => ({ ...prev, period: "만료일은 오늘 이후 날짜로 선택해주세요." }));
+        return false;
+      }
+      if (picked > maxDate) {
+        setStepErrors((prev) => ({ ...prev, period: "만료일은 오늘부터 1년 이내로 선택해주세요." }));
+        return false;
+      }
     }
     if (step === 3 && nextStep > step && !validateDevelopmentStep()) return false;
     return true;
@@ -136,13 +150,25 @@ function RequestWizard({ onCancel, onDone, gpuOptions: gpuOptionsProp, envOption
   const steps = [
     {
       title: "사용 목적",
-      description: "어떤 작업에 GPU를 사용하실 계획인가요? 목적에 맞춰 적절한 설정을 추천해 드려요.",
+      description: "어떤 작업에 GPU를 사용하실 계획인가요? 연구 내용과 예상 작업을 자유롭게 적어주세요.",
       content: (
-        <FormField errorText={stepErrors.purpose}>
-          <Cards columns={3} selectionType="single" trackBy="id" selectedItems={purpose}
-            onSelectionChange={(items) => { setPurpose(items); setStepErrors((prev) => ({ ...prev, purpose: null })); }}
-            items={purposeOptions} cardDefinition={{ header: (o) => o.title, sections: [{ id: "d", content: (o) => o.desc }] }} />
-        </FormField>
+        <div style={{ maxWidth: 520 }}>
+          <FormField label="사용 목적" errorText={stepErrors.purpose} constraintText="연구 내용, 사용할 프레임워크, 예상 작업량을 함께 적어주세요. (최소 5자)">
+            <textarea
+              value={purpose}
+              onChange={(e) => { setPurpose(e.target.value); setStepErrors((prev) => ({ ...prev, purpose: null })); }}
+              rows={4}
+              placeholder="예: ResNet 기반 이미지 분류 모델을 학습하고 추론 성능을 벤치마크할 예정입니다."
+              style={{
+                width: "100%", padding: "8px 12px", fontSize: "var(--decs-fs-body-m)",
+                background: "var(--decs-surface-input)", color: "var(--decs-text-body)",
+                borderRadius: "var(--decs-radius-input)",
+                border: `1px solid ${stepErrors.purpose ? "var(--decs-status-error)" : "var(--decs-border-input)"}`,
+                outline: "none", resize: "vertical",
+              }}
+            />
+          </FormField>
+        </div>
       ),
     },
     {
@@ -158,15 +184,18 @@ function RequestWizard({ onCancel, onDone, gpuOptions: gpuOptionsProp, envOption
     },
     {
       title: "사용 기간",
-      description: "얼마 동안 사용하실 계획인가요? 만료 전에 언제든 연장할 수 있어요.",
+      description: "언제까지 사용하실 계획인가요? 만료 전에 언제든 연장할 수 있어요.",
       content: (
         <div style={{ maxWidth: 420, display: "flex", flexDirection: "column", gap: "var(--decs-space-m)" }}>
-          <FormField label="사용 기간">
-            <Select selectedValue={period} onChange={setPeriod} options={[
-              { value: "7", label: "7일" }, { value: "14", label: "14일 (권장)" }, { value: "30", label: "30일" },
-            ]} />
+          <FormField label="사용 만료일" errorText={stepErrors.period} constraintText="서버 사용을 마칠 날짜예요. (오늘부터 1년 이내)">
+            <Input
+              value={expiresDate}
+              onChange={(value) => { setExpiresDate(value); setStepErrors((prev) => ({ ...prev, period: null })); }}
+              type="date"
+              invalid={!!stepErrors.period}
+            />
           </FormField>
-          <Alert type="info">기본 실험은 14일이면 충분한 경우가 많아요. 길게 잡을수록 승인이 늦어질 수 있어요.</Alert>
+          <Alert type="info">기본 실험은 2주면 충분한 경우가 많아요. 길게 잡을수록 승인이 늦어질 수 있어요.</Alert>
         </div>
       ),
     },
@@ -240,9 +269,9 @@ function RequestWizard({ onCancel, onDone, gpuOptions: gpuOptionsProp, envOption
       content: (
         <Container header={<Header variant="h2">신청 내용</Header>}>
           <KeyValuePairs columns={2} items={[
-            { label: "사용 목적", value: (purposeOptions.find((o) => o.id === purpose[0]?.id) || {}).title || "기본 실험용" },
+            { label: "사용 목적", value: purpose.trim() || "—" },
             { label: "GPU", value: (gpuOptions.find((o) => o.id === gpu[0]?.id) || {}).title || "—" },
-            { label: "사용 기간", value: period + "일" },
+            { label: "사용 만료일", value: expiresDate || "—" },
             { label: "개발 환경", value: envOptions.find((o) => o.value === env)?.label ?? env },
             { label: "Ubuntu 사용자명", value: ubuntuUsername || <span style={{ color: "var(--decs-status-warning)", fontWeight: 700 }}>미입력</span> },
             { label: "공유 그룹", value: selectedGroups.length > 0 ? selectedGroups.map((g) => g.label).join(", ") : "—" },
@@ -254,10 +283,10 @@ function RequestWizard({ onCancel, onDone, gpuOptions: gpuOptionsProp, envOption
   ];
 
   function submit() {
-    const selectedPurpose = purposeOptions.find((o) => o.id === purpose[0]?.id);
+    const purposeText = purpose.trim();
     const selectedGpu = gpu[0];
     const missingFields = [
-      !selectedPurpose ? "사용 목적" : null,
+      !purposeText ? "사용 목적" : null,
       !selectedGpu ? "GPU" : null,
       !env ? "개발 환경" : null,
       !ubuntuUsername ? "Ubuntu 사용자명" : null,
@@ -271,10 +300,10 @@ function RequestWizard({ onCancel, onDone, gpuOptions: gpuOptionsProp, envOption
     }
 
     const payload = {
-      purpose: selectedPurpose.id,
-      usagePurpose: selectedPurpose.title,
+      purpose: purposeText,
+      usagePurpose: purposeText,
       gpu: selectedGpu.id,
-      period,
+      expiresAt: new Date(`${expiresDate}T23:59:59`).toISOString(),
       env,
       ubuntuUsername,
       ubuntuPassword,
