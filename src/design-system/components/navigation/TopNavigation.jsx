@@ -4,7 +4,7 @@ import { Icon } from "../icons/Icon.jsx";
 /**
  * TopNavigation — the global top bar: brand identity on the left, utility
  * actions (notifications, density, user menu) on the right.
- * utilities: [{ type:"button", text?, iconName?, badge?, onClick } | { type:"menu", text, iconName?, items:[] }]
+ * utilities: [{ type:"button", text?, iconName?, badge?, onClick } | { type:"menu", text, iconName?, items:[] } | { type:"custom", content:<node> }]
  */
 export function TopNavigation({ identity, utilities = [], style }) {
   const [openMenu, setOpenMenu] = React.useState(null);
@@ -22,7 +22,9 @@ export function TopNavigation({ identity, utilities = [], style }) {
         <span style={{ fontSize: "var(--decs-fs-heading-s)", fontWeight: "var(--decs-fw-bold)" }}>{identity?.title}</span>
       </a>
       <div style={{ display: "flex", alignItems: "center", gap: "var(--decs-space-xxs)" }}>
-        {utilities.map((u, i) => (
+        {utilities.map((u, i) => u.type === "custom" ? (
+          <div key={i} style={{ display: "flex", alignItems: "center" }}>{u.content}</div>
+        ) : (
           <div key={i} style={{ position: "relative" }}>
             <button onClick={() => u.type === "menu" ? setOpenMenu(openMenu === i ? null : i) : u.onClick?.()} aria-label={u.ariaLabel || (typeof u.text === "string" ? u.text : undefined)}
               style={{ display: "inline-flex", alignItems: "center", gap: "6px", position: "relative",

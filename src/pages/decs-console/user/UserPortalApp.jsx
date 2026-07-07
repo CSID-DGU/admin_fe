@@ -12,6 +12,7 @@ import MyChangeRequestsPage from "../../MyChangeRequestsPage";
 import AccountPage from "../../AccountPage";
 import ResourceMonitoringPage from "../../ResourceMonitoringPage";
 import donggukLogo from "../../../assets/dongguk_university_logo.svg";
+import RoleSwitch from "../../../components/RoleSwitch";
 
 function UserPortalApp() {
   const location = useLocation();
@@ -39,14 +40,13 @@ function UserPortalApp() {
   };
 
   const utilities = [
+    ...(isAdmin ? [{ type: "custom", content: <RoleSwitch current="user" /> }] : []),
     { iconName: "bell", ariaLabel: "알림", badge: 1 },
     {
       type: "menu",
       iconName: "user-circle",
       text: userName,
       items: [
-        ...(isAdmin ? [{ text: "관리자 콘솔로", onClick: () => navigate("/decs/admin") }] : []),
-        ...(isAdmin ? [{ type: "divider" }] : []),
         { text: "로그아웃", onClick: () => { logout(); navigate("/login"); } },
       ],
     },

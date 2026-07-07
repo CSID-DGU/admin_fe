@@ -13,6 +13,7 @@ import ResourceMonitoringPage from "../../admin/ResourceMonitoringPage";
 import ImageManagementPage from "../../admin/ImageManagementPage";
 import MessageTemplatePage from "../../admin/MessageTemplatePage";
 import donggukLogo from "../../../assets/dongguk_university_logo.svg";
+import RoleSwitch from "../../../components/RoleSwitch";
 
 function AdminConsoleApp() {
   const location = useLocation();
@@ -41,14 +42,13 @@ function AdminConsoleApp() {
 
   const displayName = user?.name || user?.email || "사용자";
   const utilities = [
+    { type: "custom", content: <RoleSwitch current="admin" /> },
     { iconName: "bell", ariaLabel: "알림", badge: 3 },
     {
       type: "menu",
       iconName: "user-circle",
       text: displayName,
       items: [
-        { text: "사용자 화면으로 전환", onClick: () => navigate("/decs/user") },
-        { type: "divider" },
         { text: "로그아웃", onClick: () => { logout(); navigate("/login"); } },
       ],
     },
