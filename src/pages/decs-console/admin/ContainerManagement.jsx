@@ -2,11 +2,14 @@
 import React from "react";
 import { Table, Header, Container, StatusIndicator, Badge, Button, Input, Select, Pagination } from "../../../design-system";
 
+const PAGE_SIZE = 10;
+
 function ContainerManagement({ onOpenDetail, containers = [] }) {
   const all = containers;
   const [q, setQ] = React.useState("");
   const [statusFilter, setStatusFilter] = React.useState("all");
   const [sort, setSort] = React.useState({ col: null, desc: false });
+  const [currentPage, setCurrentPage] = React.useState(1);
 
   let rows = all.filter((c) =>
     (q === "" || c.name.includes(q) || c.user.includes(q)) &&
@@ -16,6 +19,16 @@ function ContainerManagement({ onOpenDetail, containers = [] }) {
     const f = sort.col.sortingField;
     rows = [...rows].sort((a, b) => String(a[f]).localeCompare(String(b[f])) * (sort.desc ? -1 : 1));
   }
+  const pagesCount = Math.max(1, Math.ceil(rows.length / PAGE_SIZE));
+  const pageRows = rows.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+
+  React.useEffect(() => {
+    setCurrentPage(1);
+  }, [q, statusFilter]);
+
+  React.useEffect(() => {
+    if (currentPage > pagesCount) setCurrentPage(pagesCount);
+  }, [currentPage, pagesCount]);
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "var(--decs-space-l)" }}>
@@ -47,7 +60,7 @@ function ContainerManagement({ onOpenDetail, containers = [] }) {
           density="compact" trackBy="id"
           sortingColumn={sort.col} sortingDescending={sort.desc}
           onSortingChange={({ sortingColumn, sortingDescending }) => setSort({ col: sortingColumn, desc: sortingDescending })}
-          items={rows}
+          items={pageRows}
           empty="조건에 맞는 컨테이너가 없습니다."
           columns={[
             { id: "name", header: "이름", sortingField: "name", cell: (c) => <a href="#" onClick={(e) => { e.preventDefault(); onOpenDetail(c); }} style={{ color: "var(--decs-text-link)", fontWeight: 600, textDecoration: "none" }}>{c.name}</a> },
@@ -58,7 +71,7 @@ function ContainerManagement({ onOpenDetail, containers = [] }) {
             { id: "expires", header: "만료", sortingField: "expires", cell: (c) => <span style={{ color: "var(--decs-text-secondary)" }}>{c.expires}</span> },
             { id: "actions", header: "", width: 90, cell: (c) => <Button variant="normal" onClick={() => onOpenDetail(c)}>상세</Button> },
           ]}
-          footer={<div style={{ display: "flex", justifyContent: "flex-end" }}><Pagination currentPage={1} pagesCount={4} onChange={() => {}} /></div>}
+          footer={rows.length > PAGE_SIZE ? <div style={{ display: "flex", justifyContent: "flex-end" }}><Pagination currentPage={currentPage} pagesCount={pagesCount} onChange={setCurrentPage} /></div> : null}
         />
       </Container>
     </div>

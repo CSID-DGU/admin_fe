@@ -30,7 +30,7 @@ function BigStatus({ onConnect, onExtend, onDetail, server }) {
 function UserDashboard({ onRequest, onConnect, onExtend, onDetail, userName, server, expiryDays, activities = [] }) {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "var(--decs-space-l)", maxWidth: 900, margin: "0 auto" }}>
-      <Header variant="h1" description={server ? "현재 GPU 상태를 확인하고 바로 접속할 수 있어요." : "아직 신청한 GPU가 없어요. 신청하면 이곳에서 바로 확인할 수 있어요."}>안녕하세요, {userName}님</Header>
+      <Header variant="h1" description="GPU 사용 현황과 최근 활동을 확인할 수 있어요.">안녕하세요, {userName}님</Header>
 
       {expiryDays != null ? (<Alert type="warning" header={`${expiryDays}일 뒤 사용 기간이 만료됩니다`} action={<Button variant="normal" onClick={onExtend}>연장하기</Button>}>
         만료되면 컨테이너가 정지되고 저장하지 않은 작업이 사라질 수 있어요. 미리 연장해 두세요.
