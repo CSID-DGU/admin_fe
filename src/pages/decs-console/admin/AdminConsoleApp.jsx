@@ -65,7 +65,7 @@ function AdminConsoleApp() {
         navigation={<SideNavigation {...nav} />}
         navigationWidth={248}
       >
-        {error ? <div style={{ marginBottom: "var(--decs-space-m)" }}><Flashbar items={[{ id: "decs-admin-data", type: "warning", header: error, dismissible: false }]} /></div> : null}
+        {error && (location.pathname === "/admin" || location.pathname.startsWith("/admin/containers")) ? <div style={{ marginBottom: "var(--decs-space-m)" }}><Flashbar items={[{ id: "decs-admin-data", type: "warning", header: error, dismissible: false }]} /></div> : null}
         <Routes>
           <Route index element={<AdminDashboard onOpenContainers={() => navigate("/admin/containers")} containers={containers ?? []} users={users ?? []} />} />
           <Route path="containers" element={<ContainerManagement onOpenDetail={(c) => navigate(`/admin/containers/${c.id}`)} containers={containers ?? []} />} />

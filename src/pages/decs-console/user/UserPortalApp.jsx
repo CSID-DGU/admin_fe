@@ -65,7 +65,7 @@ function UserPortalApp() {
       navigate("/user/requests");
     } catch (error) {
       setSubmitError(error.message || "신청에 실패했습니다.");
-      throw error;
+      return false;
     }
   }
 
