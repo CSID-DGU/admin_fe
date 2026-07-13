@@ -20,7 +20,6 @@ const STATUS_META = {
   DENIED: { type: "error", label: "거절됨" },
 };
 const APPROVAL_BLOCK_REASON = {
-  VOLUME_SIZE: "DB 용량만 변경되고 NFS 쿼터에는 반영되지 않습니다.",
   GROUP: "DB 그룹만 변경되고 Ubuntu 계정 그룹에는 반영되지 않습니다.",
   RESOURCE_GROUP: "DB 리소스 그룹만 변경되고 실행 중인 Pod에는 반영되지 않습니다.",
   CONTAINER_IMAGE: "DB 이미지 정보만 변경되고 실행 중인 Pod 이미지는 변경되지 않습니다.",
@@ -60,37 +59,38 @@ const ChangeRequestManagementPage = () => {
           const allRequestsArray = allResponse.data?.data ?? [];
 
           // 변경 요청 데이터를 원본 요청과 연결
-          const transformedChangeRequests = changeRequestsArray.map((changeReq) => {
-            const originalRequest = allRequestsArray.find(
-              (req) => req.requestId === changeReq.originalRequestId
-            );
+          const transformedChangeRequests = changeRequestsArray
+            .filter((changeReq) => changeReq.changeType !== "VOLUME_SIZE")
+            .map((changeReq) => {
+              const originalRequest = allRequestsArray.find(
+                (req) => req.requestId === changeReq.originalRequestId
+              );
 
-            return {
-              changeRequestId: changeReq.changeRequestId,
-              originalRequestId: changeReq.originalRequestId,
-              changeType: changeReq.changeType,
-              oldValue: changeReq.oldValue,
-              newValue: changeReq.newValue,
-              reason: changeReq.reason,
-              status: changeReq.status,
-              requestedBy: changeReq.requestedBy,
-              createdAt: changeReq.createdAt,
-              adminComment: changeReq.adminComment, // 관리자 코멘트 추가
-              originalRequest: originalRequest ? {
-                requestId: originalRequest.requestId,
-                resourceGroup: originalRequest.resourceGroup,
-                user: originalRequest.user,
-                imageName: originalRequest.imageName,
-                imageVersion: originalRequest.imageVersion,
-                ubuntuUsername: originalRequest.ubuntuUsername,
-                volumeSizeGiB: originalRequest.volumeSizeGiB,
-                usagePurpose: originalRequest.usagePurpose,
-                expiresAt: originalRequest.expiresAt,
-                status: originalRequest.status,
-                portMappings: originalRequest.portMappings || [],
-              } : null,
-            };
-          });
+              return {
+                changeRequestId: changeReq.changeRequestId,
+                originalRequestId: changeReq.originalRequestId,
+                changeType: changeReq.changeType,
+                oldValue: changeReq.oldValue,
+                newValue: changeReq.newValue,
+                reason: changeReq.reason,
+                status: changeReq.status,
+                requestedBy: changeReq.requestedBy,
+                createdAt: changeReq.createdAt,
+                adminComment: changeReq.adminComment, // 관리자 코멘트 추가
+                originalRequest: originalRequest ? {
+                  requestId: originalRequest.requestId,
+                  resourceGroup: originalRequest.resourceGroup,
+                  user: originalRequest.user,
+                  imageName: originalRequest.imageName,
+                  imageVersion: originalRequest.imageVersion,
+                  ubuntuUsername: originalRequest.ubuntuUsername,
+                  usagePurpose: originalRequest.usagePurpose,
+                  expiresAt: originalRequest.expiresAt,
+                  status: originalRequest.status,
+                  portMappings: originalRequest.portMappings || [],
+                } : null,
+              };
+            });
 
           setChangeRequests(transformedChangeRequests);
           setAllRequests(allRequestsArray);
@@ -140,8 +140,6 @@ const ChangeRequestManagementPage = () => {
 
   const getChangeTypeDisplay = (changeType) => {
     switch (changeType) {
-      case "VOLUME_SIZE":
-        return "볼륨 크기";
       case "EXPIRES_AT":
         return "만료일";
       case "RESOURCE_GROUP":
@@ -158,9 +156,7 @@ const ChangeRequestManagementPage = () => {
   };
 
   const formatChangeValue = (changeType, value) => {
-    if (changeType === "VOLUME_SIZE") {
-      return `${value} GiB`;
-    } else if (changeType === "EXPIRES_AT") {
+    if (changeType === "EXPIRES_AT") {
       // 날짜 형식으로 포맷팅
       if (value) {
         return new Date(value).toLocaleDateString("ko-KR", {
@@ -596,10 +592,6 @@ const ChangeRequestManagementPage = () => {
                     {
                       label: "Ubuntu 계정",
                       value: sel.originalRequest.ubuntuUsername,
-                    },
-                    {
-                      label: "현재 볼륨",
-                      value: `${sel.originalRequest.volumeSizeGiB} GiB`,
                     },
                     {
                       label: "만료",

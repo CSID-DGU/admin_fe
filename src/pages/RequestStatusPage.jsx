@@ -178,10 +178,6 @@ const RequestStatusPage = () => {
                     value: `${request.image_name}:${request.image_version}`,
                   },
                   {
-                    label: "저장 공간",
-                    value: `${request.volume_size_GB} GiB`,
-                  },
-                  {
                     label: "만료일",
                     value: new Date(request.expires_at).toLocaleDateString(
                       "ko-KR"
@@ -358,10 +354,6 @@ const RequestStatusPage = () => {
                   {
                     label: "Ubuntu 사용자명",
                     value: selectedRequest.ubuntu_username,
-                  },
-                  {
-                    label: "저장 공간",
-                    value: `${selectedRequest.volume_size_GB} GiB`,
                   },
                   {
                     label: "컨테이너 이미지",

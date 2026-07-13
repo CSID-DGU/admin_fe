@@ -35,7 +35,6 @@ export const mapApprovedRequestDtoToApplicationModel = (request) => ({
   gpu_model: request.resourceGroup?.resourceGroupName || "Unknown GPU",
   image_name: request.imageName,
   image_version: request.imageVersion,
-  volume_size_gb: request.volumeSizeGiB,
   expires_at: request.expiresAt ? request.expiresAt.split("T")[0] : "N/A",
   group_names: request.ubuntuGids || [],
   usage_purpose: request.usagePurpose,

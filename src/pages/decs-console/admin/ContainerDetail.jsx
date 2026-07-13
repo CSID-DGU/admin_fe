@@ -32,7 +32,6 @@ function ContainerDetail({ item, onBack }) {
           { label: "생성일", value: c.createdAt },
           { label: "만료", value: c.expires },
           { label: "컨테이너", value: c.podContainers.length ? c.podContainers.map((container) => `${container.name} (${container.image})`).join(", ") : "—" },
-          { label: "볼륨", value: c.volumes.length ? c.volumes.map((volume) => volume.name).join(", ") : "—" },
         ]} />
       </Container>
     </div>

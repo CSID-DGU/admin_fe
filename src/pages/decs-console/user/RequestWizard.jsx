@@ -20,7 +20,6 @@ function RequestWizard({ onCancel, onDone, gpuOptions: gpuOptionsProp, envOption
   const [env, setEnv] = React.useState("");
   const [ubuntuUsername, setUbuntuUsername] = React.useState("");
   const [ubuntuPassword, setUbuntuPassword] = React.useState("");
-  const [volumeSizeGiB] = React.useState("20");
   const [submitting, setSubmitting] = React.useState(false);
   const [done, setDone] = React.useState(false);
   const [error, setError] = React.useState(null);
@@ -317,7 +316,6 @@ function RequestWizard({ onCancel, onDone, gpuOptions: gpuOptionsProp, envOption
       !env ? "개발 환경" : null,
       !ubuntuUsername ? "Ubuntu 사용자명" : null,
       !ubuntuPassword ? "Ubuntu 비밀번호" : null,
-      !volumeSizeGiB ? "저장공간" : null,
     ].filter(Boolean);
     const developmentValid = validateDevelopmentStep();
     const periodValid = validatePeriod();
@@ -334,7 +332,6 @@ function RequestWizard({ onCancel, onDone, gpuOptions: gpuOptionsProp, envOption
       env,
       ubuntuUsername,
       ubuntuPassword,
-      volumeSizeGiB,
       ubuntuGids: selectedGroups.map((g) => g.value),
       portRequests,
     };

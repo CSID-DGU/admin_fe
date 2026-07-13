@@ -127,7 +127,8 @@ function toRequestPayload(form) {
     imageId: parseInt(form.env, 10),
     ubuntuUsername: form.ubuntuUsername,
     ubuntuPassword: bytesToBase64(new TextEncoder().encode(form.ubuntuPassword)),
-    volumeSizeGiB: parseInt(form.volumeSizeGiB, 10),
+    // 30083 신청 DTO의 레거시 필수 필드. PVC UI에서는 노출하지 않는다.
+    volumeSizeGiB: 20,
     usagePurpose: form.usagePurpose,
     formAnswers: { purpose: form.purpose },
     expiresAt: form.expiresAt,

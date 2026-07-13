@@ -27,8 +27,8 @@ const MyChangeRequestsPage = () => {
         const response = await requestService.getMyChangeRequests();
 
         if (response.status === 200) {
-          const changeRequestsArray = response.data.data || [];
-          setChangeRequests(changeRequestsArray);
+          const changeRequestsArray = response.data?.data ?? [];
+          setChangeRequests(changeRequestsArray.filter((request) => request.changeType !== "VOLUME_SIZE"));
         } else {
           setAlert({
             type: "error",
@@ -88,8 +88,6 @@ const MyChangeRequestsPage = () => {
 
   const getChangeTypeDisplay = (changeType) => {
     switch (changeType) {
-      case "VOLUME_SIZE":
-        return "볼륨 크기";
       case "EXPIRES_AT":
         return "만료일";
       case "RESOURCE_GROUP":
@@ -106,9 +104,7 @@ const MyChangeRequestsPage = () => {
   };
 
   const formatChangeValue = (changeType, value) => {
-    if (changeType === "VOLUME_SIZE") {
-      return `${value} GiB`;
-    } else if (changeType === "EXPIRES_AT") {
+    if (changeType === "EXPIRES_AT") {
       // 날짜 형식으로 포맷팅
       if (value) {
         return new Date(value).toLocaleDateString("ko-KR", {

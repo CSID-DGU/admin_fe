@@ -251,11 +251,6 @@ const RequestManagementPage = () => {
       cell: (r) => `${r.image_name}:${r.image_version}`,
     },
     {
-      id: "volume",
-      header: "볼륨",
-      cell: (r) => `${r.volume_size_GB} GiB`,
-    },
-    {
       id: "expires",
       header: "만료",
       cell: (r) => new Date(r.expires_at).toLocaleDateString("ko-KR"),
@@ -451,7 +446,6 @@ const RequestManagementPage = () => {
                     label: "컨테이너 이미지",
                     value: `${sel.image_name}:${sel.image_version}`,
                   },
-                  { label: "볼륨 크기", value: `${sel.volume_size_GB} GiB` },
                   {
                     label: "만료",
                     value: new Date(sel.expires_at).toLocaleDateString("ko-KR"),

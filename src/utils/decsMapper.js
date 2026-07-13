@@ -107,7 +107,6 @@ export function mapAdminContainer(dto) {
     hostIP: detail.hostIP ?? "—",
     createdAt: formatDate(detail.creationTimestamp),
     podContainers: detail.containers ?? [],
-    volumes: detail.volumes ?? [],
     status: status.type,
     label: status.label,
     expires: formatDate(dto.expiresAt),
@@ -131,8 +130,8 @@ export function daysLeft(dateStr, now = new Date()) {
 }
 
 /**
- * @param {{ requestId: string | number, podExternalPorts?: Array, pod_external_ports?: Array, expiresAt: string, volumeSizeGiB: number, resourceGroupId: string | number, resourceGroup?: { resourceGroupName?: string }, imageName?: string, imageVersion?: string, ubuntuUsername?: string, status: string }} dto SaveRequestResponseDTO
- * @returns {{ id: string | number, gpuName: string, statusType: string, statusLabel: string, expiresAt: string, daysLeft: number, serverAddress: string, sshCommand: string, jupyterUrl: string, image: string, volumeSizeGiB: number }}
+ * @param {{ requestId: string | number, podExternalPorts?: Array, pod_external_ports?: Array, expiresAt: string, resourceGroupId: string | number, resourceGroup?: { resourceGroupName?: string }, imageName?: string, imageVersion?: string, ubuntuUsername?: string, status: string }} dto SaveRequestResponseDTO
+ * @returns {{ id: string | number, gpuName: string, statusType: string, statusLabel: string, expiresAt: string, daysLeft: number, serverAddress: string, sshCommand: string, jupyterUrl: string, image: string }}
  */
 export function mapUserServer(dto) {
   const status = mapPodStatus(dto.status);
@@ -162,7 +161,6 @@ export function mapUserServer(dto) {
       || dto.containerImage?.imageName
       || dto.containerImage?.name
       || "—",
-    volumeSizeGiB: dto.volumeSizeGiB,
     cpuCoreCount: dto.cpuCoreCount,
     memoryGB: dto.memoryGB,
   };
