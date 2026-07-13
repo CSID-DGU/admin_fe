@@ -21,7 +21,7 @@ function FlashItem({ type = "info", header, content, dismissible, onDismiss }) {
       style={{
         display: "flex",
         gap: "var(--decs-space-s)",
-        padding: "var(--decs-space-s) var(--decs-space-m)",
+        padding: "var(--decs-space-m) var(--decs-space-l)",
         background: c.bg,
         border: `1px solid ${c.bd}`,
         borderRadius: "var(--decs-radius-alert)",
@@ -37,7 +37,7 @@ function FlashItem({ type = "info", header, content, dismissible, onDismiss }) {
         {content ? <span style={{ color: "var(--decs-text-body)" }}>{content}</span> : null}
       </div>
       {dismissible ? (
-        <button onClick={onDismiss} aria-label="Dismiss" style={{ flexShrink: 0, background: "none", border: "none", cursor: "pointer", color: "var(--decs-text-secondary)", display: "inline-flex", padding: "2px" }}>
+        <button onClick={onDismiss} aria-label="Dismiss" style={{ flexShrink: 0, background: "none", border: "none", cursor: "pointer", color: "var(--decs-text-secondary)", display: "inline-flex", padding: "var(--decs-space-xs)" }}>
           <Icon name="x-mark" size={16} />
         </button>
       ) : null}

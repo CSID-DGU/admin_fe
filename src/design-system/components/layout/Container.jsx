@@ -18,13 +18,13 @@ export function Container({ header, footer, children, disablePadding = false, st
       }}
     >
       {header ? (
-        <div style={{ padding: "var(--decs-space-m) var(--decs-space-l)", borderBottom: "1px solid var(--decs-border-divider)" }}>
+        <div style={{ padding: "var(--decs-space-l) var(--decs-space-xl)", borderBottom: "1px solid var(--decs-border-divider)" }}>
           {header}
         </div>
       ) : null}
-      <div style={{ padding: disablePadding ? 0 : "var(--decs-space-l)" }}>{children}</div>
+      <div style={{ padding: disablePadding ? 0 : "var(--decs-space-xl)" }}>{children}</div>
       {footer ? (
-        <div style={{ padding: "var(--decs-space-s) var(--decs-space-l)", borderTop: "1px solid var(--decs-border-divider)", background: "var(--decs-surface-sunken)" }}>
+        <div style={{ padding: "var(--decs-space-m) var(--decs-space-xl)", borderTop: "1px solid var(--decs-border-divider)", background: "var(--decs-surface-sunken)" }}>
           {footer}
         </div>
       ) : null}

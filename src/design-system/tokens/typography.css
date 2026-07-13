@@ -17,14 +17,14 @@
   --decs-fw-bold: 700;    /* @kind font */
 
   /* Font sizes / line-heights (Cloudscape scale) */
-  --decs-fs-body-s: 12px;   --decs-lh-body-s: 16px;
-  --decs-fs-body-m: 14px;   --decs-lh-body-m: 20px;   /* default body */
-  --decs-fs-heading-xs: 14px; --decs-lh-heading-xs: 18px;
-  --decs-fs-heading-s: 16px;  --decs-lh-heading-s: 20px;
-  --decs-fs-heading-m: 18px;  --decs-lh-heading-m: 22px;
-  --decs-fs-heading-l: 20px;  --decs-lh-heading-l: 24px;
-  --decs-fs-heading-xl: 24px; --decs-lh-heading-xl: 30px;
-  --decs-fs-display-l: 42px;  --decs-lh-display-l: 48px;
+  --decs-fs-body-s: 13px;   --decs-lh-body-s: 18px;
+  --decs-fs-body-m: 15px;   --decs-lh-body-m: 22px;   /* default body */
+  --decs-fs-heading-xs: 15px; --decs-lh-heading-xs: 20px;
+  --decs-fs-heading-s: 18px;  --decs-lh-heading-s: 24px;
+  --decs-fs-heading-m: 20px;  --decs-lh-heading-m: 26px;
+  --decs-fs-heading-l: 24px;  --decs-lh-heading-l: 30px;
+  --decs-fs-heading-xl: 30px; --decs-lh-heading-xl: 38px;
+  --decs-fs-display-l: 44px;  --decs-lh-display-l: 52px;
 
   --decs-letter-spacing-heading: -0.005em;
 }

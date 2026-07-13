@@ -26,7 +26,7 @@ export function Wizard({ steps = [], activeStepIndex = 0, onNavigate, onCancel, 
               style={{
                 display: "flex", alignItems: "center", gap: "var(--decs-space-xs)", textAlign: "left",
                 background: "none", border: "none", cursor: i <= activeStepIndex ? "pointer" : "default",
-                padding: "var(--decs-space-xxs) 0",
+                padding: "var(--decs-space-xs) 0",
               }}
             >
               <span style={{
@@ -53,7 +53,7 @@ export function Wizard({ steps = [], activeStepIndex = 0, onNavigate, onCancel, 
         </div>
         <h2 style={{ margin: 0, fontSize: "var(--decs-fs-heading-l)", lineHeight: "var(--decs-lh-heading-l)", fontWeight: "var(--decs-fw-bold)", color: "var(--decs-text-heading)" }}>{step.title}</h2>
         {step.description ? <p style={{ margin: "var(--decs-space-xxs) 0 0", color: "var(--decs-text-secondary)", fontSize: "var(--decs-fs-body-m)" }}>{step.description}</p> : null}
-        <div style={{ marginTop: "var(--decs-space-l)" }}>{step.content}</div>
+        <div style={{ marginTop: "var(--decs-space-xl)" }}>{step.content}</div>
 
         <div style={{ display: "flex", justifyContent: "flex-end", gap: "var(--decs-space-xs)", marginTop: "var(--decs-space-xl)", paddingTop: "var(--decs-space-m)", borderTop: "1px solid var(--decs-border-divider)" }}>
           <Button variant="link" onClick={onCancel}>취소</Button>

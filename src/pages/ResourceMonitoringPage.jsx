@@ -10,17 +10,16 @@ import {
   StatusIndicator,
 } from "../design-system";
 
+const DASHBOARD_URLS = {
+  farm: "http://210.94.179.19:9751/public-dashboards/df47892cd8f4484380698b97cda6771e",
+  lab: "http://210.94.179.19:9751/public-dashboards/c09764ddfffe422dba101cfffebae898",
+};
+
 const ResourceMonitoringPage = () => {
   const [selectedService, setSelectedService] = useState("farm");
   const [alert, setAlert] = useState(null);
   const [iframeError, setIframeError] = useState(false);
   const [isTestingIframe, setIsTestingIframe] = useState(true);
-
-  // Grafana 대시보드 URL 설정 (사용자용)
-  const dashboardUrls = {
-    farm: "http://210.94.179.19:9751/public-dashboards/df47892cd8f4484380698b97cda6771e",
-    lab: "http://210.94.179.19:9751/public-dashboards/c09764ddfffe422dba101cfffebae898",
-  };
 
   const services = [
     {
@@ -43,6 +42,7 @@ const ResourceMonitoringPage = () => {
       await fetch(url, {
         method: "HEAD",
         mode: "no-cors",
+        signal: AbortSignal.timeout(5000),
       });
       return true;
     } catch {
@@ -52,10 +52,11 @@ const ResourceMonitoringPage = () => {
 
   // 컴포넌트 마운트 시 iframe 접근 가능성 테스트
   useEffect(() => {
+    setIsTestingIframe(true);
     const checkIframeAccess = async () => {
       try {
         const canAccess = await testIframeAccess(
-          dashboardUrls[selectedService]
+          DASHBOARD_URLS[selectedService]
         );
         setIframeError(!canAccess);
       } catch {
@@ -66,7 +67,7 @@ const ResourceMonitoringPage = () => {
     };
 
     checkIframeAccess();
-  }, [selectedService, dashboardUrls]);
+  }, [selectedService]);
 
   // iframe 로드 에러 핸들러
   const handleIframeError = () => {
@@ -143,7 +144,7 @@ const ResourceMonitoringPage = () => {
                 variant="normal"
                 iconName="arrow-top-right-on-square"
                 onClick={() =>
-                  window.open(dashboardUrls[selectedService], "_blank")
+                  window.open(DASHBOARD_URLS[selectedService], "_blank")
                 }
               >
                 새 창에서 열기
@@ -168,7 +169,7 @@ const ResourceMonitoringPage = () => {
               </StatusIndicator>
               <div className="relative w-full" style={{ height: "600px" }}>
                 <iframe
-                  src={dashboardUrls[selectedService]}
+                  src={DASHBOARD_URLS[selectedService]}
                   className="w-full h-full border border-(--decs-border-container) rounded-(--decs-radius-item)"
                   onError={handleIframeError}
                   title={`${selectedServiceItem?.name} 대시보드`}
@@ -198,7 +199,7 @@ const ResourceMonitoringPage = () => {
                   variant="normal"
                   iconName="arrow-top-right-on-square"
                   onClick={() =>
-                    window.open(dashboardUrls[selectedService], "_blank")
+                    window.open(DASHBOARD_URLS[selectedService], "_blank")
                   }
                 >
                   {selectedServiceItem?.name} 대시보드 열기
@@ -208,7 +209,7 @@ const ResourceMonitoringPage = () => {
                   iconName="clipboard"
                   onClick={() => {
                     navigator.clipboard.writeText(
-                      dashboardUrls[selectedService]
+                      DASHBOARD_URLS[selectedService]
                     );
                     setAlert({
                       type: "success",

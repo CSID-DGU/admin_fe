@@ -15,6 +15,11 @@ export default defineConfig({
           proxy.on("proxyReq", (request) => request.removeHeader("origin"));
         },
       },
+      "/pod-status": {
+        target: "http://210.94.179.18:30082",
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/pod-status/, ""),
+      },
     },
     // open: true, // Automatically open browser
   },

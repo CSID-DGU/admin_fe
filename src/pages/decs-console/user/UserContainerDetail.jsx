@@ -1,7 +1,45 @@
 // UserContainerDetail — 접속·상태 이해 (친절한 문구 + 복사 가능한 접속 정보)
-import { Container, Header, KeyValuePairs, StatusIndicator, Button, Alert, ExpandableSection, Badge } from "../../../design-system";
+import { useState } from "react";
+import { Container, Header, KeyValuePairs, StatusIndicator, Button, Alert, ExpandableSection, Badge, FormField, Input, Modal } from "../../../design-system";
 
 function UserContainerDetail({ onBack, onExtend, server }) {
+  const [extendOpen, setExtendOpen] = useState(false);
+  const [expiresDate, setExpiresDate] = useState("");
+  const [reason, setReason] = useState("");
+  const [extendError, setExtendError] = useState(null);
+  const [submitting, setSubmitting] = useState(false);
+
+  function openExtension() {
+    const suggested = new Date(server.expiresAt);
+    suggested.setDate(suggested.getDate() + 14);
+    setExpiresDate(toLocalDateInput(suggested));
+    setReason("");
+    setExtendError(null);
+    setExtendOpen(true);
+  }
+
+  async function submitExtension() {
+    const next = new Date(`${expiresDate}T23:59:59`);
+    const current = new Date(server.expiresAt);
+    if (!expiresDate || Number.isNaN(next.getTime()) || next <= current || next <= new Date()) {
+      setExtendError("현재 만료일보다 뒤인 날짜를 선택해주세요.");
+      return;
+    }
+    if (!reason.trim()) {
+      setExtendError("기간 연장 사유를 입력해주세요.");
+      return;
+    }
+    setSubmitting(true);
+    setExtendError(null);
+    try {
+      await onExtend({ expiresAt: `${expiresDate}T23:59:59`, reason: reason.trim() });
+    } catch (error) {
+      setExtendError(error.message || "기간 연장 요청에 실패했어요. 잠시 후 다시 시도해주세요.");
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
   if (!server) {
     return (
       <div style={{ maxWidth: 820, margin: "0 auto", display: "flex", flexDirection: "column", gap: "var(--decs-space-l)" }}>
@@ -48,14 +86,56 @@ function UserContainerDetail({ onBack, onExtend, server }) {
         <Container header={<Header variant="h2">사용 기간</Header>}>
           <div style={{ fontSize: "var(--decs-fs-heading-xl)", fontWeight: 700, color: "var(--decs-text-heading)" }}>{`${server.daysLeft}일 남음`}</div>
           <div style={{ color: "var(--decs-text-secondary)", fontSize: "var(--decs-fs-body-m)", marginTop: 4 }}>{server.expiresText}</div>
-          <div style={{ marginTop: 16 }}><Button variant="primary" iconName="calendar" onClick={onExtend}>연장하기</Button></div>
+          <div style={{ marginTop: "var(--decs-space-m)" }}><Button variant="primary" iconName="calendar" onClick={openExtension}>연장하기</Button></div>
         </Container>
       </div>
 
       <Alert type="info" header="문제가 있나요?">
         접속이 안 되면 컨테이너를 재시작해 보세요. 그래도 안 되면 대시보드의 도움말에서 관리자에게 문의할 수 있어요.
       </Alert>
+
+      <Modal
+        visible={extendOpen}
+        onDismiss={() => !submitting && setExtendOpen(false)}
+        header="사용 기간 연장 요청"
+        footer={<>
+          <Button variant="normal" disabled={submitting} onClick={() => setExtendOpen(false)}>취소</Button>
+          <Button variant="primary" loading={submitting} onClick={submitExtension}>연장 요청</Button>
+        </>}
+      >
+        <div style={{ display: "flex", flexDirection: "column", gap: "var(--decs-space-l)" }}>
+          {extendError ? <Alert type="error">{extendError}</Alert> : null}
+          <FormField label="현재 만료일">
+            <Input value={toLocalDateInput(new Date(server.expiresAt))} readOnly />
+          </FormField>
+          <FormField label="새 만료일" constraintText="현재 만료일 이후 날짜를 선택해주세요.">
+            <Input type="date" value={expiresDate} onChange={setExpiresDate} />
+          </FormField>
+          <FormField label="연장 사유">
+            <textarea
+              value={reason}
+              onChange={(event) => setReason(event.target.value)}
+              rows={4}
+              placeholder="예: 실험 일정 연장으로 GPU 사용 기간이 더 필요합니다."
+              style={{
+                width: "100%", boxSizing: "border-box", resize: "vertical",
+                padding: "var(--decs-space-s) var(--decs-space-m)",
+                font: "inherit", color: "var(--decs-text-body)",
+                background: "var(--decs-surface-input)",
+                border: "thin solid var(--decs-border-input)",
+                borderRadius: "var(--decs-radius-input)",
+              }}
+            />
+          </FormField>
+        </div>
+      </Modal>
     </div>
   );
 }
 export default UserContainerDetail;
+
+function toLocalDateInput(date) {
+  if (Number.isNaN(date.getTime())) return "";
+  const offset = date.getTimezoneOffset() * 60_000;
+  return new Date(date.getTime() - offset).toISOString().slice(0, 10);
+}

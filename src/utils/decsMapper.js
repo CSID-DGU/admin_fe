@@ -9,6 +9,17 @@ const STATUS_MAP = {
   CrashLoopBackOff: { type: "error", key: "error" },
   Succeeded: { type: "stopped", key: "stopped" },
   Completed: { type: "stopped", key: "stopped" },
+  ready: { type: "success", key: "running" },
+  failed: { type: "error", key: "error" },
+  unknown: { type: "pending", key: "unknown" },
+  started: { type: "in-progress", key: "provisioning" },
+  selecting_node: { type: "in-progress", key: "provisioning" },
+  building_pod_spec: { type: "in-progress", key: "provisioning" },
+  allocating_nodeport: { type: "in-progress", key: "provisioning" },
+  deploying_krb5: { type: "in-progress", key: "provisioning" },
+  creating_pod: { type: "in-progress", key: "provisioning" },
+  waiting_ready: { type: "in-progress", key: "provisioning" },
+  creating_services: { type: "in-progress", key: "provisioning" },
   PENDING: { type: "pending", key: "pending" },
   FULFILLED: { type: "success", key: "running" },
   DENIED: { type: "error", key: "denied" },
@@ -42,7 +53,7 @@ function formatDate(dateStr) {
 }
 
 function getPodExternalPorts(dto) {
-  const ports = dto.podExternalPorts ?? dto.pod_external_ports;
+  const ports = dto.portMappings ?? dto.port_mappings ?? dto.podExternalPorts ?? dto.pod_external_ports;
   return Array.isArray(ports) ? ports : [];
 }
 
@@ -70,7 +81,8 @@ function findPort(ports, usagePurpose, internalPort) {
  * @returns {{ type: string, label: string }}
  */
 export function mapPodStatus(podStatus) {
-  const status = STATUS_MAP[podStatus];
+  const normalized = typeof podStatus === "string" ? podStatus.trim() : "";
+  const status = STATUS_MAP[normalized] ?? STATUS_MAP[normalized.toLowerCase()];
   return status ? { type: status.type, label: i18n.t(`status.${status.key}`) } : { type: "pending", label: podStatus || i18n.t("status.unknown") };
 }
 

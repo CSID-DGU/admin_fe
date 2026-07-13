@@ -30,7 +30,7 @@ export function Select({ options = [], selectedValue, onChange, placeholder = "ì
         onClick={() => setOpen((o) => !o)}
         style={{
           display: "flex", alignItems: "center", justifyContent: "space-between", gap: "var(--decs-space-xs)",
-          width: "100%", minHeight: "32px", padding: "6px 12px",
+          width: "100%", minHeight: "var(--decs-control-height)", padding: "var(--decs-space-xs) var(--decs-space-m)",
           fontFamily: "var(--decs-font-base)", fontSize: "var(--decs-fs-body-m)",
           color: selected ? "var(--decs-text-body)" : "var(--decs-text-inactive)",
           background: disabled ? "var(--decs-surface-disabled)" : "var(--decs-surface-input)",
@@ -59,7 +59,7 @@ export function Select({ options = [], selectedValue, onChange, placeholder = "ì
                 disabled={o.disabled}
                 onClick={() => { setOpen(false); onChange?.(o.value, o); }}
                 style={{
-                  display: "block", width: "100%", textAlign: "left", padding: "8px 12px",
+                  display: "block", width: "100%", textAlign: "left", padding: "var(--decs-space-s) var(--decs-space-m)",
                   background: isSel ? "var(--decs-surface-selected)" : "none", border: "none",
                   borderRadius: "var(--decs-radius-badge)", cursor: o.disabled ? "default" : "pointer",
                   fontFamily: "var(--decs-font-base)", fontSize: "var(--decs-fs-body-m)",

@@ -13,7 +13,7 @@ function LinkItem({ item, activeHref, onFollow, depth = 0 }) {
       onClick={(e) => { if (onFollow) { e.preventDefault(); onFollow(item); } }}
       style={{
         display: "flex", alignItems: "center", gap: "var(--decs-space-xs)",
-        padding: "6px var(--decs-space-s)", paddingLeft: `calc(var(--decs-space-s) + ${depth * 16}px)`,
+        padding: "var(--decs-space-s)", paddingLeft: `calc(var(--decs-space-s) + ${depth * 16}px)`,
         borderRadius: "var(--decs-radius-item)", textDecoration: "none",
         fontSize: "var(--decs-fs-body-m)", lineHeight: "var(--decs-lh-body-m)",
         color: active ? "var(--decs-text-link)" : "var(--decs-text-body)",

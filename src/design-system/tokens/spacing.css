@@ -15,8 +15,9 @@
   --decs-space-xxxxl: 48px;
 
   /* Density presets (component internal padding) */
-  --decs-density-compact-cell-y: 6px;      /* admin tables */
-  --decs-density-compact-cell-x: 12px;
-  --decs-density-comfortable-cell-y: 12px; /* user views */
-  --decs-density-comfortable-cell-x: 16px;
+  --decs-control-height: 40px;
+  --decs-density-compact-cell-y: 10px;      /* admin tables */
+  --decs-density-compact-cell-x: 16px;
+  --decs-density-comfortable-cell-y: 14px; /* user views */
+  --decs-density-comfortable-cell-x: 20px;
 }

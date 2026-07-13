@@ -69,6 +69,23 @@ function UserPortalApp() {
     }
   }
 
+  async function submitExtension({ expiresAt, reason }) {
+    if (!server?.requestId) throw new Error("변경할 신청 정보를 찾을 수 없어요.");
+    const changes = await requestService.getMyChangeRequests();
+    const alreadyPending = (changes.data?.data ?? []).some(
+      (change) => change.originalRequestId === server.requestId
+        && change.changeType === "EXPIRES_AT"
+        && change.status === "PENDING"
+    );
+    if (alreadyPending) throw new Error("이미 검토 중인 기간 연장 요청이 있어요.");
+    await requestService.createChangeRequest(server.requestId, {
+      changeType: "EXPIRES_AT",
+      newValue: expiresAt,
+      reason,
+    });
+    navigate("/user/change-requests");
+  }
+
   return (
     <div style={{ height: "100vh" }}>
       <AppLayout
@@ -82,7 +99,7 @@ function UserPortalApp() {
         <Routes>
           <Route index element={<UserDashboard userName={userName} server={server} expiryDays={expiryDays} activities={activities ?? []} onRequest={() => navigate("/user/request")} onConnect={() => navigate("/user/container")} onExtend={() => navigate("/user/container")} onDetail={() => navigate("/user/container")} />} />
           <Route path="request" element={<RequestWizard onCancel={() => navigate("/user")} onDone={() => navigate("/user/requests")} gpuOptions={gpuOptions ?? []} envOptions={envOptions ?? []} groupOptions={groupOptions ?? []} onSubmit={submitRequest} />} />
-          <Route path="container" element={<UserContainerDetail onBack={() => navigate("/user")} onExtend={() => navigate("/user/container")} server={server} />} />
+          <Route path="container" element={<UserContainerDetail onBack={() => navigate("/user")} onExtend={submitExtension} server={server} />} />
           <Route path="requests" element={<RequestStatusPage />} />
           <Route path="change-requests" element={<MyChangeRequestsPage />} />
           <Route path="account" element={<AccountPage user={user} />} />

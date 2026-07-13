@@ -48,7 +48,7 @@ export function Table({
 
   return (
     <div style={{ fontFamily: "var(--decs-font-base)", ...style }}>
-      {header ? <div style={{ padding: `var(--decs-space-s) var(--decs-space-l)`, borderBottom: "1px solid var(--decs-border-divider)" }}>{header}</div> : null}
+      {header ? <div style={{ padding: `var(--decs-space-m) var(--decs-space-xl)`, borderBottom: "1px solid var(--decs-border-divider)" }}>{header}</div> : null}
       <div style={{ overflowX: "auto" }}>
         <table style={{ width: "100%", borderCollapse: "collapse" }}>
           <thead>
@@ -100,7 +100,7 @@ export function Table({
           </tbody>
         </table>
       </div>
-      {footer ? <div style={{ padding: `var(--decs-space-s) var(--decs-space-l)`, borderTop: "1px solid var(--decs-border-divider)" }}>{footer}</div> : null}
+      {footer ? <div style={{ padding: `var(--decs-space-m) var(--decs-space-xl)`, borderTop: "1px solid var(--decs-border-divider)" }}>{footer}</div> : null}
     </div>
   );
 }

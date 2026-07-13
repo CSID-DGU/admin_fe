@@ -28,7 +28,7 @@ export function Tabs({ tabs = [], activeTabId, defaultActiveTabId, onChange, sty
               onClick={() => !t.disabled && select(t.id)}
               style={{
                 position: "relative", background: "none", border: "none", cursor: t.disabled ? "default" : "pointer",
-                padding: "var(--decs-space-s) 0", fontSize: "var(--decs-fs-body-m)",
+                padding: "var(--decs-space-m) 0", fontSize: "var(--decs-fs-body-m)",
                 fontWeight: isActive ? "var(--decs-fw-bold)" : "var(--decs-fw-regular)",
                 color: t.disabled ? "var(--decs-text-disabled)" : isActive ? "var(--decs-text-link)" : "var(--decs-text-secondary)",
                 boxShadow: isActive ? "inset 0 -2px 0 0 var(--decs-text-link)" : "none",

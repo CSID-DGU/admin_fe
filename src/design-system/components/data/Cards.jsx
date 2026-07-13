@@ -47,7 +47,7 @@ export function Cards({
               border: `1px solid ${isSel ? "var(--decs-action-primary)" : "var(--decs-border-container)"}`,
               boxShadow: isSel ? "0 0 0 1px var(--decs-action-primary)" : "var(--decs-shadow-container)",
               borderRadius: "var(--decs-radius-container)",
-              padding: "var(--decs-space-m)",
+              padding: "var(--decs-space-l)",
               cursor: selectable ? "pointer" : "default",
               transition: "border-color var(--decs-motion-fast) var(--decs-easing), box-shadow var(--decs-motion-fast) var(--decs-easing)",
             }}

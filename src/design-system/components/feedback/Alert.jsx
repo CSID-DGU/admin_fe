@@ -21,7 +21,7 @@ export function Alert({ type = "info", header, children, action, dismissible, on
       style={{
         display: "flex",
         gap: "var(--decs-space-s)",
-        padding: "var(--decs-space-s) var(--decs-space-m)",
+        padding: "var(--decs-space-m) var(--decs-space-l)",
         background: c.bg,
         border: `1px solid ${c.bd}`,
         borderRadius: "var(--decs-radius-alert)",
@@ -43,7 +43,7 @@ export function Alert({ type = "info", header, children, action, dismissible, on
         <button
           onClick={onDismiss}
           aria-label="Dismiss"
-          style={{ flexShrink: 0, background: "none", border: "none", cursor: "pointer", color: "var(--decs-text-secondary)", padding: "2px", borderRadius: "var(--decs-radius-badge)", display: "inline-flex" }}
+          style={{ flexShrink: 0, background: "none", border: "none", cursor: "pointer", color: "var(--decs-text-secondary)", padding: "var(--decs-space-xs)", borderRadius: "var(--decs-radius-badge)", display: "inline-flex" }}
         >
           <Icon name="x-mark" size={16} />
         </button>

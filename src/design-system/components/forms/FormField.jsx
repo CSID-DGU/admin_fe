@@ -9,12 +9,12 @@ export function FormField({ label, description, constraintText, errorText, secon
   return (
     <div style={{ fontFamily: "var(--decs-font-base)", ...style }}>
       {label ? (
-        <label title={typeof label === "string" ? label : undefined} htmlFor={htmlFor} style={{ display: "block", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontSize: "var(--decs-fs-body-m)", fontWeight: "var(--decs-fw-bold)", color: "var(--decs-text-heading)", marginBottom: description ? "2px" : "var(--decs-space-xxs)" }}>
+        <label title={typeof label === "string" ? label : undefined} htmlFor={htmlFor} style={{ display: "block", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontSize: "var(--decs-fs-body-m)", fontWeight: "var(--decs-fw-bold)", color: "var(--decs-text-heading)", marginBottom: "var(--decs-space-xs)" }}>
           {label}
         </label>
       ) : null}
       {description ? (
-        <div style={{ fontSize: "var(--decs-fs-body-s)", color: "var(--decs-text-secondary)", marginBottom: "var(--decs-space-xxs)" }}>{description}</div>
+        <div style={{ fontSize: "var(--decs-fs-body-s)", color: "var(--decs-text-secondary)", marginBottom: "var(--decs-space-xs)" }}>{description}</div>
       ) : null}
       <div style={{ display: "flex", gap: "var(--decs-space-xs)", alignItems: "flex-start" }}>
         <div style={{ flex: 1, minWidth: 0 }}>{children}</div>

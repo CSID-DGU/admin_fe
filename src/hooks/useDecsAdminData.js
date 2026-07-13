@@ -31,15 +31,22 @@ export function useDecsAdminData() {
       if (containersResult.status === "fulfilled" && containersResult.value?.status === 200) {
         const activeContainers = getArrayData(containersResult.value);
         if (activeContainers) {
-          const details = await Promise.allSettled(activeContainers.map((container) =>
-            container.podName ? podService.getPod(container.podName) : Promise.resolve(null)
-          ));
+          const [details, provisioningStatuses] = await Promise.all([
+            Promise.allSettled(activeContainers.map((container) =>
+              container.podName ? podService.getPod(container.podName) : Promise.resolve(null)
+            )),
+            Promise.allSettled(activeContainers.map((container) =>
+              container.ubuntuUsername ? podService.getProvisioningStatus(container.ubuntuUsername) : Promise.resolve(null)
+            )),
+          ]);
           if (cancelled) return;
           setContainers(activeContainers.map((container, index) => {
             const result = details[index];
-            const detail = result.status === "fulfilled" ? result.value?.data : null;
-            if (container.podName && !detail) hasError = true;
-            return mapAdminContainer({ ...container, podDetail: detail, status: detail?.status });
+            const statusResult = provisioningStatuses[index];
+            const detail = result.status === "fulfilled" ? result.value?.data?.data ?? result.value?.data : null;
+            const provisioning = statusResult.status === "fulfilled" ? statusResult.value?.data : null;
+            if (container.podName && !detail && (!provisioning || provisioning.stage === "unknown")) hasError = true;
+            return mapAdminContainer({ ...container, podDetail: detail, status: detail?.status ?? provisioning?.stage });
           }));
         } else {
           hasError = true;

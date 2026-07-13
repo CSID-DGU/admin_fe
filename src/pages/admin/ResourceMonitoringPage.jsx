@@ -9,26 +9,25 @@ import {
   Tabs,
 } from "../../design-system";
 
+const DASHBOARD_URLS = {
+  admin: {
+    farm: "http://210.94.179.19:9751/public-dashboards/b435c9ce4d194a499231454113d609e2",
+    lab: "http://210.94.179.19:9751/public-dashboards/00c16592c6b04014b31479880fa6000a",
+  },
+  user: {
+    farm: "http://210.94.179.19:9751/public-dashboards/df47892cd8f4484380698b97cda6771e",
+    lab: "http://210.94.179.19:9751/public-dashboards/c09764ddfffe422dba101cfffebae898",
+  },
+};
+
 const ResourceMonitoringPage = ({ user }) => {
   const [selectedService, setSelectedService] = useState("farm");
   const [alert, setAlert] = useState(null);
   const [iframeError, setIframeError] = useState(false);
   const [isTestingIframe, setIsTestingIframe] = useState(true);
 
-  // Grafana 대시보드 URL 설정
-  const dashboardUrls = {
-    admin: {
-      farm: "http://210.94.179.19:9751/public-dashboards/b435c9ce4d194a499231454113d609e2",
-      lab: "http://210.94.179.19:9751/public-dashboards/00c16592c6b04014b31479880fa6000a",
-    },
-    user: {
-      farm: "http://210.94.179.19:9751/public-dashboards/df47892cd8f4484380698b97cda6771e",
-      lab: "http://210.94.179.19:9751/public-dashboards/c09764ddfffe422dba101cfffebae898",
-    },
-  };
-
   const isAdmin = user?.role === "ADMIN";
-  const currentUrls = isAdmin ? dashboardUrls.admin : dashboardUrls.user;
+  const currentUrls = isAdmin ? DASHBOARD_URLS.admin : DASHBOARD_URLS.user;
 
   // iframe 접근 가능성을 테스트하는 함수
   const testIframeAccess = async (url) => {
@@ -36,6 +35,7 @@ const ResourceMonitoringPage = ({ user }) => {
       await fetch(url, {
         method: "HEAD",
         mode: "no-cors",
+        signal: AbortSignal.timeout(5000),
       });
       return true;
     } catch {
@@ -45,6 +45,7 @@ const ResourceMonitoringPage = ({ user }) => {
 
   // 컴포넌트 마운트 시 iframe 접근 가능성 테스트
   useEffect(() => {
+    setIsTestingIframe(true);
     const checkIframeAccess = async () => {
       try {
         const canAccess = await testIframeAccess(currentUrls[selectedService]);

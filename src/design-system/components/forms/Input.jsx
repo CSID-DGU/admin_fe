@@ -15,7 +15,7 @@ export function Input({ value, onChange, placeholder, type = "text", disabled, i
   return (
     <div style={{ position: "relative", display: "flex", alignItems: "center", ...style }}>
       {iconName ? (
-        <span style={{ position: "absolute", left: "10px", color: "var(--decs-text-secondary)", display: "inline-flex", pointerEvents: "none" }}>
+        <span style={{ position: "absolute", left: "var(--decs-space-s)", color: "var(--decs-text-secondary)", display: "inline-flex", pointerEvents: "none" }}>
           <Icon name={iconName} size={16} />
         </span>
       ) : null}
@@ -43,8 +43,8 @@ export function Input({ value, onChange, placeholder, type = "text", disabled, i
           boxShadow: focus ? "0 0 0 1px var(--decs-border-focus)" : "none",
           outline: "none",
           borderRadius: "var(--decs-radius-input)",
-          padding: iconName ? "6px 12px 6px 34px" : "6px 12px",
-          minHeight: "32px",
+          padding: iconName ? "var(--decs-space-xs) var(--decs-space-m) var(--decs-space-xs) var(--decs-space-xxxl)" : "var(--decs-space-xs) var(--decs-space-m)",
+          minHeight: "var(--decs-control-height)",
           boxSizing: "border-box",
           transition: "border-color var(--decs-motion-fast) var(--decs-easing)",
         }}

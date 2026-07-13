@@ -110,6 +110,8 @@ export function useDecsUserData() {
           const vm = mapUserServer(dto);
 
           setServer({
+            requestId: vm.id,
+            expiresAt: vm.expiresAt,
             gpuName: vm.gpuName,
             statusType: vm.statusType ?? "success",
             statusLabel: vm.statusLabel ?? "사용 가능",
