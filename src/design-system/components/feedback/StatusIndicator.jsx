@@ -1,5 +1,6 @@
 import React from "react";
 import { Icon } from "../icons/Icon.jsx";
+import { useTranslation } from "react-i18next";
 
 /**
  * StatusIndicator — the single source of truth for how a status LOOKS in DECS.
@@ -19,7 +20,9 @@ const CONFIG = {
 };
 
 export function StatusIndicator({ type = "info", children, iconSize = 16, style }) {
+  const { t } = useTranslation();
   const cfg = CONFIG[type] || CONFIG.info;
+  const statusKey = { "실행 중": "running", Running: "running", "프로비저닝 중": "provisioning", Provisioning: "provisioning", "오류": "error", Error: "error", "종료": "stopped", Stopped: "stopped", "승인 대기": "pending", "Pending approval": "pending", "거절됨": "denied", Denied: "denied" }[children];
   return (
     <span
       style={{
@@ -36,7 +39,7 @@ export function StatusIndicator({ type = "info", children, iconSize = 16, style 
       <span style={cfg.spin ? { display: "inline-flex", animation: "decs-spin 1s linear infinite" } : { display: "inline-flex" }}>
         <Icon name={cfg.icon} size={iconSize} />
       </span>
-      <span style={{ color: "var(--decs-text-body)" }}>{children}</span>
+      <span style={{ color: "var(--decs-text-body)" }}>{statusKey ? t(`status.${statusKey}`) : children}</span>
       <style>{"@keyframes decs-spin{to{transform:rotate(360deg)}}"}</style>
     </span>
   );

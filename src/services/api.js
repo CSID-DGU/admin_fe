@@ -23,15 +23,8 @@ class ApiClient {
       ...options,
     };
 
-    console.log("API 요청 정보:");
-    console.log("URL:", url);
-    console.log("Config:", config);
-
     try {
       const response = await fetch(url, config);
-
-      console.log("API 응답 상태:", response.status);
-      console.log("API 응답 헤더:", response.headers);
 
       // 응답이 성공적이라면 status와 함께 반환
       if (response.ok) {
@@ -47,8 +40,6 @@ class ApiClient {
             data = null;
           }
         }
-
-        console.log("API 응답 데이터:", data);
 
         return {
           status: response.status,
@@ -68,14 +59,16 @@ class ApiClient {
         console.error("API 에러 응답:", errorData);
 
         // 401 상태코드인 경우 세션 만료 처리 (로그인 요청은 제외)
+        const errorCode = errorData.code || errorData.errorCode;
         if (response.status === 401 && !options.skipSessionExpiredCheck) {
-          sessionEventManager.triggerSessionExpired();
+          sessionEventManager.triggerSessionExpired(errorCode === "ACCOUNT_DISABLED" || errorData.message?.includes("ACCOUNT_DISABLED") ? "ACCOUNT_DISABLED" : "SESSION_EXPIRED");
         }
 
         const err = new Error(
           errorData.message || `HTTP error! status: ${response.status}`
         );
         err.status = response.status;
+        err.code = errorCode;
         throw err;
       }
     } catch (error) {

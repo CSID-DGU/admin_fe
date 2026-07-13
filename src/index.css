@@ -1,21 +1,19 @@
 @import "tailwindcss";
 @import "./design-system/styles.css";
 
-@theme {
-  --color-brand-50: #fef6ee;
-  --color-brand-100: #fdebd7;
-  --color-brand-200: #fad3ae;
-  --color-brand-300: #f6b47b;
-  --color-brand-400: #f29a4e;
-  --color-brand-500: #F68313;
-  --color-brand-600: #E6750F;
-  --color-brand-700: #be5a0a;
-  --color-brand-800: #97470f;
-  --color-brand-900: #7a3c10;
-  --color-brand-950: #421c06;
-
-  --font-family-sans: "Noto Sans KR", system-ui, -apple-system,
-    BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+@theme inline {
+  --color-brand-50: var(--decs-brand-50);
+  --color-brand-100: var(--decs-brand-100);
+  --color-brand-200: var(--decs-brand-200);
+  --color-brand-300: var(--decs-brand-300);
+  --color-brand-400: var(--decs-brand-400);
+  --color-brand-500: var(--decs-brand-500);
+  --color-brand-600: var(--decs-brand-600);
+  --color-brand-700: var(--decs-brand-700);
+  --color-brand-800: var(--decs-brand-800);
+  --color-brand-900: var(--decs-brand-900);
+  --color-brand-950: var(--decs-brand-950);
+  --font-family-sans: var(--decs-font-base);
 }
 
 @layer base {
@@ -31,8 +29,7 @@
 
   body {
     height: 100%;
-    font-family: "Noto Sans KR", system-ui, -apple-system, BlinkMacSystemFont,
-      "Segoe UI", Roboto, sans-serif;
+    font-family: var(--decs-font-base);
     line-height: 1.5;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;

@@ -39,7 +39,7 @@ export function Select({ options = [], selectedValue, onChange, placeholder = "ì
           cursor: disabled ? "default" : "pointer", textAlign: "left",
         }}
       >
-        <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{selected ? selected.label : placeholder}</span>
+        <span title={selected ? selected.label : placeholder} style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{selected ? selected.label : placeholder}</span>
         <Icon name="chevron-down" size={16} color="var(--decs-text-secondary)" />
       </button>
       {open ? (

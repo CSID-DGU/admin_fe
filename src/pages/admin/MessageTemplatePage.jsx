@@ -115,7 +115,7 @@ const MessageTemplatePage = () => {
       id: 'currentValue',
       header: '현재 값',
       minWidth: '280px',
-      cell: (t) => <p className="truncate max-w-md m-0">{t.currentValue}</p>,
+      cell: (t) => <p title={t.currentValue} className="truncate max-w-md m-0">{t.currentValue}</p>,
     },
     {
       id: 'status',

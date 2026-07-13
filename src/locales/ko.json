@@ -1,0 +1,13 @@
+{
+  "common": { "language": "EN", "notifications": "알림", "logout": "로그아웃", "user": "사용자", "admin": "관리자" },
+  "auth": {
+    "email": "이메일", "password": "비밀번호", "confirmPassword": "비밀번호 확인", "name": "이름", "department": "학과", "studentId": "학번", "phone": "전화번호", "verificationCode": "인증번호",
+    "login": "로그인", "signup": "회원가입", "forgot": "비밀번호를 잊으셨나요?", "or": "또는", "noAccount": "계정이 없으신가요?", "hasAccount": "이미 계정이 있으신가요?",
+    "loginTitle": "동국대학교 AI 연구실 관리 시스템", "signupTitle": "DGU AI Lab 계정을 만들어보세요", "emailVerification": "이메일 인증", "information": "정보 입력", "sendCode": "인증번호 전송", "resend": "재전송", "verify": "인증", "previous": "이전",
+    "domainHelp": "dgu.ac.kr 또는 dongguk.edu 이메일만 사용할 수 있습니다.", "slackHelp": "Slack 표시 이름과 동일하게 입력해야 알림을 받을 수 있습니다."
+  },
+  "shell": {
+    "adminTitle": "DECS 관리자 콘솔", "userTitle": "DGU GPU 포털", "dashboard": "대시보드", "containers": "컨테이너 관리", "myContainer": "내 컨테이너", "gpuRequest": "GPU 신청", "requests": "신청 현황", "requestManagement": "신청서 관리", "changeRequests": "변경 요청 현황", "changeManagement": "변경 요청 관리", "users": "사용자 관리", "system": "시스템", "monitoring": "모니터링", "resourceMonitoring": "리소스 모니터링", "images": "이미지", "templates": "메시지 템플릿", "account": "계정 설정"
+  },
+  "status": { "running": "실행 중", "provisioning": "프로비저닝 중", "error": "오류", "stopped": "종료", "pending": "승인 대기", "denied": "거절됨", "unknown": "알 수 없음" }
+}

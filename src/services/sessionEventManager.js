@@ -17,8 +17,8 @@ class SessionEventManager {
   }
 
   // 세션 만료 이벤트 발생
-  triggerSessionExpired() {
-    this.listeners.forEach((callback) => callback());
+  triggerSessionExpired(reason = "SESSION_EXPIRED") {
+    this.listeners.forEach((callback) => callback(reason));
   }
 }
 

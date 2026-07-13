@@ -19,22 +19,26 @@ export function useDecsAdminData() {
   useEffect(() => {
     let cancelled = false;
 
-    Promise.allSettled([podService.getActiveContainers(), userService.getAllUsers()]).then(
-      ([podsResult, usersResult]) => {
+    Promise.allSettled([podService.getActiveContainers(), podService.getAllPods(), userService.getAllUsers()]).then(
+      ([containersResult, podsResult, usersResult]) => {
         if (cancelled) return;
 
         let hasError = false;
 
-        if (podsResult.status === "fulfilled" && podsResult.value?.status === 200) {
-          const pods = getArrayData(podsResult.value);
-          if (pods) {
-            setContainers(pods.map(mapAdminContainer));
+        if (containersResult.status === "fulfilled" && containersResult.value?.status === 200) {
+          const activeContainers = getArrayData(containersResult.value);
+          const pods = podsResult.status === "fulfilled" ? getArrayData(podsResult.value) : [];
+          if (activeContainers) {
+            const statusByPodName = new Map((pods || []).map((pod) => [pod.podName ?? pod.name, pod.status]));
+            setContainers(activeContainers.map((container) => mapAdminContainer({ ...container, status: container.status ?? statusByPodName.get(container.podName) })));
           } else {
             hasError = true;
           }
         } else {
           hasError = true;
         }
+
+        if (podsResult.status !== "fulfilled") hasError = true;
 
         if (usersResult.status === "fulfilled" && usersResult.value?.status === 200) {
           const userList = getArrayData(usersResult.value);

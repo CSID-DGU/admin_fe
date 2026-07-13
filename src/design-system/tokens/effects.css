@@ -8,9 +8,9 @@
   --decs-shadow-sticky: 0 4px 8px 0 rgba(0, 7, 22, 0.10);
 
   /* Motion */
-  --decs-motion-fast: 90ms;
-  --decs-motion-moderate: 135ms;
-  --decs-motion-slow: 180ms;
-  --decs-easing: cubic-bezier(0, 0, 0, 1);          /* responsive ease-out */
-  --decs-easing-both: cubic-bezier(0.4, 0, 0.2, 1);
+  --decs-motion-fast: 90ms;     /* @kind other */
+  --decs-motion-moderate: 135ms; /* @kind other */
+  --decs-motion-slow: 180ms;    /* @kind other */
+  --decs-easing: cubic-bezier(0, 0, 0, 1);          /* @kind other */ /* responsive ease-out */
+  --decs-easing-both: cubic-bezier(0.4, 0, 0.2, 1); /* @kind other */
 }

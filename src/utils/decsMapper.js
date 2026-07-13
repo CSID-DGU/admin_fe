@@ -1,15 +1,17 @@
+import i18n from "../i18n";
+
 const STATUS_MAP = {
-  Running: { type: "success", label: "실행 중" },
-  Pending: { type: "in-progress", label: "프로비저닝 중" },
-  ContainerCreating: { type: "in-progress", label: "프로비저닝 중" },
-  Failed: { type: "error", label: "오류" },
-  Error: { type: "error", label: "오류" },
-  CrashLoopBackOff: { type: "error", label: "오류" },
-  Succeeded: { type: "stopped", label: "종료" },
-  Completed: { type: "stopped", label: "종료" },
-  PENDING: { type: "pending", label: "승인 대기" },
-  FULFILLED: { type: "success", label: "실행 중" },
-  DENIED: { type: "error", label: "거절됨" },
+  Running: { type: "success", key: "running" },
+  Pending: { type: "in-progress", key: "provisioning" },
+  ContainerCreating: { type: "in-progress", key: "provisioning" },
+  Failed: { type: "error", key: "error" },
+  Error: { type: "error", key: "error" },
+  CrashLoopBackOff: { type: "error", key: "error" },
+  Succeeded: { type: "stopped", key: "stopped" },
+  Completed: { type: "stopped", key: "stopped" },
+  PENDING: { type: "pending", key: "pending" },
+  FULFILLED: { type: "success", key: "running" },
+  DENIED: { type: "error", key: "denied" },
 };
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080";
@@ -68,7 +70,8 @@ function findPort(ports, usagePurpose, internalPort) {
  * @returns {{ type: string, label: string }}
  */
 export function mapPodStatus(podStatus) {
-  return STATUS_MAP[podStatus] || { type: "pending", label: podStatus || "알 수 없음" };
+  const status = STATUS_MAP[podStatus];
+  return status ? { type: status.type, label: i18n.t(`status.${status.key}`) } : { type: "pending", label: podStatus || i18n.t("status.unknown") };
 }
 
 /**
@@ -76,7 +79,7 @@ export function mapPodStatus(podStatus) {
  * @returns {{ id: string, name: string, user: string, gpu: string, node: string, status: string, label: string, expires: string }}
  */
 export function mapAdminContainer(dto) {
-  const status = mapPodStatus(dto.status ?? "FULFILLED");
+  const status = mapPodStatus(dto.status);
   const image = [dto.imageName, dto.imageVersion].filter(Boolean).join(":");
 
   return {

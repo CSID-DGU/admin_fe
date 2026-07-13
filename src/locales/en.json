@@ -1,0 +1,13 @@
+{
+  "common": { "language": "KO", "notifications": "Notifications", "logout": "Log out", "user": "User", "admin": "Admin" },
+  "auth": {
+    "email": "Email", "password": "Password", "confirmPassword": "Confirm password", "name": "Name", "department": "Department", "studentId": "Student ID", "phone": "Phone", "verificationCode": "Verification code",
+    "login": "Log in", "signup": "Sign up", "forgot": "Forgot password?", "or": "or", "noAccount": "Need an account?", "hasAccount": "Already have an account?",
+    "loginTitle": "DGU AI Lab management system", "signupTitle": "Create your DGU AI Lab account", "emailVerification": "Email verification", "information": "Details", "sendCode": "Send code", "resend": "Resend", "verify": "Verify", "previous": "Previous",
+    "domainHelp": "Use a dgu.ac.kr or dongguk.edu email address.", "slackHelp": "Use the exact same name as your Slack display name to receive notifications."
+  },
+  "shell": {
+    "adminTitle": "DECS Admin Console", "userTitle": "DGU GPU Portal", "dashboard": "Dashboard", "containers": "Containers", "myContainer": "My container", "gpuRequest": "GPU request", "requests": "Requests", "requestManagement": "Request management", "changeRequests": "Change requests", "changeManagement": "Change management", "users": "Users", "system": "System", "monitoring": "Monitoring", "resourceMonitoring": "Resource monitoring", "images": "Images", "templates": "Message templates", "account": "Account"
+  },
+  "status": { "running": "Running", "provisioning": "Provisioning", "error": "Error", "stopped": "Stopped", "pending": "Pending approval", "denied": "Denied", "unknown": "Unknown" }
+}

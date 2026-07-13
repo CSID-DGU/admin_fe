@@ -21,12 +21,25 @@ export function AppLayout({
   children,
   style,
 }) {
+  const [narrow, setNarrow] = React.useState(() => window.matchMedia("(max-width: 1023px)").matches);
+  const [navigationOpen, setNavigationOpen] = React.useState(false);
+
+  React.useEffect(() => {
+    const media = window.matchMedia("(max-width: 1023px)");
+    const update = (event) => { setNarrow(event.matches); if (!event.matches) setNavigationOpen(false); };
+    media.addEventListener("change", update);
+    return () => media.removeEventListener("change", update);
+  }, []);
+
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%", minHeight: 0, background: "var(--decs-surface-app)", fontFamily: "var(--decs-font-base)", ...style }}>
-      {(identity || utilities) ? <TopNavigation identity={identity} utilities={utilities || []} /> : null}
+      {(identity || utilities) ? <TopNavigation identity={identity} utilities={utilities || []} navigationOpen={navigationOpen} onNavigationToggle={narrow && navigation ? () => setNavigationOpen((open) => !open) : undefined} /> : null}
       <div style={{ display: "flex", flex: 1, minHeight: 0 }}>
-        {navigation ? (
-          <div style={{ width: navigationWidth, flexShrink: 0, height: "100%", overflow: "hidden" }}>{navigation}</div>
+        {navigation && (!narrow || navigationOpen) ? (
+          <>
+            {narrow ? <div onClick={() => setNavigationOpen(false)} style={{ position: "fixed", inset: "48px 0 0", zIndex: 30, background: "rgba(0, 7, 22, 0.35)" }} /> : null}
+            <div onClick={() => narrow && setNavigationOpen(false)} style={narrow ? { position: "fixed", top: "48px", bottom: 0, left: 0, zIndex: 31, width: navigationWidth, overflow: "hidden" } : { width: navigationWidth, flexShrink: 0, height: "100%", overflow: "hidden" }}>{navigation}</div>
+          </>
         ) : null}
         <main style={{ flex: 1, minWidth: 0, overflowY: "auto" }}>
           <div style={{ maxWidth: contentMaxWidth, margin: "0 auto", padding: "var(--decs-space-xl) var(--decs-space-xxl)", boxSizing: "border-box" }}>

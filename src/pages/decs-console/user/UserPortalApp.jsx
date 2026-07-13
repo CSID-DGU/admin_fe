@@ -13,11 +13,13 @@ import AccountPage from "../../AccountPage";
 import ResourceMonitoringPage from "../../ResourceMonitoringPage";
 import donggukLogo from "../../../assets/dongguk_university_logo.svg";
 import RoleSwitch from "../../../components/RoleSwitch";
+import { useTranslation } from "react-i18next";
 
 function UserPortalApp() {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, logout } = useAuth();
+  const { t, i18n } = useTranslation();
   const { server, expiryDays, activities, gpuOptions, envOptions, groupOptions, error } = useDecsUserData();
   const [submitError, setSubmitError] = React.useState(null);
   const userName = user?.name || user?.email || "사용자";
@@ -28,26 +30,27 @@ function UserPortalApp() {
     activeHref: getActiveHref(location.pathname),
     onFollow: (it) => navigate(it.href),
     items: [
-      { text: "대시보드", href: "/decs/user", icon: "home" },
-      { text: "내 컨테이너", href: "/decs/user/container", icon: "cube" },
-      { text: "GPU 신청", href: "/decs/user/request", icon: "plus" },
-      { text: "신청 현황", href: "/decs/user/requests", icon: "clipboard" },
-      { text: "변경 요청 현황", href: "/decs/user/change-requests", icon: "arrow-path" },
+      { text: t("shell.dashboard"), href: "/decs/user", icon: "home" },
+      { text: t("shell.myContainer"), href: "/decs/user/container", icon: "cube" },
+      { text: t("shell.gpuRequest"), href: "/decs/user/request", icon: "plus" },
+      { text: t("shell.requests"), href: "/decs/user/requests", icon: "clipboard" },
+      { text: t("shell.changeRequests"), href: "/decs/user/change-requests", icon: "arrow-path" },
       { type: "divider" },
-      { text: "리소스 모니터링", href: "/decs/user/monitoring", icon: "chart-bar" },
-      { text: "계정 설정", href: "/decs/user/account", icon: "user-circle" },
+      { text: t("shell.resourceMonitoring"), href: "/decs/user/monitoring", icon: "chart-bar" },
+      { text: t("shell.account"), href: "/decs/user/account", icon: "user-circle" },
     ],
   };
 
   const utilities = [
     ...(isAdmin ? [{ type: "custom", content: <RoleSwitch current="user" /> }] : []),
-    { iconName: "bell", ariaLabel: "알림", badge: 1 },
+    { text: t("common.language"), onClick: () => i18n.changeLanguage(i18n.language === "en" ? "ko" : "en") },
+    { iconName: "bell", ariaLabel: t("common.notifications"), badge: 1 },
     {
       type: "menu",
       iconName: "user-circle",
       text: userName,
       items: [
-        { text: "로그아웃", onClick: () => { logout(); navigate("/login"); } },
+        { text: t("common.logout"), onClick: () => { logout(); navigate("/login"); } },
       ],
     },
   ];
@@ -69,7 +72,7 @@ function UserPortalApp() {
   return (
     <div style={{ height: "100vh" }}>
       <AppLayout
-        identity={{ title: "DGU GPU 포털", href: "/decs/user", logo: donggukLogo, onFollow: () => navigate("/decs/user") }}
+        identity={{ title: t("shell.userTitle"), href: "/decs/user", logo: donggukLogo, onFollow: () => navigate("/decs/user") }}
         utilities={utilities}
         navigation={<SideNavigation {...nav} />}
         navigationWidth={240}
