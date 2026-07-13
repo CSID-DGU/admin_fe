@@ -76,8 +76,9 @@ function buildGpuOptions(gpuTypes) {
     }, {})
   ).map((option) => ({
     ...option,
-    desc: `서버 ${option.serverNames.join(", ") || "—"}`,
-    memory: `${option.memory} · 가용 노드 ${option.nodeIds.length || option.availableNodes || 1}개${option.nodeIds.length ? ` · ${option.nodeIds.join(", ")}` : ""}`,
+    serverName: option.serverNames[0] ?? "",
+    desc: option.nodeIds.map((n) => n.toUpperCase()).join(", ") || option.serverNames.join(", ") || "—",
+    memory: `${option.memory} VRAM · 가용 노드 ${option.nodeIds.length || option.availableNodes || 1}개`,
   }));
 }
 
@@ -109,13 +110,15 @@ export function useDecsUserData() {
           const dto = servers[0];
           const vm = mapUserServer(dto);
 
+          const serverName = dto.resourceGroup?.serverName ?? "";
           setServer({
             requestId: vm.id,
             expiresAt: vm.expiresAt,
-            gpuName: vm.gpuName,
+            gpuName: serverName || vm.gpuName,
+            gpuSpec: serverName ? vm.gpuName : null,
             statusType: vm.statusType ?? "success",
             statusLabel: vm.statusLabel ?? "사용 가능",
-            jobBadge: `내 서버 · ${vm.gpuName}`,
+            jobBadge: `내 서버 · ${serverName || vm.gpuName}`,
             jobTitle: "내 서버",
             daysLeft: vm.daysLeft ?? daysLeft(dto.expiresAt),
             expiresText: formatExpiresText(vm.expiresAt),

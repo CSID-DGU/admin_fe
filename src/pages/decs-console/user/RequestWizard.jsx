@@ -1,4 +1,4 @@
-// RequestWizard — 사용 목적 → GPU → 기간 → 개발 환경 → 확인
+// RequestWizard — 사용 목적 → 서버 선택 → GPU → 기간 → 개발 환경 → 확인
 import React from "react";
 import { Wizard, Cards, FormField, Select, Input, KeyValuePairs, Alert, Container, Header, StatusIndicator, Button, Badge, Table } from "../../../design-system";
 import { requestService } from "../../../services/requestService";
@@ -11,6 +11,7 @@ function toLocalDateInput(date) {
 function RequestWizard({ onCancel, onDone, gpuOptions: gpuOptionsProp, envOptions: envOptionsProp, groupOptions: groupOptionsProp, onSubmit: onSubmitProp }) {
   const [step, setStep] = React.useState(0);
   const [purpose, setPurpose] = React.useState("");
+  const [selectedServer, setSelectedServer] = React.useState("");
   const [gpu, setGpu] = React.useState([]);
   const [expiresDate, setExpiresDate] = React.useState(() => {
     const d = new Date();
@@ -36,6 +37,20 @@ function RequestWizard({ onCancel, onDone, gpuOptions: gpuOptionsProp, envOption
   const gpuOptions = React.useMemo(() => gpuOptionsProp ?? [], [gpuOptionsProp]);
   const envOptions = React.useMemo(() => envOptionsProp ?? [], [envOptionsProp]);
   const groupOptions = React.useMemo(() => groupOptionsProp ?? [], [groupOptionsProp]);
+  const serverOptions = React.useMemo(() => {
+    const seen = new Set();
+    return gpuOptions.reduce((acc, g) => {
+      if (g.serverName && !seen.has(g.serverName)) {
+        seen.add(g.serverName);
+        acc.push({ id: g.serverName, title: g.serverName });
+      }
+      return acc;
+    }, []);
+  }, [gpuOptions]);
+  const filteredGpuOptions = React.useMemo(
+    () => (selectedServer ? gpuOptions.filter((g) => g.serverName === selectedServer) : gpuOptions),
+    [gpuOptions, selectedServer],
+  );
   const selectedGroupIds = React.useMemo(() => new Set(selectedGroups.map((g) => g.value)), [selectedGroups]);
   const groupSelectOptions = groupOptions.map((g) => ({ ...g, disabled: selectedGroupIds.has(g.value) }));
   const ubuntuUsernamePattern = /^[a-z][a-z0-9_-]{2,49}$/;
@@ -90,19 +105,23 @@ function RequestWizard({ onCancel, onDone, gpuOptions: gpuOptionsProp, envOption
       setStepErrors((prev) => ({ ...prev, purpose: "사용 목적을 5자 이상 적어주세요." }));
       return false;
     }
-    if (step === 1 && nextStep > step && gpu.length === 0) {
+    if (step === 1 && nextStep > step && !selectedServer) {
+      setStepErrors((prev) => ({ ...prev, server: "서버를 선택해주세요." }));
+      return false;
+    }
+    if (step === 2 && nextStep > step && gpu.length === 0) {
       setStepErrors((prev) => ({ ...prev, gpu: "GPU를 선택해주세요." }));
       return false;
     }
-    if (step === 2 && nextStep > step && !validatePeriod()) return false;
-    if (step === 3 && nextStep > step && !validateDevelopmentStep()) return false;
+    if (step === 3 && nextStep > step && !validatePeriod()) return false;
+    if (step === 4 && nextStep > step && !validateDevelopmentStep()) return false;
     return true;
   }
 
   async function handleNavigate(nextStep) {
     setError(null);
     if (!validateStep(nextStep)) return;
-    if (step === 3 && nextStep > step) {
+    if (step === 4 && nextStep > step) {
       setCheckingUsername(true);
       try {
         const response = await requestService.checkUbuntuUsername(ubuntuUsername);
@@ -197,15 +216,37 @@ function RequestWizard({ onCancel, onDone, gpuOptions: gpuOptionsProp, envOption
       ),
     },
     {
+      title: "서버 선택",
+      description: "사용할 GPU 클러스터를 선택해주세요.",
+      content: serverOptions.length > 0 ? (
+        <FormField errorText={stepErrors.server}>
+          <Cards
+            columns={Math.min(serverOptions.length, 3)}
+            selectionType="single"
+            trackBy="id"
+            selectedItems={serverOptions.filter((s) => s.id === selectedServer)}
+            onSelectionChange={(items) => {
+              const next = items[0]?.id ?? "";
+              setSelectedServer(next);
+              setGpu([]);
+              setStepErrors((prev) => ({ ...prev, server: null, gpu: null }));
+            }}
+            items={serverOptions}
+            cardDefinition={{ header: (o) => o.title }}
+          />
+        </FormField>
+      ) : <Alert type="info">신청 가능한 서버 정보가 없습니다.</Alert>,
+    },
+    {
       title: "GPU 선택",
       description: "필요한 성능을 골라 주세요.",
-      content: gpuOptions.length > 0 ? (
+      content: filteredGpuOptions.length > 0 ? (
         <FormField errorText={stepErrors.gpu}>
           <Cards columns={2} selectionType="single" trackBy="id" selectedItems={gpu}
             onSelectionChange={(items) => { setGpu(items); setStepErrors((prev) => ({ ...prev, gpu: null })); }}
-            items={gpuOptions} cardDefinition={{ header: (o) => o.title, sections: [{ id: "d", content: (o) => o.desc }, { id: "m", header: "메모리", content: (o) => o.memory }] }} />
+            items={filteredGpuOptions} cardDefinition={{ header: (o) => o.title, sections: [{ id: "d", content: (o) => o.desc }, { id: "m", header: "메모리", content: (o) => o.memory }] }} />
         </FormField>
-      ) : <Alert type="info">신청 가능한 GPU 목록이 없습니다.</Alert>,
+      ) : <Alert type="info">선택한 서버에 신청 가능한 GPU가 없습니다.</Alert>,
     },
     {
       title: "사용 기간",
@@ -295,7 +336,8 @@ function RequestWizard({ onCancel, onDone, gpuOptions: gpuOptionsProp, envOption
         <Container header={<Header variant="h2">신청 내용</Header>}>
           <KeyValuePairs columns={2} items={[
             { label: "사용 목적", value: purpose.trim() || "—" },
-            { label: "GPU", value: (gpuOptions.find((o) => o.id === gpu[0]?.id) || {}).title || "—" },
+            { label: "서버", value: selectedServer || "—" },
+            { label: "GPU", value: (filteredGpuOptions.find((o) => o.id === gpu[0]?.id) || {}).title || "—" },
             { label: "사용 만료일", value: expiresDate || "—" },
             { label: "개발 환경", value: envOptions.find((o) => o.value === env)?.label ?? env },
             { label: "Ubuntu 사용자명", value: ubuntuUsername || <span style={{ color: "var(--decs-status-warning)", fontWeight: 700 }}>미입력</span> },
@@ -312,6 +354,7 @@ function RequestWizard({ onCancel, onDone, gpuOptions: gpuOptionsProp, envOption
     const selectedGpu = gpu[0];
     const missingFields = [
       !purposeText ? "사용 목적" : null,
+      !selectedServer ? "서버" : null,
       !selectedGpu ? "GPU" : null,
       !env ? "개발 환경" : null,
       !ubuntuUsername ? "Ubuntu 사용자명" : null,

@@ -9,7 +9,6 @@ import { useAuth } from "../../../hooks/useAuth";
 import RequestManagementPage from "../../admin/RequestManagementPage";
 import ChangeRequestManagementPage from "../../admin/ChangeRequestManagementPage";
 import UserManagementPage from "../../admin/UserManagementPage";
-import ResourceMonitoringPage from "../../admin/ResourceMonitoringPage";
 import ImageManagementPage from "../../admin/ImageManagementPage";
 import MessageTemplatePage from "../../admin/MessageTemplatePage";
 import donggukLogo from "../../../assets/dongguk_university_logo.svg";
@@ -35,7 +34,6 @@ function AdminConsoleApp() {
       { text: t("shell.users"), href: "/admin/users", icon: "users" },
       { type: "divider" },
       { type: "section", text: t("shell.system"), items: [
-        { text: t("shell.monitoring"), href: "/admin/monitoring", icon: "chart-bar" },
         { text: t("shell.images"), href: "/admin/images", icon: "folder" },
         { text: t("shell.templates"), href: "/admin/message-templates", icon: "pencil-square" },
       ]},
@@ -73,7 +71,6 @@ function AdminConsoleApp() {
           <Route path="requests" element={<RequestManagementPage />} />
           <Route path="change-requests" element={<ChangeRequestManagementPage />} />
           <Route path="users" element={<UserManagementPage />} />
-          <Route path="monitoring" element={<ResourceMonitoringPage user={user} />} />
           <Route path="images" element={<ImageManagementPage />} />
           <Route path="message-templates" element={<MessageTemplatePage />} />
           <Route path="*" element={<Navigate to="/admin" replace />} />
@@ -95,7 +92,6 @@ function getActiveHref(pathname) {
   if (pathname.startsWith("/admin/change-requests")) return "/admin/change-requests";
   if (pathname.startsWith("/admin/requests")) return "/admin/requests";
   if (pathname.startsWith("/admin/users")) return "/admin/users";
-  if (pathname.startsWith("/admin/monitoring")) return "/admin/monitoring";
   if (pathname.startsWith("/admin/images")) return "/admin/images";
   if (pathname.startsWith("/admin/message-templates")) return "/admin/message-templates";
   return "/admin";

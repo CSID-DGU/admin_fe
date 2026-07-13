@@ -1,240 +1,148 @@
-import { useState, useEffect } from "react";
+// FARM/LAB 서버별 GPU 사용량·활성 컨테이너를 Prometheus 지표로 직접 표시하는 모니터링 페이지
+import { useEffect, useState, useCallback } from "react";
 import {
   Alert,
   Badge,
   Button,
-  Cards,
   Container,
   Header,
-  Icon,
+  ProgressBar,
   StatusIndicator,
+  KeyValuePairs,
 } from "../design-system";
+import { monitoringService } from "../services/grafanaService";
 
-const DASHBOARD_URLS = {
-  farm: "http://210.94.179.19:9751/public-dashboards/df47892cd8f4484380698b97cda6771e",
-  lab: "http://210.94.179.19:9751/public-dashboards/c09764ddfffe422dba101cfffebae898",
-};
+const REFRESH_INTERVAL_MS = 30_000;
+
+function GpuServerCard({ server }) {
+  const util = server.gpuUtil ?? 0;
+  // ProgressBar: "success" | "in-progress" | "error"
+  const barStatus = util >= 80 ? "error" : "in-progress";
+  const badgeColor = util >= 80 ? "red" : util >= 50 ? "yellow" : "green";
+  return (
+    <div className="flex flex-col gap-2 p-4 rounded-(--decs-radius-item) border border-(--decs-border-container) bg-(--decs-surface-container)">
+      <div className="flex items-center justify-between">
+        <span className="font-semibold text-(--decs-text-heading) uppercase tracking-wide text-sm">
+          {server.hostname}
+        </span>
+        <Badge color={badgeColor}>GPU {server.gpuCount}개</Badge>
+      </div>
+      <ProgressBar
+        value={util}
+        label="GPU 사용률"
+        description={`${util}%`}
+        status={barStatus}
+      />
+    </div>
+  );
+}
 
 const ResourceMonitoringPage = () => {
-  const [selectedService, setSelectedService] = useState("farm");
-  const [alert, setAlert] = useState(null);
-  const [iframeError, setIframeError] = useState(false);
-  const [isTestingIframe, setIsTestingIframe] = useState(true);
+  const [metrics, setMetrics] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [lastUpdated, setLastUpdated] = useState(null);
 
-  const services = [
-    {
-      id: "farm",
-      name: "FARM 서버",
-      description: "GPU 클러스터 리소스 모니터링",
-      iconName: "server-stack",
-    },
-    {
-      id: "lab",
-      name: "LAB 서버",
-      description: "연구실 서버 리소스 모니터링",
-      iconName: "chart-bar",
-    },
-  ];
-
-  // iframe 접근 가능성을 테스트하는 함수
-  const testIframeAccess = async (url) => {
+  const fetchMetrics = useCallback(async () => {
     try {
-      await fetch(url, {
-        method: "HEAD",
-        mode: "no-cors",
-        signal: AbortSignal.timeout(5000),
-      });
-      return true;
-    } catch {
-      return false;
-    }
-  };
-
-  // 컴포넌트 마운트 시 iframe 접근 가능성 테스트
-  useEffect(() => {
-    setIsTestingIframe(true);
-    const checkIframeAccess = async () => {
-      try {
-        const canAccess = await testIframeAccess(
-          DASHBOARD_URLS[selectedService]
-        );
-        setIframeError(!canAccess);
-      } catch {
-        setIframeError(true);
-      } finally {
-        setIsTestingIframe(false);
+      const res = await monitoringService.getMetrics();
+      if (res?.status === 200 && res.data?.data) {
+        setMetrics(res.data.data);
+        setLastUpdated(new Date());
+        setError(null);
+      } else {
+        setError("지표를 불러오지 못했어요.");
       }
-    };
+    } catch {
+      setError("서버와 연결할 수 없어요. 잠시 후 다시 시도해 주세요.");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
-    checkIframeAccess();
-  }, [selectedService]);
+  useEffect(() => {
+    fetchMetrics();
+    const id = setInterval(fetchMetrics, REFRESH_INTERVAL_MS);
+    return () => clearInterval(id);
+  }, [fetchMetrics]);
 
-  // iframe 로드 에러 핸들러
-  const handleIframeError = () => {
-    setIframeError(true);
-    setAlert({
-      type: "info",
-      message:
-        "대시보드를 화면 안에서 바로 보여줄 수 없어요. 새 창에서 열기를 이용해 주세요.",
-    });
-  };
-
-  const selectedServiceItem = services.find((s) => s.id === selectedService);
+  const farmServers = metrics?.gpuServers ?? [];
+  const activeContainers = metrics?.activeContainers ?? {};
+  const containerItems = Object.entries(activeContainers).map(([cluster, count]) => ({
+    label: `${cluster.toUpperCase()} 활성 컨테이너`,
+    value: (
+      <span className="text-xl font-bold text-(--decs-text-heading)">
+        {count}
+        <span className="text-sm font-normal text-(--decs-text-secondary) ml-1">개</span>
+      </span>
+    ),
+  }));
 
   return (
     <div className="space-y-6">
-      {/* Alert */}
-      {alert && (
-        <Alert type={alert.type} dismissible onDismiss={() => setAlert(null)}>
-          {alert.message}
-        </Alert>
-      )}
-
-      {/* Header */}
       <Header
         variant="h1"
-        description="실시간 서버 리소스 사용량을 확인할 수 있어요."
+        description="30초마다 자동으로 갱신돼요."
         actions={
-          <span className="inline-flex items-center gap-2 text-sm text-(--decs-text-secondary)">
-            권한 <Badge color="green">사용자</Badge>
-          </span>
+          <div className="flex items-center gap-3">
+            {lastUpdated && (
+              <span className="text-sm text-(--decs-text-secondary)">
+                {lastUpdated.toLocaleTimeString("ko-KR")} 기준
+              </span>
+            )}
+            <Button variant="normal" iconName="refresh" onClick={fetchMetrics}>
+              새로 고침
+            </Button>
+          </div>
         }
       >
         리소스 모니터링
       </Header>
 
-      {/* Service Selection */}
-      <div className="space-y-3">
-        <Header variant="h2" description="확인할 서버를 선택해 주세요.">
-          모니터링 서비스 선택
-        </Header>
-        <Cards
-          columns={2}
-          items={services}
-          trackBy="id"
-          selectionType="single"
-          selectedItems={selectedServiceItem ? [selectedServiceItem] : []}
-          onSelectionChange={([service]) =>
-            service && setSelectedService(service.id)
-          }
-          cardDefinition={{
-            header: (service) => (
-              <span className="inline-flex items-center gap-2">
-                <Icon name={service.iconName} size={20} />
-                {service.name}
-              </span>
-            ),
-            sections: [
-              {
-                id: "description",
-                content: (service) => service.description,
-              },
-            ],
-          }}
-        />
-      </div>
+      {error && (
+        <Alert type="error" dismissible onDismiss={() => setError(null)}>
+          {error}
+        </Alert>
+      )}
 
-      {/* Dashboard */}
-      <Container
-        header={
-          <Header
-            variant="h2"
-            actions={
-              <Button
-                variant="normal"
-                iconName="arrow-top-right-on-square"
-                onClick={() =>
-                  window.open(DASHBOARD_URLS[selectedService], "_blank")
-                }
+      {loading ? (
+        <div className="text-center p-12">
+          <StatusIndicator type="loading">지표를 불러오는 중...</StatusIndicator>
+        </div>
+      ) : (
+        <>
+          {/* 활성 컨테이너 요약 */}
+          {containerItems.length > 0 && (
+            <Container header={<Header variant="h2">클러스터 현황</Header>}>
+              <KeyValuePairs columns={containerItems.length} items={containerItems} />
+            </Container>
+          )}
+
+          {/* GPU 서버별 사용률 */}
+          <Container
+            header={
+              <Header
+                variant="h2"
+                description="FARM 서버별 실시간 GPU 평균 사용률이에요."
               >
-                새 창에서 열기
-              </Button>
+                GPU 사용률
+              </Header>
             }
           >
-            {selectedServiceItem?.name} 대시보드
-          </Header>
-        }
-      >
-        <div className="space-y-4">
-          {isTestingIframe ? (
-            <div className="text-center p-8 bg-(--decs-surface-sunken) rounded-(--decs-radius-item)">
-              <StatusIndicator type="loading">
-                대시보드 연결을 확인하고 있어요
+            {farmServers.length === 0 ? (
+              <StatusIndicator type="warning">
+                GPU 데이터를 수신하지 못했어요.
               </StatusIndicator>
-            </div>
-          ) : !iframeError ? (
-            <div className="space-y-4">
-              <StatusIndicator type="success">
-                대시보드에 연결됐어요
-              </StatusIndicator>
-              <div className="relative w-full" style={{ height: "600px" }}>
-                <iframe
-                  src={DASHBOARD_URLS[selectedService]}
-                  className="w-full h-full border border-(--decs-border-container) rounded-(--decs-radius-item)"
-                  onError={handleIframeError}
-                  title={`${selectedServiceItem?.name} 대시보드`}
-                  sandbox="allow-same-origin allow-scripts allow-forms"
-                />
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                {farmServers.map((s) => (
+                  <GpuServerCard key={s.hostname} server={s} />
+                ))}
               </div>
-            </div>
-          ) : (
-            <div className="text-center p-8 border-2 border-dashed border-(--decs-border-divider) bg-(--decs-surface-sunken) rounded-(--decs-radius-item) space-y-4">
-              <Icon
-                name="chart-bar"
-                size={48}
-                color="var(--decs-text-inactive)"
-                style={{ margin: "0 auto" }}
-              />
-              <div className="space-y-1">
-                <p className="text-(--decs-text-heading) font-bold">
-                  새 창에서 대시보드를 확인해 주세요
-                </p>
-                <p className="text-(--decs-text-secondary)">
-                  보안 정책 때문에 이 화면 안에서는 대시보드를 보여줄 수
-                  없어요. 아래 버튼으로 새 창에서 확인할 수 있어요.
-                </p>
-              </div>
-              <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                <Button
-                  variant="normal"
-                  iconName="arrow-top-right-on-square"
-                  onClick={() =>
-                    window.open(DASHBOARD_URLS[selectedService], "_blank")
-                  }
-                >
-                  {selectedServiceItem?.name} 대시보드 열기
-                </Button>
-                <Button
-                  variant="normal"
-                  iconName="clipboard"
-                  onClick={() => {
-                    navigator.clipboard.writeText(
-                      DASHBOARD_URLS[selectedService]
-                    );
-                    setAlert({
-                      type: "success",
-                      message: "대시보드 URL을 클립보드에 복사했어요.",
-                    });
-                  }}
-                >
-                  URL 복사
-                </Button>
-              </div>
-            </div>
-          )}
-        </div>
-      </Container>
-
-      {/* Info Notice */}
-      <Alert type="info" header="모니터링 안내">
-        <ul className="list-disc list-inside space-y-1">
-          <li>실시간 서버 리소스 사용량을 확인할 수 있어요</li>
-          <li>사용자 권한으로 제한된 정보가 제공돼요</li>
-          <li>데이터는 실시간으로 업데이트돼요</li>
-          <li>보안 정책 때문에 새 창에서 확인해야 할 수 있어요</li>
-          <li>자세한 시스템 정보는 관리자에게 문의해 주세요</li>
-        </ul>
-      </Alert>
+            )}
+          </Container>
+        </>
+      )}
     </div>
   );
 };

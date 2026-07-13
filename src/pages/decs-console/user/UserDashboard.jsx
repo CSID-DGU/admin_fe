@@ -11,6 +11,7 @@ function BigStatus({ onConnect, onExtend, onDetail, server }) {
             <span style={{ fontSize: "var(--decs-fs-heading-xl)", fontWeight: 700, color: "var(--decs-text-heading)" }}>{server.gpuName}</span>
             <StatusIndicator type={server.statusType}>{server.statusLabel}</StatusIndicator>
           </div>
+          {server.gpuSpec ? <div style={{ fontSize: "var(--decs-fs-body-m)", color: "var(--decs-text-secondary)", marginTop: 2 }}>{server.gpuSpec}</div> : null}
           <div style={{ marginTop: 8 }}><Badge color="grey">{server.jobBadge}</Badge></div>
         </div>
         <div style={{ textAlign: "right" }}>
