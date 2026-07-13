@@ -1,18 +1,8 @@
 import apiClient from './api.js';
-import { authService } from './authService.js';
-
-const authHeaders = () => {
-  const token = authService.getAccessToken();
-  if (!token) throw new Error("인증 토큰이 없습니다.");
-  return { accept: 'application/json;charset=UTF-8', Authorization: `Bearer ${token}` };
-};
 
 export const getMessages = async () => {
   try {
-    const response = await apiClient.request('/api/admin/messages', {
-      method: 'GET',
-      headers: authHeaders(),
-    });
+    const response = await apiClient.get('/api/admin/messages');
     // ponytail: backend ApiResponse wraps in {status, message, data}
     const data = response.data?.data ?? response.data;
     return { success: true, data: Array.isArray(data) ? data : [] };
@@ -24,11 +14,7 @@ export const getMessages = async () => {
 
 export const updateMessage = async (key, value) => {
   try {
-    await apiClient.request(`/api/admin/messages/${key}`, {
-      method: 'PATCH',
-      headers: { ...authHeaders(), 'Content-Type': 'application/json;charset=UTF-8' },
-      body: JSON.stringify({ value }),
-    });
+    await apiClient.patch(`/api/admin/messages/${encodeURIComponent(key)}`, { value });
     return { success: true };
   } catch (error) {
     console.error('Error updating message:', error);
@@ -38,10 +24,7 @@ export const updateMessage = async (key, value) => {
 
 export const resetMessage = async (key) => {
   try {
-    await apiClient.request(`/api/admin/messages/${key}`, {
-      method: 'DELETE',
-      headers: authHeaders(),
-    });
+    await apiClient.delete(`/api/admin/messages/${encodeURIComponent(key)}`);
     return { success: true };
   } catch (error) {
     console.error('Error resetting message:', error);

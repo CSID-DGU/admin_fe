@@ -16,7 +16,7 @@ import SignupPage from "./pages/auth/SignupPage";
 
 const AppContent = () => {
   const { isAuthenticated, user, login } = useAuth();
-  const homePath = user?.role === "ADMIN" ? "/decs/admin" : "/decs/user";
+  const homePath = user?.role === "ADMIN" ? "/admin" : "/user";
 
   return (
     <Routes>
@@ -41,7 +41,7 @@ const AppContent = () => {
         }
       />
       <Route
-        path="/decs/admin/*"
+        path="/admin/*"
         element={
           <ProtectedRoute requireAdmin>
             <AdminConsoleApp />
@@ -49,7 +49,7 @@ const AppContent = () => {
         }
       />
       <Route
-        path="/decs/user/*"
+        path="/user/*"
         element={
           <ProtectedRoute>
             <UserPortalApp />

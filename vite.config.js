@@ -7,6 +7,15 @@ export default defineConfig({
   server: {
     port: 30081, // Set your desired port here
     host: true, // Allow external connections
+    proxy: {
+      "/api": {
+        target: "http://210.94.179.18:30083",
+        changeOrigin: true,
+        configure(proxy) {
+          proxy.on("proxyReq", (request) => request.removeHeader("origin"));
+        },
+      },
+    },
     // open: true, // Automatically open browser
   },
 });

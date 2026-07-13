@@ -1,6 +1,6 @@
 // API 기본 설정
 const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || "http://localhost:8080";
+  import.meta.env.VITE_API_BASE_URL || "";
 
 // 세션 이벤트 매니저 import
 import { sessionEventManager } from "./sessionEventManager";
@@ -13,14 +13,20 @@ class ApiClient {
 
   async request(endpoint, options = {}) {
     const url = `${this.baseURL}${endpoint}`;
+    const {
+      headers = {},
+      skipSessionExpiredCheck = false,
+      ...fetchOptions
+    } = options;
+    const token = localStorage.getItem("accessToken");
 
     const config = {
+      ...fetchOptions,
       headers: {
-        // body가 빈 문자열이 아닐 때만 Content-Type 설정
-        ...(options.body !== "" && { "Content-Type": "application/json" }),
-        ...options.headers,
+        ...(fetchOptions.body && { "Content-Type": "application/json" }),
+        ...(token && !endpoint.startsWith("/api/auth/") && { Authorization: `Bearer ${token}` }),
+        ...headers,
       },
-      ...options,
     };
 
     try {
@@ -59,8 +65,8 @@ class ApiClient {
         console.error("API 에러 응답:", errorData);
 
         // 401 상태코드인 경우 세션 만료 처리 (로그인 요청은 제외)
-        const errorCode = errorData.code || errorData.errorCode;
-        if (response.status === 401 && !options.skipSessionExpiredCheck) {
+        const errorCode = errorData.code || errorData.errorCode || errorData.data?.code;
+        if (response.status === 401 && !skipSessionExpiredCheck) {
           sessionEventManager.triggerSessionExpired(errorCode === "ACCOUNT_DISABLED" || errorData.message?.includes("ACCOUNT_DISABLED") ? "ACCOUNT_DISABLED" : "SESSION_EXPIRED");
         }
 
@@ -78,7 +84,7 @@ class ApiClient {
   }
 
   async get(endpoint, params = {}) {
-    const url = new URL(`${this.baseURL}${endpoint}`);
+    const url = new URL(endpoint, window.location.origin);
     Object.keys(params).forEach((key) => {
       if (params[key] !== undefined && params[key] !== null) {
         url.searchParams.append(key, params[key]);
@@ -99,7 +105,7 @@ class ApiClient {
 
   // POST 요청에 쿼리 파라미터 사용 (curl과 동일한 방식)
   async postWithQuery(endpoint, params = {}) {
-    const url = new URL(`${this.baseURL}${endpoint}`);
+    const url = new URL(endpoint, window.location.origin);
     Object.keys(params).forEach((key) => {
       if (params[key] !== undefined && params[key] !== null) {
         url.searchParams.append(key, params[key]);
@@ -123,8 +129,17 @@ class ApiClient {
     });
   }
 
-  async delete(endpoint) {
+  async patch(endpoint, data = {}, options = {}) {
     return this.request(endpoint, {
+      ...options,
+      method: "PATCH",
+      body: JSON.stringify(data),
+    });
+  }
+
+  async delete(endpoint, options = {}) {
+    return this.request(endpoint, {
+      ...options,
       method: "DELETE",
     });
   }
