@@ -12,9 +12,9 @@
   --decs-font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 
   /* Weights */
-  --decs-fw-regular: 400;
-  --decs-fw-medium: 600;
-  --decs-fw-bold: 700;
+  --decs-fw-regular: 400; /* @kind font */
+  --decs-fw-medium: 600;  /* @kind font */
+  --decs-fw-bold: 700;    /* @kind font */
 
   /* Font sizes / line-heights (Cloudscape scale) */
   --decs-fs-body-s: 12px;   --decs-lh-body-s: 16px;

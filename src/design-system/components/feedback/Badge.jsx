@@ -17,6 +17,7 @@ export function Badge({ color = "grey", children, style }) {
   const t = TINTS[color] || TINTS.grey;
   return (
     <span
+      title={typeof children === "string" ? children : undefined}
       style={{
         display: "inline-flex",
         alignItems: "center",
@@ -30,6 +31,9 @@ export function Badge({ color = "grey", children, style }) {
         lineHeight: "var(--decs-lh-body-s)",
         fontWeight: "var(--decs-fw-medium)",
         whiteSpace: "nowrap",
+        maxWidth: "160px",
+        overflow: "hidden",
+        textOverflow: "ellipsis",
         ...style,
       }}
     >

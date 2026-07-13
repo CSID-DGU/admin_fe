@@ -25,7 +25,7 @@ function LinkItem({ item, activeHref, onFollow, depth = 0 }) {
       onMouseLeave={(e) => { if (!active) e.currentTarget.style.background = "transparent"; }}
     >
       {item.icon ? <Icon name={item.icon} size={16} /> : null}
-      <span style={{ flex: 1 }}>{item.text}</span>
+      <span title={item.text} style={{ flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{item.text}</span>
       {item.badge != null ? <span style={{ fontSize: "var(--decs-fs-body-s)", color: "var(--decs-text-inactive)" }}>{item.badge}</span> : null}
     </a>
   );
@@ -36,7 +36,7 @@ export function SideNavigation({ header, items = [], activeHref, onFollow, style
     <nav style={{ width: "100%", height: "100%", background: "var(--decs-surface-nav)", borderRight: "1px solid var(--decs-border-divider)", padding: "var(--decs-space-m) var(--decs-space-s)", boxSizing: "border-box", fontFamily: "var(--decs-font-base)", overflowY: "auto", ...style }}>
       {header ? (
         <div style={{ padding: "0 var(--decs-space-s) var(--decs-space-s)", borderBottom: "1px solid var(--decs-border-divider)", marginBottom: "var(--decs-space-s)" }}>
-          <a href={header.href} onClick={(e) => { if (onFollow) { e.preventDefault(); onFollow(header); } }} style={{ fontSize: "var(--decs-fs-heading-s)", fontWeight: "var(--decs-fw-bold)", color: "var(--decs-text-heading)", textDecoration: "none" }}>{header.text}</a>
+          <a title={header.text} href={header.href} onClick={(e) => { if (onFollow) { e.preventDefault(); onFollow(header); } }} style={{ display: "block", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontSize: "var(--decs-fs-heading-s)", fontWeight: "var(--decs-fw-bold)", color: "var(--decs-text-heading)", textDecoration: "none" }}>{header.text}</a>
         </div>
       ) : null}
       <div style={{ display: "flex", flexDirection: "column", gap: "1px" }}>
@@ -44,7 +44,7 @@ export function SideNavigation({ header, items = [], activeHref, onFollow, style
           if (item.type === "divider") return <div key={i} style={{ height: "1px", background: "var(--decs-border-divider)", margin: "var(--decs-space-s) var(--decs-space-s)" }} />;
           if (item.type === "section") return (
             <div key={i} style={{ marginTop: "var(--decs-space-s)" }}>
-              <div style={{ padding: "4px var(--decs-space-s)", fontSize: "var(--decs-fs-body-s)", fontWeight: "var(--decs-fw-bold)", color: "var(--decs-text-inactive)", textTransform: "none" }}>{item.text}</div>
+              <div title={item.text} style={{ padding: "4px var(--decs-space-s)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontSize: "var(--decs-fs-body-s)", fontWeight: "var(--decs-fw-bold)", color: "var(--decs-text-inactive)", textTransform: "none" }}>{item.text}</div>
               {(item.items || []).map((sub, j) => <LinkItem key={j} item={sub} activeHref={activeHref} onFollow={onFollow} />)}
             </div>
           );

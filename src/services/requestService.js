@@ -131,6 +131,7 @@ export const requestService = {
           "Content-Type": "application/json;charset=UTF-8",
         },
         body: JSON.stringify(requestData),
+        signal: AbortSignal.timeout(310000),
       });
       return response;
     } catch (error) {

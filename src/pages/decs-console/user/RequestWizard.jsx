@@ -204,10 +204,10 @@ function RequestWizard({ onCancel, onDone, gpuOptions: gpuOptionsProp, envOption
       description: "컨테이너 환경과 접속 계정을 설정해 주세요.",
       content: (
         <div style={{ maxWidth: 520, display: "flex", flexDirection: "column", gap: "var(--decs-space-m)" }}>
-          <FormField label="기본 환경 (이미지)">
+          <FormField label="기본 환경">
             <Select selectedValue={env} onChange={setEnv} options={envOptions} />
           </FormField>
-          <FormField label="Ubuntu 사용자명 (필수)" errorText={ubuntuUsernameError}>
+          <FormField label="Ubuntu 사용자명" errorText={ubuntuUsernameError}>
             <Input
               value={ubuntuUsername}
               onChange={(value) => { setUbuntuUsername(value); setEnvErrors((prev) => ({ ...prev, ubuntuUsername: null })); }}
@@ -215,7 +215,7 @@ function RequestWizard({ onCancel, onDone, gpuOptions: gpuOptionsProp, envOption
               invalid={!!ubuntuUsernameError}
             />
           </FormField>
-          <FormField label="Ubuntu 비밀번호 (필수)" errorText={ubuntuPasswordError}>
+          <FormField label="Ubuntu 비밀번호" errorText={ubuntuPasswordError}>
             <Input
               value={ubuntuPassword}
               onChange={(value) => { setUbuntuPassword(value); setEnvErrors((prev) => ({ ...prev, ubuntuPassword: null })); }}
@@ -224,7 +224,7 @@ function RequestWizard({ onCancel, onDone, gpuOptions: gpuOptionsProp, envOption
               invalid={!!ubuntuPasswordError}
             />
           </FormField>
-          <FormField label="공유 그룹 (선택)">
+          <FormField label="공유 그룹">
             <div style={{ display: "flex", gap: "var(--decs-space-xs)" }}>
               <Select selectedValue={selectedGroupId} onChange={setSelectedGroupId} options={groupSelectOptions} placeholder="공유 그룹 선택" style={{ flex: 1 }} />
               <Button iconName="plus" onClick={addGroup} disabled={!selectedGroupId || selectedGroupIds.has(selectedGroupId)} ariaLabel="공유 그룹 추가">추가</Button>
@@ -240,7 +240,7 @@ function RequestWizard({ onCancel, onDone, gpuOptions: gpuOptionsProp, envOption
               </div>
             ) : null}
           </FormField>
-          <FormField label="추가 포트 (선택)" errorText={portError}>
+          <FormField label="추가 포트" errorText={portError}>
             <div style={{ display: "grid", gridTemplateColumns: "150px minmax(0, 1fr) auto", gap: "var(--decs-space-xs)" }}>
               <Input value={portNumber} onChange={(value) => { setPortNumber(value); setPortError(null); }} type="number" placeholder="포트 번호 1-65535" invalid={!!portError} />
               <Input value={portPurpose} onChange={setPortPurpose} placeholder="사용 목적 예: TensorBoard" />

@@ -9,7 +9,7 @@ export function FormField({ label, description, constraintText, errorText, secon
   return (
     <div style={{ fontFamily: "var(--decs-font-base)", ...style }}>
       {label ? (
-        <label htmlFor={htmlFor} style={{ display: "block", fontSize: "var(--decs-fs-body-m)", fontWeight: "var(--decs-fw-bold)", color: "var(--decs-text-heading)", marginBottom: description ? "2px" : "var(--decs-space-xxs)" }}>
+        <label title={typeof label === "string" ? label : undefined} htmlFor={htmlFor} style={{ display: "block", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontSize: "var(--decs-fs-body-m)", fontWeight: "var(--decs-fw-bold)", color: "var(--decs-text-heading)", marginBottom: description ? "2px" : "var(--decs-space-xxs)" }}>
           {label}
         </label>
       ) : null}

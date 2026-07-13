@@ -22,6 +22,7 @@ export function Button({
   onClick,
   href,
   ariaLabel,
+  type = "button",
   style,
 }) {
   const [hover, hoverProps] = useHover();
@@ -45,6 +46,7 @@ export function Button({
     transition: "background var(--decs-motion-fast) var(--decs-easing), border-color var(--decs-motion-fast) var(--decs-easing)",
     textDecoration: "none",
     whiteSpace: "nowrap",
+    flexShrink: 0,
   };
 
   const variants = {
@@ -91,6 +93,7 @@ export function Button({
       href={href && !isDisabled ? href : undefined}
       onClick={isDisabled ? undefined : onClick}
       disabled={Tag === "button" ? isDisabled : undefined}
+      type={Tag === "button" ? type : undefined}
       aria-label={ariaLabel}
       aria-disabled={isDisabled || undefined}
       style={merged}

@@ -33,6 +33,7 @@ const RequestManagementPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [filter, setFilter] = useState("ALL"); // ALL, PENDING, FULFILLED, DENIED
   const [alert, setAlert] = useState(null);
+  const [processingRequestId, setProcessingRequestId] = useState(null);
 
   useEffect(() => {
     const fetchRequests = async () => {
@@ -94,6 +95,8 @@ const RequestManagementPage = () => {
   };
 
   const handleStatusUpdate = async (request, newStatus, comment = "") => {
+    if (processingRequestId !== null) return;
+    setProcessingRequestId(request.request_id);
     try {
       let response;
 
@@ -119,24 +122,17 @@ const RequestManagementPage = () => {
       }
 
       if (response.status === 200) {
-        // API 응답으로 받은 업데이트된 데이터로 state 업데이트
-        const updatedRequest = response.data?.data || response.data;
-
-        // 승인/거절 API의 경우 newStatus를 기반으로 상태 설정
-        const finalStatus = (newStatus === "FULFILLED" || newStatus === "DENIED")
-          ? newStatus
-          : updatedRequest.status;
+        const processedAt = new Date().toISOString();
 
         setRequests((prev) =>
           prev.map((req) =>
             req.request_id === request.request_id
               ? {
                   ...req,
-                  status: finalStatus,
-                  admin_comment: updatedRequest.comment,
-                  updated_at: updatedRequest.updatedAt,
-                  approved_at: updatedRequest.approvedAt,
-                  ubuntu_gids: updatedRequest.ubuntuGids,
+                  status: newStatus,
+                  admin_comment: comment,
+                  updated_at: processedAt,
+                  approved_at: newStatus === "FULFILLED" ? processedAt : req.approved_at,
                 }
               : req
           )
@@ -151,16 +147,6 @@ const RequestManagementPage = () => {
 
         setSelectedRequest(null);
 
-        // 승인 처리 시 추가 정보 로깅
-        if (newStatus === "FULFILLED") {
-          console.log("승인 처리 완료:", {
-            requestId: request.request_id,
-            imageId: request.image_id,
-            userId: request.user_id,
-            resourceGroupId: request.rsgroup_id,
-            ubuntuGids: updatedRequest.ubuntuGids,
-          });
-        }
       } else {
         setAlert({
           type: "error",
@@ -184,6 +170,8 @@ const RequestManagementPage = () => {
             "서버와의 연결에 문제가 발생했습니다. 인터넷 연결을 확인하시고 잠시 후 다시 시도해주세요.",
         });
       }
+    } finally {
+      setProcessingRequestId(null);
     }
   };
 
@@ -285,11 +273,12 @@ const RequestManagementPage = () => {
           </Button>
           {r.status === "PENDING" && (
             <>
-              <Button variant="inline-link" onClick={() => promptApprove(r)}>
+              <Button variant="inline-link" disabled={processingRequestId !== null} loading={processingRequestId === r.request_id} onClick={() => promptApprove(r)}>
                 승인
               </Button>
               <Button
                 variant="inline-link"
+                disabled={processingRequestId !== null}
                 style={{ color: "var(--decs-status-error)" }}
                 onClick={() => promptDeny(r)}
               >
@@ -300,6 +289,7 @@ const RequestManagementPage = () => {
           {r.status === "FULFILLED" && (
             <Button
               variant="inline-link"
+              disabled={processingRequestId !== null}
               style={{ color: "var(--decs-status-error)" }}
               onClick={() => promptRevoke(r)}
             >
@@ -338,6 +328,7 @@ const RequestManagementPage = () => {
           ]}
         />
       )}
+      {processingRequestId !== null ? <Alert type="info">Pod 생성으로 승인 처리에 최대 5분이 걸릴 수 있습니다. 완료될 때까지 창을 닫거나 다시 클릭하지 마세요.</Alert> : null}
 
       <Header
         variant="h1"
@@ -391,6 +382,7 @@ const RequestManagementPage = () => {
                 <>
                   <Button
                     variant="normal"
+                    disabled={processingRequestId !== null}
                     style={{
                       color: "var(--decs-status-error)",
                       borderColor: "var(--decs-status-error)",
@@ -399,7 +391,7 @@ const RequestManagementPage = () => {
                   >
                     거절
                   </Button>
-                  <Button variant="primary" onClick={() => promptApprove(sel)}>
+                  <Button variant="primary" disabled={processingRequestId !== null} loading={processingRequestId === sel.request_id} onClick={() => promptApprove(sel)}>
                     승인
                   </Button>
                 </>
@@ -407,6 +399,7 @@ const RequestManagementPage = () => {
               {sel.status === "FULFILLED" && (
                 <Button
                   variant="primary"
+                  disabled={processingRequestId !== null}
                   style={{
                     background: "var(--decs-status-error)",
                     color: "#fff",

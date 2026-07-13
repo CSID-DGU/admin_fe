@@ -14,11 +14,13 @@ import ImageManagementPage from "../../admin/ImageManagementPage";
 import MessageTemplatePage from "../../admin/MessageTemplatePage";
 import donggukLogo from "../../../assets/dongguk_university_logo.svg";
 import RoleSwitch from "../../../components/RoleSwitch";
+import { useTranslation } from "react-i18next";
 
 function AdminConsoleApp() {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, logout } = useAuth();
+  const { t, i18n } = useTranslation();
   const { containers, users, error } = useDecsAdminData();
 
   const nav = {
@@ -26,16 +28,16 @@ function AdminConsoleApp() {
     activeHref: getActiveHref(location.pathname),
     onFollow: (it) => navigate(it.href),
     items: [
-      { text: "대시보드", href: "/decs/admin", icon: "home" },
-      { text: "컨테이너 관리", href: "/decs/admin/containers", icon: "cube", badge: containers?.length ?? 0 },
-      { text: "신청서 관리", href: "/decs/admin/requests", icon: "document-text" },
-      { text: "변경 요청 관리", href: "/decs/admin/change-requests", icon: "arrow-path" },
-      { text: "사용자 관리", href: "/decs/admin/users", icon: "users" },
+      { text: t("shell.dashboard"), href: "/decs/admin", icon: "home" },
+      { text: t("shell.containers"), href: "/decs/admin/containers", icon: "cube", badge: containers?.length ?? 0 },
+      { text: t("shell.requestManagement"), href: "/decs/admin/requests", icon: "document-text" },
+      { text: t("shell.changeManagement"), href: "/decs/admin/change-requests", icon: "arrow-path" },
+      { text: t("shell.users"), href: "/decs/admin/users", icon: "users" },
       { type: "divider" },
-      { type: "section", text: "시스템", items: [
-        { text: "모니터링", href: "/decs/admin/monitoring", icon: "chart-bar" },
-        { text: "이미지", href: "/decs/admin/images", icon: "folder" },
-        { text: "메시지 템플릿", href: "/decs/admin/message-templates", icon: "pencil-square" },
+      { type: "section", text: t("shell.system"), items: [
+        { text: t("shell.monitoring"), href: "/decs/admin/monitoring", icon: "chart-bar" },
+        { text: t("shell.images"), href: "/decs/admin/images", icon: "folder" },
+        { text: t("shell.templates"), href: "/decs/admin/message-templates", icon: "pencil-square" },
       ]},
     ],
   };
@@ -43,13 +45,14 @@ function AdminConsoleApp() {
   const displayName = user?.name || user?.email || "사용자";
   const utilities = [
     { type: "custom", content: <RoleSwitch current="admin" /> },
-    { iconName: "bell", ariaLabel: "알림", badge: 3 },
+    { text: t("common.language"), onClick: () => i18n.changeLanguage(i18n.language === "en" ? "ko" : "en") },
+    { iconName: "bell", ariaLabel: t("common.notifications"), badge: 3 },
     {
       type: "menu",
       iconName: "user-circle",
       text: displayName,
       items: [
-        { text: "로그아웃", onClick: () => { logout(); navigate("/login"); } },
+        { text: t("common.logout"), onClick: () => { logout(); navigate("/login"); } },
       ],
     },
   ];
@@ -57,7 +60,7 @@ function AdminConsoleApp() {
   return (
     <div style={{ height: "100vh" }}>
       <AppLayout
-        identity={{ title: "DECS 관리자 콘솔", href: "/decs/admin", logo: donggukLogo, onFollow: () => navigate("/decs/admin") }}
+        identity={{ title: t("shell.adminTitle"), href: "/decs/admin", logo: donggukLogo, onFollow: () => navigate("/decs/admin") }}
         utilities={utilities}
         navigation={<SideNavigation {...nav} />}
         navigationWidth={248}

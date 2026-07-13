@@ -6,7 +6,7 @@ import { Icon } from "../icons/Icon.jsx";
  * actions (notifications, density, user menu) on the right.
  * utilities: [{ type:"button", text?, iconName?, badge?, onClick } | { type:"menu", text, iconName?, items:[] } | { type:"custom", content:<node> }]
  */
-export function TopNavigation({ identity, utilities = [], style }) {
+export function TopNavigation({ identity, utilities = [], navigationOpen, onNavigationToggle, style }) {
   const [openMenu, setOpenMenu] = React.useState(null);
 
   return (
@@ -16,11 +16,14 @@ export function TopNavigation({ identity, utilities = [], style }) {
       background: "var(--decs-grey-900)", color: "#fff",
       fontFamily: "var(--decs-font-base)", ...style,
     }}>
-      <a href={identity?.href || "#"} onClick={(e) => { if (identity?.onFollow) { e.preventDefault(); identity.onFollow(); } }}
-         style={{ display: "flex", alignItems: "center", gap: "var(--decs-space-xs)", textDecoration: "none", color: "#fff" }}>
-        {identity?.logo ? <img src={identity.logo} alt="" style={{ height: "22px", width: "auto" }} /> : null}
-        <span style={{ fontSize: "var(--decs-fs-heading-s)", fontWeight: "var(--decs-fw-bold)" }}>{identity?.title}</span>
-      </a>
+      <div style={{ display: "flex", alignItems: "center", minWidth: 0 }}>
+        {onNavigationToggle ? <button onClick={onNavigationToggle} aria-label={navigationOpen ? "메뉴 닫기" : "메뉴 열기"} style={{ display: "inline-flex", background: "none", border: "none", color: "var(--decs-text-inverse)", cursor: "pointer", padding: "var(--decs-space-xs)", marginRight: "var(--decs-space-xxs)" }}><Icon name={navigationOpen ? "x-mark" : "bars-3"} size={20} /></button> : null}
+        <a href={identity?.href || "#"} onClick={(e) => { if (identity?.onFollow) { e.preventDefault(); identity.onFollow(); } }}
+           style={{ display: "flex", alignItems: "center", minWidth: 0, gap: "var(--decs-space-xs)", textDecoration: "none", color: "var(--decs-text-inverse)" }}>
+          {identity?.logo ? <img src={identity.logo} alt="" style={{ height: "22px", width: "auto" }} /> : null}
+          <span title={identity?.title} style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontSize: "var(--decs-fs-heading-s)", fontWeight: "var(--decs-fw-bold)" }}>{identity?.title}</span>
+        </a>
+      </div>
       <div style={{ display: "flex", alignItems: "center", gap: "var(--decs-space-xxs)" }}>
         {utilities.map((u, i) => u.type === "custom" ? (
           <div key={i} style={{ display: "flex", alignItems: "center" }}>{u.content}</div>

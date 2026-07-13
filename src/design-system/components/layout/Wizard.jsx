@@ -15,7 +15,7 @@ export function Wizard({ steps = [], activeStepIndex = 0, onNavigate, onCancel, 
   return (
     <div style={{ display: "flex", gap: "var(--decs-space-xxl)", fontFamily: "var(--decs-font-base)", alignItems: "flex-start", ...style }}>
       {/* Step navigator */}
-      <nav style={{ flexShrink: 0, width: "220px", display: "flex", flexDirection: "column", gap: "var(--decs-space-xs)" }}>
+      <nav style={{ flex: "0 1 220px", minWidth: "160px", display: "flex", flexDirection: "column", gap: "var(--decs-space-xs)" }}>
         {steps.map((s, i) => {
           const done = i < activeStepIndex;
           const current = i === activeStepIndex;
@@ -38,7 +38,7 @@ export function Wizard({ steps = [], activeStepIndex = 0, onNavigate, onCancel, 
               }}>
                 {done ? <Icon name="check" size={14} /> : i + 1}
               </span>
-              <span style={{ fontSize: "var(--decs-fs-body-m)", color: current ? "var(--decs-text-heading)" : "var(--decs-text-secondary)", fontWeight: current ? "var(--decs-fw-bold)" : "var(--decs-fw-regular)" }}>
+              <span title={s.title} style={{ minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontSize: "var(--decs-fs-body-m)", color: current ? "var(--decs-text-heading)" : "var(--decs-text-secondary)", fontWeight: current ? "var(--decs-fw-bold)" : "var(--decs-fw-regular)" }}>
                 {s.title}
               </span>
             </button>
