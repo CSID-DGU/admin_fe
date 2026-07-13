@@ -19,6 +19,14 @@ const STATUS_META = {
   FULFILLED: { type: "success", label: "승인됨" },
   DENIED: { type: "error", label: "거절됨" },
 };
+const APPROVAL_BLOCK_REASON = {
+  VOLUME_SIZE: "DB 용량만 변경되고 NFS 쿼터에는 반영되지 않습니다.",
+  GROUP: "DB 그룹만 변경되고 Ubuntu 계정 그룹에는 반영되지 않습니다.",
+  RESOURCE_GROUP: "DB 리소스 그룹만 변경되고 실행 중인 Pod에는 반영되지 않습니다.",
+  CONTAINER_IMAGE: "DB 이미지 정보만 변경되고 실행 중인 Pod 이미지는 변경되지 않습니다.",
+  EXPIRES_AT: "백엔드의 만료일 생성 형식과 승인 파싱 형식이 서로 다릅니다.",
+  PORT: "백엔드 승인 서비스가 포트 변경을 아직 처리하지 않습니다.",
+};
 
 const renderStatus = (status) => {
   const meta = STATUS_META[status];
@@ -33,6 +41,7 @@ const ChangeRequestManagementPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [filter, setFilter] = useState("ALL"); // ALL, PENDING, FULFILLED, DENIED
   const [alert, setAlert] = useState(null);
+  const [processingChangeRequestId, setProcessingChangeRequestId] = useState(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -47,8 +56,8 @@ const ChangeRequestManagementPage = () => {
         ]);
 
         if (changeResponse.status === 200 && allResponse.status === 200) {
-          const changeRequestsArray = changeResponse.data.data || [];
-          const allRequestsArray = allResponse.data.data || [];
+          const changeRequestsArray = changeResponse.data?.data ?? [];
+          const allRequestsArray = allResponse.data?.data ?? [];
 
           // 변경 요청 데이터를 원본 요청과 연결
           const transformedChangeRequests = changeRequestsArray.map((changeReq) => {
@@ -188,6 +197,15 @@ const ChangeRequestManagementPage = () => {
   };
 
   const handleStatusUpdate = async (changeRequest, newStatus, comment = "") => {
+    if (processingChangeRequestId !== null) return;
+    if (newStatus === "FULFILLED" && APPROVAL_BLOCK_REASON[changeRequest.changeType]) {
+      setAlert({
+        type: "error",
+        message: `현재 안전하게 승인할 수 없습니다. ${APPROVAL_BLOCK_REASON[changeRequest.changeType]}`,
+      });
+      return;
+    }
+    setProcessingChangeRequestId(changeRequest.changeRequestId);
     try {
       let response;
 
@@ -254,10 +272,13 @@ const ChangeRequestManagementPage = () => {
       } else {
         setAlert({
           type: "error",
-          message:
-            "서버와의 연결에 문제가 발생했습니다. 인터넷 연결을 확인하시고 잠시 후 다시 시도해주세요.",
+          message: error.status
+            ? `변경 요청 처리에 실패했습니다. ${error.message}`
+            : "서버와 연결할 수 없습니다. 네트워크를 확인하고 잠시 후 다시 시도해주세요.",
         });
       }
+    } finally {
+      setProcessingChangeRequestId(null);
     }
   };
 
@@ -366,11 +387,17 @@ const ChangeRequestManagementPage = () => {
           </Button>
           {r.status === "PENDING" && (
             <>
-              <Button variant="inline-link" onClick={() => promptApprove(r)}>
+              <Button
+                variant="inline-link"
+                disabled={processingChangeRequestId !== null || !!APPROVAL_BLOCK_REASON[r.changeType]}
+                loading={processingChangeRequestId === r.changeRequestId}
+                onClick={() => promptApprove(r)}
+              >
                 승인
               </Button>
               <Button
                 variant="inline-link"
+                disabled={processingChangeRequestId !== null}
                 style={{ color: "var(--decs-status-error)" }}
                 onClick={() => promptDeny(r)}
               >
@@ -471,10 +498,16 @@ const ChangeRequestManagementPage = () => {
                       borderColor: "var(--decs-status-error)",
                     }}
                     onClick={() => promptDeny(sel)}
+                    disabled={processingChangeRequestId !== null}
                   >
                     거절
                   </Button>
-                  <Button variant="primary" onClick={() => promptApprove(sel)}>
+                  <Button
+                    variant="primary"
+                    disabled={processingChangeRequestId !== null || !!APPROVAL_BLOCK_REASON[sel.changeType]}
+                    loading={processingChangeRequestId === sel.changeRequestId}
+                    onClick={() => promptApprove(sel)}
+                  >
                     승인
                   </Button>
                 </>
@@ -484,6 +517,11 @@ const ChangeRequestManagementPage = () => {
         >
           <div className="space-y-6">
             <div>{renderStatus(sel.status)}</div>
+            {sel.status === "PENDING" && APPROVAL_BLOCK_REASON[sel.changeType] && (
+              <Alert type="warning" header="현재 승인할 수 없는 변경 유형입니다">
+                {APPROVAL_BLOCK_REASON[sel.changeType]}
+              </Alert>
+            )}
 
             <div>
               <Header variant="h3">변경 내용</Header>

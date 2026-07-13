@@ -19,6 +19,7 @@ const STATUS_META = {
   PENDING: { type: "pending", label: "대기중" },
   FULFILLED: { type: "success", label: "승인됨" },
   DENIED: { type: "error", label: "거절됨" },
+  DELETED: { type: "stopped", label: "삭제됨" },
 };
 
 const renderStatus = (status) => {
@@ -46,7 +47,7 @@ const RequestManagementPage = () => {
         if (response.status === 200) {
           // API 응답 데이터를 기존 UI에 맞게 변환
           // response.data는 서버 응답이고, response.data.data가 실제 배열
-          const requestsArray = response.data.data || [];
+          const requestsArray = response.data?.data ?? [];
           const transformedRequests = requestsArray.map(mapRequestDtoToUiModel);
 
           setRequests(transformedRequests);
@@ -79,7 +80,7 @@ const RequestManagementPage = () => {
     })
     .sort((a, b) => {
       // Sort by priority: PENDING > FULFILLED > DENIED
-      const statusPriority = { PENDING: 1, FULFILLED: 2, DENIED: 3 };
+      const statusPriority = { PENDING: 1, FULFILLED: 2, DENIED: 3, DELETED: 4 };
       if (statusPriority[a.status] !== statusPriority[b.status]) {
         return statusPriority[a.status] - statusPriority[b.status];
       }
@@ -92,6 +93,7 @@ const RequestManagementPage = () => {
     PENDING: requests.filter((r) => r.status === "PENDING").length,
     FULFILLED: requests.filter((r) => r.status === "FULFILLED").length,
     DENIED: requests.filter((r) => r.status === "DENIED").length,
+    DELETED: requests.filter((r) => r.status === "DELETED").length,
   };
 
   const handleStatusUpdate = async (request, newStatus, comment = "") => {
@@ -163,11 +165,17 @@ const RequestManagementPage = () => {
           message:
             "이 신청서는 이미 다른 관리자에 의해 처리되었습니다. 페이지를 새로고침해주세요.",
         });
+      } else if (error.name === "TimeoutError" || error.name === "AbortError") {
+        setAlert({
+          type: "warning",
+          message: "승인 응답 시간이 초과되었습니다. 재시도하기 전에 목록을 새로고침해 실제 처리 상태를 확인해주세요.",
+        });
       } else {
         setAlert({
           type: "error",
-          message:
-            "서버와의 연결에 문제가 발생했습니다. 인터넷 연결을 확인하시고 잠시 후 다시 시도해주세요.",
+          message: error.status
+            ? `신청서 처리에 실패했습니다. ${error.message}`
+            : "서버와 연결할 수 없습니다. 네트워크를 확인하고 잠시 후 다시 시도해주세요.",
         });
       }
     } finally {
@@ -184,13 +192,6 @@ const RequestManagementPage = () => {
 
   const promptDeny = (request) => {
     const comment = prompt("거절 사유를 입력하세요:");
-    if (comment) {
-      handleStatusUpdate(request, "DENIED", comment);
-    }
-  };
-
-  const promptRevoke = (request) => {
-    const comment = prompt("승인철회 사유를 입력하세요:");
     if (comment) {
       handleStatusUpdate(request, "DENIED", comment);
     }
@@ -214,7 +215,9 @@ const RequestManagementPage = () => {
             ? "대기중인"
             : filter === "FULFILLED"
             ? "승인된"
-            : "거절된"
+            : filter === "DENIED"
+            ? "거절된"
+            : "삭제된"
         } 신청서가 없습니다. 다른 상태의 신청서를 확인해보세요.`;
 
   const columns = [
@@ -286,16 +289,6 @@ const RequestManagementPage = () => {
               </Button>
             </>
           )}
-          {r.status === "FULFILLED" && (
-            <Button
-              variant="inline-link"
-              disabled={processingRequestId !== null}
-              style={{ color: "var(--decs-status-error)" }}
-              onClick={() => promptRevoke(r)}
-            >
-              승인철회
-            </Button>
-          )}
         </div>
       ),
     },
@@ -343,6 +336,7 @@ const RequestManagementPage = () => {
           { key: "PENDING", label: "대기중" },
           { key: "FULFILLED", label: "승인됨" },
           { key: "DENIED", label: "거절됨" },
+          { key: "DELETED", label: "삭제됨" },
         ].map((tab) => ({
           id: tab.key,
           label: `${tab.label} (${statusCounts[tab.key]})`,
@@ -395,19 +389,6 @@ const RequestManagementPage = () => {
                     승인
                   </Button>
                 </>
-              )}
-              {sel.status === "FULFILLED" && (
-                <Button
-                  variant="primary"
-                  disabled={processingRequestId !== null}
-                  style={{
-                    background: "var(--decs-status-error)",
-                    color: "#fff",
-                  }}
-                  onClick={() => promptRevoke(sel)}
-                >
-                  승인철회
-                </Button>
               )}
             </>
           }

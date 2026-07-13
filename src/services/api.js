@@ -62,10 +62,8 @@ class ApiClient {
           errorData = { message: `HTTP error! status: ${response.status}` };
         }
 
-        console.error("API 에러 응답:", errorData);
-
         // 401 상태코드인 경우 세션 만료 처리 (로그인 요청은 제외)
-        const errorCode = errorData.code || errorData.errorCode || errorData.data?.code;
+        const errorCode = errorData?.code || errorData?.errorCode || errorData?.data?.code;
         if (response.status === 401 && !skipSessionExpiredCheck) {
           sessionEventManager.triggerSessionExpired(errorCode === "ACCOUNT_DISABLED" || errorData.message?.includes("ACCOUNT_DISABLED") ? "ACCOUNT_DISABLED" : "SESSION_EXPIRED");
         }
@@ -75,10 +73,12 @@ class ApiClient {
         );
         err.status = response.status;
         err.code = errorCode;
+        err.data = errorData;
         throw err;
       }
     } catch (error) {
-      console.error("API Request Error:", error);
+      // HTTP 오류는 호출 화면에서 처리합니다. 네트워크/파싱 오류만 한 번 기록합니다.
+      if (!error.status) console.error("API Request Error:", error);
       throw error;
     }
   }

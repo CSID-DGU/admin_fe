@@ -109,7 +109,7 @@ function toRequestPayload(form) {
     resourceGroupId: parseInt(form.gpu, 10),
     imageId: parseInt(form.env, 10),
     ubuntuUsername: form.ubuntuUsername,
-    ubuntuPassword: window.btoa(unescape(encodeURIComponent(form.ubuntuPassword))),
+    ubuntuPassword: bytesToBase64(new TextEncoder().encode(form.ubuntuPassword)),
     volumeSizeGiB: parseInt(form.volumeSizeGiB, 10),
     usagePurpose: form.usagePurpose,
     formAnswers: { purpose: form.purpose },
@@ -117,6 +117,12 @@ function toRequestPayload(form) {
     ubuntuGids: (form.ubuntuGids ?? []).map((gid) => parseInt(gid, 10)),
     portRequests: form.portRequests ?? [],
   };
+}
+
+function bytesToBase64(bytes) {
+  let binary = "";
+  bytes.forEach((byte) => { binary += String.fromCharCode(byte); });
+  return window.btoa(binary);
 }
 
 export default UserPortalApp;

@@ -33,7 +33,7 @@ const RequestStatusPage = () => {
 
         if (response.status === 200) {
           // API 응답 데이터를 기존 UI에 맞게 변환
-          const transformedRequests = response.data.data.map(
+          const transformedRequests = (response.data?.data ?? []).map(
             mapRequestDtoToUiModel
           );
 
@@ -70,6 +70,8 @@ const RequestStatusPage = () => {
         return <StatusIndicator type="success">승인됨</StatusIndicator>;
       case "DENIED":
         return <StatusIndicator type="error">거절됨</StatusIndicator>;
+      case "DELETED":
+        return <StatusIndicator type="stopped">삭제됨</StatusIndicator>;
       default:
         return <StatusIndicator type="info">{status}</StatusIndicator>;
     }
@@ -92,7 +94,7 @@ const RequestStatusPage = () => {
     })
     .sort((a, b) => {
       // Sort by priority: PENDING > FULFILLED > DENIED
-      const statusPriority = { PENDING: 1, FULFILLED: 2, DENIED: 3 };
+      const statusPriority = { PENDING: 1, FULFILLED: 2, DENIED: 3, DELETED: 4 };
       if (statusPriority[a.status] !== statusPriority[b.status]) {
         return statusPriority[a.status] - statusPriority[b.status];
       }
@@ -105,6 +107,7 @@ const RequestStatusPage = () => {
     PENDING: requests.filter((r) => r.status === "PENDING").length,
     FULFILLED: requests.filter((r) => r.status === "FULFILLED").length,
     DENIED: requests.filter((r) => r.status === "DENIED").length,
+    DELETED: requests.filter((r) => r.status === "DELETED").length,
   };
 
   if (loading) {
@@ -129,7 +132,9 @@ const RequestStatusPage = () => {
                     ? "대기중인"
                     : filter === "FULFILLED"
                     ? "승인된"
-                    : "거절된"
+                    : filter === "DENIED"
+                    ? "거절된"
+                    : "삭제된"
                 } 신청이 없어요`}
           </p>
           <p className="text-(--decs-text-secondary)">
@@ -250,6 +255,7 @@ const RequestStatusPage = () => {
     { key: "PENDING", label: "대기중" },
     { key: "FULFILLED", label: "승인됨" },
     { key: "DENIED", label: "거절됨" },
+    { key: "DELETED", label: "삭제됨" },
   ].map((tab) => ({
     id: tab.key,
     label: `${tab.label} (${statusCounts[tab.key]})`,

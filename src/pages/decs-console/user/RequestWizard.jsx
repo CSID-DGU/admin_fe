@@ -3,6 +3,11 @@ import React from "react";
 import { Wizard, Cards, FormField, Select, Input, KeyValuePairs, Alert, Container, Header, StatusIndicator, Button, Badge, Table } from "../../../design-system";
 import { requestService } from "../../../services/requestService";
 
+function toLocalDateInput(date) {
+  const offset = date.getTimezoneOffset() * 60_000;
+  return new Date(date.getTime() - offset).toISOString().slice(0, 10);
+}
+
 function RequestWizard({ onCancel, onDone, gpuOptions: gpuOptionsProp, envOptions: envOptionsProp, groupOptions: groupOptionsProp, onSubmit: onSubmitProp }) {
   const [step, setStep] = React.useState(0);
   const [purpose, setPurpose] = React.useState("");
@@ -10,7 +15,7 @@ function RequestWizard({ onCancel, onDone, gpuOptions: gpuOptionsProp, envOption
   const [expiresDate, setExpiresDate] = React.useState(() => {
     const d = new Date();
     d.setDate(d.getDate() + 14);
-    return d.toISOString().split("T")[0];
+    return toLocalDateInput(d);
   });
   const [env, setEnv] = React.useState("");
   const [ubuntuUsername, setUbuntuUsername] = React.useState("");
@@ -64,6 +69,23 @@ function RequestWizard({ onCancel, onDone, gpuOptions: gpuOptionsProp, envOption
     return Object.keys(nextErrors).length === 0;
   }
 
+  function validatePeriod() {
+    const picked = new Date(`${expiresDate}T00:00:00`);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const maxDate = new Date(today);
+    maxDate.setDate(maxDate.getDate() + 365);
+    if (!expiresDate || Number.isNaN(picked.getTime()) || picked <= today) {
+      setStepErrors((prev) => ({ ...prev, period: "만료일은 오늘 이후 날짜로 선택해주세요." }));
+      return false;
+    }
+    if (picked > maxDate) {
+      setStepErrors((prev) => ({ ...prev, period: "만료일은 오늘부터 1년 이내로 선택해주세요." }));
+      return false;
+    }
+    return true;
+  }
+
   function validateStep(nextStep) {
     if (step === 0 && nextStep > step && purpose.trim().length < 5) {
       setStepErrors((prev) => ({ ...prev, purpose: "사용 목적을 5자 이상 적어주세요." }));
@@ -73,21 +95,7 @@ function RequestWizard({ onCancel, onDone, gpuOptions: gpuOptionsProp, envOption
       setStepErrors((prev) => ({ ...prev, gpu: "GPU를 선택해주세요." }));
       return false;
     }
-    if (step === 2 && nextStep > step) {
-      const picked = new Date(expiresDate);
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      const maxDate = new Date();
-      maxDate.setDate(maxDate.getDate() + 365);
-      if (!expiresDate || Number.isNaN(picked.getTime()) || picked <= today) {
-        setStepErrors((prev) => ({ ...prev, period: "만료일은 오늘 이후 날짜로 선택해주세요." }));
-        return false;
-      }
-      if (picked > maxDate) {
-        setStepErrors((prev) => ({ ...prev, period: "만료일은 오늘부터 1년 이내로 선택해주세요." }));
-        return false;
-      }
-    }
+    if (step === 2 && nextStep > step && !validatePeriod()) return false;
     if (step === 3 && nextStep > step && !validateDevelopmentStep()) return false;
     return true;
   }
@@ -312,7 +320,8 @@ function RequestWizard({ onCancel, onDone, gpuOptions: gpuOptionsProp, envOption
       !volumeSizeGiB ? "저장공간" : null,
     ].filter(Boolean);
     const developmentValid = validateDevelopmentStep();
-    if (missingFields.length > 0 || !developmentValid) {
+    const periodValid = validatePeriod();
+    if (missingFields.length > 0 || !developmentValid || !periodValid) {
       setError(`필수 신청 정보를 확인해주세요: ${missingFields.join(", ") || "Ubuntu 계정 정보"}`);
       return undefined;
     }
@@ -321,7 +330,7 @@ function RequestWizard({ onCancel, onDone, gpuOptions: gpuOptionsProp, envOption
       purpose: purposeText,
       usagePurpose: purposeText,
       gpu: selectedGpu.id,
-      expiresAt: new Date(`${expiresDate}T23:59:59`).toISOString(),
+      expiresAt: `${expiresDate}T23:59:59`,
       env,
       ubuntuUsername,
       ubuntuPassword,
