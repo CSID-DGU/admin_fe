@@ -26,18 +26,18 @@ function UserPortalApp() {
   const isAdmin = user?.role === "ADMIN";
 
   const nav = {
-    header: { text: "DECS", href: "/decs/user" },
+    header: { text: "DECS", href: "/user" },
     activeHref: getActiveHref(location.pathname),
     onFollow: (it) => navigate(it.href),
     items: [
-      { text: t("shell.dashboard"), href: "/decs/user", icon: "home" },
-      { text: t("shell.myContainer"), href: "/decs/user/container", icon: "cube" },
-      { text: t("shell.gpuRequest"), href: "/decs/user/request", icon: "plus" },
-      { text: t("shell.requests"), href: "/decs/user/requests", icon: "clipboard" },
-      { text: t("shell.changeRequests"), href: "/decs/user/change-requests", icon: "arrow-path" },
+      { text: t("shell.dashboard"), href: "/user", icon: "home" },
+      { text: t("shell.myContainer"), href: "/user/container", icon: "cube" },
+      { text: t("shell.gpuRequest"), href: "/user/request", icon: "plus" },
+      { text: t("shell.requests"), href: "/user/requests", icon: "clipboard" },
+      { text: t("shell.changeRequests"), href: "/user/change-requests", icon: "arrow-path" },
       { type: "divider" },
-      { text: t("shell.resourceMonitoring"), href: "/decs/user/monitoring", icon: "chart-bar" },
-      { text: t("shell.account"), href: "/decs/user/account", icon: "user-circle" },
+      { text: t("shell.resourceMonitoring"), href: "/user/monitoring", icon: "chart-bar" },
+      { text: t("shell.account"), href: "/user/account", icon: "user-circle" },
     ],
   };
 
@@ -62,7 +62,7 @@ function UserPortalApp() {
       if (response.status !== 200 && response.status !== 201) {
         throw new Error("신청에 실패했습니다.");
       }
-      navigate("/decs/user/requests");
+      navigate("/user/requests");
     } catch (error) {
       setSubmitError(error.message || "신청에 실패했습니다.");
       throw error;
@@ -72,7 +72,7 @@ function UserPortalApp() {
   return (
     <div style={{ height: "100vh" }}>
       <AppLayout
-        identity={{ title: t("shell.userTitle"), href: "/decs/user", logo: donggukLogo, onFollow: () => navigate("/decs/user") }}
+        identity={{ title: t("shell.userTitle"), href: "/user", logo: donggukLogo, onFollow: () => navigate("/user") }}
         utilities={utilities}
         navigation={<SideNavigation {...nav} />}
         navigationWidth={240}
@@ -80,14 +80,14 @@ function UserPortalApp() {
         {error ? <div style={{ marginBottom: "var(--decs-space-m)" }}><Flashbar items={[{ id: "decs-user-data", type: "warning", header: error, dismissible: false }]} /></div> : null}
         {submitError ? <div style={{ marginBottom: "var(--decs-space-m)" }}><Flashbar items={[{ id: "decs-request-submit", type: "error", header: submitError, dismissible: false }]} /></div> : null}
         <Routes>
-          <Route index element={<UserDashboard userName={userName} server={server} expiryDays={expiryDays} activities={activities ?? []} onRequest={() => navigate("/decs/user/request")} onConnect={() => navigate("/decs/user/container")} onExtend={() => navigate("/decs/user/container")} onDetail={() => navigate("/decs/user/container")} />} />
-          <Route path="request" element={<RequestWizard onCancel={() => navigate("/decs/user")} onDone={() => navigate("/decs/user/requests")} gpuOptions={gpuOptions ?? []} envOptions={envOptions ?? []} groupOptions={groupOptions ?? []} onSubmit={submitRequest} />} />
-          <Route path="container" element={<UserContainerDetail onBack={() => navigate("/decs/user")} onExtend={() => navigate("/decs/user/container")} server={server} />} />
+          <Route index element={<UserDashboard userName={userName} server={server} expiryDays={expiryDays} activities={activities ?? []} onRequest={() => navigate("/user/request")} onConnect={() => navigate("/user/container")} onExtend={() => navigate("/user/container")} onDetail={() => navigate("/user/container")} />} />
+          <Route path="request" element={<RequestWizard onCancel={() => navigate("/user")} onDone={() => navigate("/user/requests")} gpuOptions={gpuOptions ?? []} envOptions={envOptions ?? []} groupOptions={groupOptions ?? []} onSubmit={submitRequest} />} />
+          <Route path="container" element={<UserContainerDetail onBack={() => navigate("/user")} onExtend={() => navigate("/user/container")} server={server} />} />
           <Route path="requests" element={<RequestStatusPage />} />
           <Route path="change-requests" element={<MyChangeRequestsPage />} />
           <Route path="account" element={<AccountPage user={user} />} />
           <Route path="monitoring" element={<ResourceMonitoringPage />} />
-          <Route path="*" element={<Navigate to="/decs/user" replace />} />
+          <Route path="*" element={<Navigate to="/user" replace />} />
         </Routes>
       </AppLayout>
     </div>
@@ -95,13 +95,13 @@ function UserPortalApp() {
 }
 
 function getActiveHref(pathname) {
-  if (pathname.startsWith("/decs/user/container")) return "/decs/user/container";
-  if (pathname.startsWith("/decs/user/request") && !pathname.startsWith("/decs/user/requests")) return "/decs/user/request";
-  if (pathname.startsWith("/decs/user/requests")) return "/decs/user/requests";
-  if (pathname.startsWith("/decs/user/change-requests")) return "/decs/user/change-requests";
-  if (pathname.startsWith("/decs/user/account")) return "/decs/user/account";
-  if (pathname.startsWith("/decs/user/monitoring")) return "/decs/user/monitoring";
-  return "/decs/user";
+  if (pathname.startsWith("/user/container")) return "/user/container";
+  if (pathname.startsWith("/user/request") && !pathname.startsWith("/user/requests")) return "/user/request";
+  if (pathname.startsWith("/user/requests")) return "/user/requests";
+  if (pathname.startsWith("/user/change-requests")) return "/user/change-requests";
+  if (pathname.startsWith("/user/account")) return "/user/account";
+  if (pathname.startsWith("/user/monitoring")) return "/user/monitoring";
+  return "/user";
 }
 
 function toRequestPayload(form) {

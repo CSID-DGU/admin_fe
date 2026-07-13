@@ -3,8 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
 const SEGMENTS = [
-  { key: "admin", label: "common.admin", href: "/decs/admin" },
-  { key: "user", label: "common.user", href: "/decs/user" },
+  { key: "admin", label: "common.admin", href: "/admin" },
+  { key: "user", label: "common.user", href: "/user" },
 ];
 
 export default function RoleSwitch({ current }) {

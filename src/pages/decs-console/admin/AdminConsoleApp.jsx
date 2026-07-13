@@ -24,20 +24,20 @@ function AdminConsoleApp() {
   const { containers, users, error } = useDecsAdminData();
 
   const nav = {
-    header: { text: "DECS Admin", href: "/decs/admin" },
+    header: { text: "DECS Admin", href: "/admin" },
     activeHref: getActiveHref(location.pathname),
     onFollow: (it) => navigate(it.href),
     items: [
-      { text: t("shell.dashboard"), href: "/decs/admin", icon: "home" },
-      { text: t("shell.containers"), href: "/decs/admin/containers", icon: "cube", badge: containers?.length ?? 0 },
-      { text: t("shell.requestManagement"), href: "/decs/admin/requests", icon: "document-text" },
-      { text: t("shell.changeManagement"), href: "/decs/admin/change-requests", icon: "arrow-path" },
-      { text: t("shell.users"), href: "/decs/admin/users", icon: "users" },
+      { text: t("shell.dashboard"), href: "/admin", icon: "home" },
+      { text: t("shell.containers"), href: "/admin/containers", icon: "cube", badge: containers?.length ?? 0 },
+      { text: t("shell.requestManagement"), href: "/admin/requests", icon: "document-text" },
+      { text: t("shell.changeManagement"), href: "/admin/change-requests", icon: "arrow-path" },
+      { text: t("shell.users"), href: "/admin/users", icon: "users" },
       { type: "divider" },
       { type: "section", text: t("shell.system"), items: [
-        { text: t("shell.monitoring"), href: "/decs/admin/monitoring", icon: "chart-bar" },
-        { text: t("shell.images"), href: "/decs/admin/images", icon: "folder" },
-        { text: t("shell.templates"), href: "/decs/admin/message-templates", icon: "pencil-square" },
+        { text: t("shell.monitoring"), href: "/admin/monitoring", icon: "chart-bar" },
+        { text: t("shell.images"), href: "/admin/images", icon: "folder" },
+        { text: t("shell.templates"), href: "/admin/message-templates", icon: "pencil-square" },
       ]},
     ],
   };
@@ -60,15 +60,15 @@ function AdminConsoleApp() {
   return (
     <div style={{ height: "100vh" }}>
       <AppLayout
-        identity={{ title: t("shell.adminTitle"), href: "/decs/admin", logo: donggukLogo, onFollow: () => navigate("/decs/admin") }}
+        identity={{ title: t("shell.adminTitle"), href: "/admin", logo: donggukLogo, onFollow: () => navigate("/admin") }}
         utilities={utilities}
         navigation={<SideNavigation {...nav} />}
         navigationWidth={248}
       >
         {error ? <div style={{ marginBottom: "var(--decs-space-m)" }}><Flashbar items={[{ id: "decs-admin-data", type: "warning", header: error, dismissible: false }]} /></div> : null}
         <Routes>
-          <Route index element={<AdminDashboard onOpenContainers={() => navigate("/decs/admin/containers")} containers={containers ?? []} users={users ?? []} />} />
-          <Route path="containers" element={<ContainerManagement onOpenDetail={(c) => navigate(`/decs/admin/containers/${c.id}`)} containers={containers ?? []} />} />
+          <Route index element={<AdminDashboard onOpenContainers={() => navigate("/admin/containers")} containers={containers ?? []} users={users ?? []} />} />
+          <Route path="containers" element={<ContainerManagement onOpenDetail={(c) => navigate(`/admin/containers/${c.id}`)} containers={containers ?? []} />} />
           <Route path="containers/:containerId" element={<ContainerDetailRoute containers={containers ?? []} />} />
           <Route path="requests" element={<RequestManagementPage />} />
           <Route path="change-requests" element={<ChangeRequestManagementPage />} />
@@ -76,7 +76,7 @@ function AdminConsoleApp() {
           <Route path="monitoring" element={<ResourceMonitoringPage user={user} />} />
           <Route path="images" element={<ImageManagementPage />} />
           <Route path="message-templates" element={<MessageTemplatePage />} />
-          <Route path="*" element={<Navigate to="/decs/admin" replace />} />
+          <Route path="*" element={<Navigate to="/admin" replace />} />
         </Routes>
       </AppLayout>
     </div>
@@ -87,18 +87,18 @@ function ContainerDetailRoute({ containers }) {
   const { containerId } = useParams();
   const navigate = useNavigate();
   const item = containers.find((container) => String(container.id) === containerId);
-  return <ContainerDetail item={item} onBack={() => navigate("/decs/admin/containers")} />;
+  return <ContainerDetail item={item} onBack={() => navigate("/admin/containers")} />;
 }
 
 function getActiveHref(pathname) {
-  if (pathname.startsWith("/decs/admin/containers")) return "/decs/admin/containers";
-  if (pathname.startsWith("/decs/admin/change-requests")) return "/decs/admin/change-requests";
-  if (pathname.startsWith("/decs/admin/requests")) return "/decs/admin/requests";
-  if (pathname.startsWith("/decs/admin/users")) return "/decs/admin/users";
-  if (pathname.startsWith("/decs/admin/monitoring")) return "/decs/admin/monitoring";
-  if (pathname.startsWith("/decs/admin/images")) return "/decs/admin/images";
-  if (pathname.startsWith("/decs/admin/message-templates")) return "/decs/admin/message-templates";
-  return "/decs/admin";
+  if (pathname.startsWith("/admin/containers")) return "/admin/containers";
+  if (pathname.startsWith("/admin/change-requests")) return "/admin/change-requests";
+  if (pathname.startsWith("/admin/requests")) return "/admin/requests";
+  if (pathname.startsWith("/admin/users")) return "/admin/users";
+  if (pathname.startsWith("/admin/monitoring")) return "/admin/monitoring";
+  if (pathname.startsWith("/admin/images")) return "/admin/images";
+  if (pathname.startsWith("/admin/message-templates")) return "/admin/message-templates";
+  return "/admin";
 }
 
 export default AdminConsoleApp;
