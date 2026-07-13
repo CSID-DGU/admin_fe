@@ -22,15 +22,13 @@ export const AuthProvider = ({ children }) => {
 
   const handleSessionExpired = useCallback((reason) => {
     setSessionEndReason(reason);
-    if (reason === "ACCOUNT_DISABLED") logout();
+    logout();
     setShowSessionExpiredModal(true);
   }, [logout]);
 
   const handleSessionExpiredConfirm = () => {
     setShowSessionExpiredModal(false);
     if (sessionEndReason === "ACCOUNT_DISABLED") return;
-    logout();
-    // 로그인 페이지로 리다이렉트
     window.location.href = "/login";
   };
 
@@ -174,8 +172,8 @@ export const AuthProvider = ({ children }) => {
   return (
     <AuthContext.Provider value={value}>
       {children}
-      <Modal visible={showSessionExpiredModal} onDismiss={handleSessionExpiredConfirm} header={sessionEndReason === "ACCOUNT_DISABLED" ? "계정 비활성화" : "세션 만료"} size="small" footer={<Button variant="primary" onClick={handleSessionExpiredConfirm}>{sessionEndReason === "ACCOUNT_DISABLED" ? "확인" : t("auth.login")}</Button>}>
-        {sessionEndReason === "ACCOUNT_DISABLED" ? "계정이 비활성화되었습니다. 관리자에게 문의하세요." : "보안을 위해 세션이 만료되었습니다. 다시 로그인해주세요."}
+      <Modal visible={showSessionExpiredModal} onDismiss={handleSessionExpiredConfirm} header={sessionEndReason === "ACCOUNT_DISABLED" ? "계정 비활성화" : "다시 로그인이 필요합니다"} size="small" footer={<Button variant="primary" onClick={handleSessionExpiredConfirm}>{sessionEndReason === "ACCOUNT_DISABLED" ? "확인" : t("auth.login")}</Button>}>
+        {sessionEndReason === "ACCOUNT_DISABLED" ? "계정이 비활성화되었습니다. 관리자에게 문의하세요." : "보안 업데이트 또는 세션 만료로 로그인이 해제되었습니다. 다시 로그인해주세요."}
       </Modal>
     </AuthContext.Provider>
   );

@@ -1,5 +1,4 @@
 import apiClient from './api.js';
-import { authService } from './authService.js';
 
 /**
  * 이미지 목록을 조회합니다.
@@ -7,18 +6,7 @@ import { authService } from './authService.js';
  */
 export const getImages = async () => {
   try {
-    const accessToken = authService.getAccessToken();
-    if (!accessToken) {
-      throw new Error("인증 토큰이 없습니다.");
-    }
-
-    const response = await apiClient.request('/api/images', {
-      method: 'GET',
-      headers: {
-        accept: 'application/json;charset=UTF-8',
-        Authorization: `Bearer ${accessToken}`,
-      },
-    });
+    const response = await apiClient.get('/api/images');
     
     if (response.status === 200 || response.status === 201) {
       return {
@@ -51,20 +39,7 @@ export const getImages = async () => {
  */
 export const createImage = async (imageData) => {
   try {
-    const accessToken = authService.getAccessToken();
-    if (!accessToken) {
-      throw new Error("인증 토큰이 없습니다.");
-    }
-
-    const response = await apiClient.request('/api/images', {
-      method: 'POST',
-      headers: {
-        accept: 'application/json;charset=UTF-8',
-        Authorization: `Bearer ${accessToken}`,
-        'Content-Type': 'application/json;charset=UTF-8',
-      },
-      body: JSON.stringify(imageData),
-    });
+    const response = await apiClient.post('/api/images', imageData);
     
     if (response.status === 200 || response.status === 201) {
       return {

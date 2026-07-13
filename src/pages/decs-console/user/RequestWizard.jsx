@@ -1,6 +1,7 @@
 // RequestWizard — 사용 목적 → GPU → 기간 → 개발 환경 → 확인
 import React from "react";
 import { Wizard, Cards, FormField, Select, Input, KeyValuePairs, Alert, Container, Header, StatusIndicator, Button, Badge, Table } from "../../../design-system";
+import { requestService } from "../../../services/requestService";
 
 function RequestWizard({ onCancel, onDone, gpuOptions: gpuOptionsProp, envOptions: envOptionsProp, groupOptions: groupOptionsProp, onSubmit: onSubmitProp }) {
   const [step, setStep] = React.useState(0);
@@ -26,6 +27,7 @@ function RequestWizard({ onCancel, onDone, gpuOptions: gpuOptionsProp, envOption
   const [portPurpose, setPortPurpose] = React.useState("");
   const [portRequests, setPortRequests] = React.useState([]);
   const [portError, setPortError] = React.useState(null);
+  const [checkingUsername, setCheckingUsername] = React.useState(false);
 
   const gpuOptions = React.useMemo(() => gpuOptionsProp ?? [], [gpuOptionsProp]);
   const envOptions = React.useMemo(() => envOptionsProp ?? [], [envOptionsProp]);
@@ -90,9 +92,25 @@ function RequestWizard({ onCancel, onDone, gpuOptions: gpuOptionsProp, envOption
     return true;
   }
 
-  function handleNavigate(nextStep) {
+  async function handleNavigate(nextStep) {
     setError(null);
     if (!validateStep(nextStep)) return;
+    if (step === 3 && nextStep > step) {
+      setCheckingUsername(true);
+      try {
+        const response = await requestService.checkUbuntuUsername(ubuntuUsername);
+        const available = response.data?.available ?? response.data?.data?.available;
+        if (available === false) {
+          setEnvErrors((prev) => ({ ...prev, ubuntuUsername: "이미 사용 중인 Ubuntu 사용자명입니다." }));
+          return;
+        }
+      } catch {
+        setEnvErrors((prev) => ({ ...prev, ubuntuUsername: "사용자명 중복 확인에 실패했습니다. 잠시 후 다시 시도해주세요." }));
+        return;
+      } finally {
+        setCheckingUsername(false);
+      }
+    }
     setStep(nextStep);
   }
 
@@ -324,7 +342,7 @@ function RequestWizard({ onCancel, onDone, gpuOptions: gpuOptionsProp, envOption
       <Header variant="h1">GPU 신청</Header>
       {error ? <div style={{ marginBottom: "var(--decs-space-m)" }}><Alert type="error">{error}</Alert></div> : null}
       <Container>
-        <Wizard steps={steps} activeStepIndex={step} onNavigate={handleNavigate} onCancel={onCancel} onSubmit={submit} submitLabel="신청하기" isLoadingNextStep={submitting} />
+        <Wizard steps={steps} activeStepIndex={step} onNavigate={handleNavigate} onCancel={onCancel} onSubmit={submit} submitLabel="신청하기" isLoadingNextStep={submitting || checkingUsername} />
       </Container>
     </div>
   );

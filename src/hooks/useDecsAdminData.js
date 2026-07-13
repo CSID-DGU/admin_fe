@@ -3,7 +3,7 @@ import { podService } from "../services/podService";
 import userService from "../services/userService";
 import { mapAdminContainer } from "../utils/decsMapper";
 
-const ERROR_MESSAGE = "실데이터를 불러오지 못해 예시 데이터를 표시합니다.";
+const ERROR_MESSAGE = "일부 Pod 상세 정보를 불러오지 못했습니다.";
 
 function getArrayData(res) {
   if (Array.isArray(res?.data)) return res.data;
@@ -19,43 +19,52 @@ export function useDecsAdminData() {
   useEffect(() => {
     let cancelled = false;
 
-    Promise.allSettled([podService.getActiveContainers(), podService.getAllPods(), userService.getAllUsers()]).then(
-      ([containersResult, podsResult, usersResult]) => {
-        if (cancelled) return;
+    async function load() {
+      const [containersResult, usersResult] = await Promise.allSettled([
+        podService.getActiveContainers(),
+        userService.getAllUsers(),
+      ]);
+      if (cancelled) return;
 
-        let hasError = false;
+      let hasError = false;
 
-        if (containersResult.status === "fulfilled" && containersResult.value?.status === 200) {
-          const activeContainers = getArrayData(containersResult.value);
-          const pods = podsResult.status === "fulfilled" ? getArrayData(podsResult.value) : [];
-          if (activeContainers) {
-            const statusByPodName = new Map((pods || []).map((pod) => [pod.podName ?? pod.name, pod.status]));
-            setContainers(activeContainers.map((container) => mapAdminContainer({ ...container, status: container.status ?? statusByPodName.get(container.podName) })));
-          } else {
-            hasError = true;
-          }
+      if (containersResult.status === "fulfilled" && containersResult.value?.status === 200) {
+        const activeContainers = getArrayData(containersResult.value);
+        if (activeContainers) {
+          const details = await Promise.allSettled(activeContainers.map((container) =>
+            container.podName ? podService.getPod(container.podName) : Promise.resolve(null)
+          ));
+          if (cancelled) return;
+          setContainers(activeContainers.map((container, index) => {
+            const result = details[index];
+            const detail = result.status === "fulfilled" ? result.value?.data : null;
+            if (container.podName && !detail) hasError = true;
+            return mapAdminContainer({ ...container, podDetail: detail, status: detail?.status });
+          }));
         } else {
           hasError = true;
         }
-
-        if (podsResult.status !== "fulfilled") hasError = true;
-
-        if (usersResult.status === "fulfilled" && usersResult.value?.status === 200) {
-          const userList = getArrayData(usersResult.value);
-          if (userList) {
-            setUsers(userList);
-          } else {
-            hasError = true;
-          }
-        } else {
-          hasError = true;
-        }
-
-        if (hasError) {
-          setError(ERROR_MESSAGE);
-        }
+      } else {
+        hasError = true;
       }
-    );
+
+      if (usersResult.status === "fulfilled" && usersResult.value?.status === 200) {
+        const userList = getArrayData(usersResult.value);
+        if (userList) {
+          setUsers(userList);
+        } else {
+          hasError = true;
+        }
+      } else {
+        hasError = true;
+      }
+
+      if (hasError) {
+        setError(ERROR_MESSAGE);
+      }
+    }
+
+    load();
 
     return () => {
       cancelled = true;

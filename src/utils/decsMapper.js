@@ -81,6 +81,7 @@ export function mapPodStatus(podStatus) {
 export function mapAdminContainer(dto) {
   const status = mapPodStatus(dto.status);
   const image = [dto.imageName, dto.imageVersion].filter(Boolean).join(":");
+  const detail = dto.podDetail ?? {};
 
   return {
     id: String(dto.ubuntuUsername ?? dto.userId),
@@ -89,7 +90,12 @@ export function mapAdminContainer(dto) {
     userName: dto.userName,
     podName: dto.podName,
     gpu: dto.resourceGroupId != null ? `리소스 그룹 ${dto.resourceGroupId}` : "—",
-    node: dto.nodeName ?? "—",
+    node: detail.nodeName ?? dto.nodeName ?? "—",
+    namespace: detail.namespace ?? "—",
+    hostIP: detail.hostIP ?? "—",
+    createdAt: formatDate(detail.creationTimestamp),
+    podContainers: detail.containers ?? [],
+    volumes: detail.volumes ?? [],
     status: status.type,
     label: status.label,
     expires: formatDate(dto.expiresAt),

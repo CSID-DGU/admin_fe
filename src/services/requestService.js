@@ -330,6 +330,9 @@ export const requestService = {
     }
   },
 
+  checkUbuntuUsername: (username) =>
+    apiClient.get("/api/requests/config/check-username", { username }),
+
   // 새 그룹 생성
   createGroup: async (groupName, ubuntuUsername) => {
     try {
