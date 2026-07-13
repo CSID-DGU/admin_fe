@@ -332,7 +332,10 @@ function RequestWizard({ onCancel, onDone, gpuOptions: gpuOptionsProp, envOption
 
     if (onSubmitProp) {
       setSubmitting(true);
-      return Promise.resolve(onSubmitProp(payload)).then(() => setDone(true)).finally(() => setSubmitting(false));
+      return Promise.resolve(onSubmitProp(payload))
+        .then((success) => { if (success !== false) setDone(true); })
+        .catch((submitError) => setError(submitError.message || "신청에 실패했습니다."))
+        .finally(() => setSubmitting(false));
     }
     setDone(true);
   }
