@@ -23,7 +23,6 @@ const APPROVAL_BLOCK_REASON = {
   GROUP: "DB 그룹만 변경되고 Ubuntu 계정 그룹에는 반영되지 않습니다.",
   RESOURCE_GROUP: "DB 리소스 그룹만 변경되고 실행 중인 Pod에는 반영되지 않습니다.",
   CONTAINER_IMAGE: "DB 이미지 정보만 변경되고 실행 중인 Pod 이미지는 변경되지 않습니다.",
-  EXPIRES_AT: "백엔드의 만료일 생성 형식과 승인 파싱 형식이 서로 다릅니다.",
   PORT: "백엔드 승인 서비스가 포트 변경을 아직 처리하지 않습니다.",
 };
 
