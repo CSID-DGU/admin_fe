@@ -1,16 +1,31 @@
 // UserContainerDetail — 접속·상태 이해 (친절한 문구 + 복사 가능한 접속 정보)
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { Container, Header, KeyValuePairs, StatusIndicator, Button, Alert, ExpandableSection, Badge, FormField, Input, Modal } from "../../../design-system";
 
 function UserContainerDetail({ onBack, onExtend, servers = [] }) {
+  const location = useLocation();
+  const navigate = useNavigate();
   const [selectedId, setSelectedId] = useState(null);
   const [extendOpen, setExtendOpen] = useState(false);
   const [expiresDate, setExpiresDate] = useState("");
   const [reason, setReason] = useState("");
   const [extendError, setExtendError] = useState(null);
   const [submitting, setSubmitting] = useState(false);
+  const [autoExtended, setAutoExtended] = useState(false);
 
   const server = servers.find((s) => s.requestId === selectedId) ?? servers[0];
+
+  // 대시보드 연장 버튼 경유(location.state.extend) 시 서버 로드 후 모달 자동 오픈
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- openExtension은 매 렌더 새로 생성, autoExtended 가드로 1회만 실행
+  useEffect(() => {
+    if (location.state?.extend && server && !autoExtended) {
+      setAutoExtended(true);
+      // history.state를 비워 새로고침 시 모달이 재오픈되지 않게 함
+      navigate(location.pathname, { replace: true, state: null });
+      openExtension();
+    }
+  }, [location.state, server, autoExtended]);
 
   function openExtension() {
     const suggested = new Date(server.expiresAt);
