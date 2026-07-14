@@ -20,7 +20,7 @@ function UserPortalApp() {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
   const { t, i18n } = useTranslation();
-  const { server, expiryDays, activities, gpuOptions, envOptions, groupOptions, error } = useDecsUserData();
+  const { server, servers, expiryDays, activities, gpuOptions, envOptions, groupOptions, error } = useDecsUserData();
   const [submitError, setSubmitError] = React.useState(null);
   const userName = user?.name || user?.email || "사용자";
   const isAdmin = user?.role === "ADMIN";
@@ -44,7 +44,6 @@ function UserPortalApp() {
   const utilities = [
     ...(isAdmin ? [{ type: "custom", content: <RoleSwitch current="user" /> }] : []),
     { text: t("common.language"), onClick: () => i18n.changeLanguage(i18n.language === "en" ? "ko" : "en") },
-    { iconName: "bell", ariaLabel: t("common.notifications"), badge: 1 },
     {
       type: "menu",
       iconName: "user-circle",
@@ -69,16 +68,16 @@ function UserPortalApp() {
     }
   }
 
-  async function submitExtension({ expiresAt, reason }) {
-    if (!server?.requestId) throw new Error("변경할 신청 정보를 찾을 수 없어요.");
+  async function submitExtension({ requestId, expiresAt, reason }) {
+    if (!requestId) throw new Error("변경할 신청 정보를 찾을 수 없어요.");
     const changes = await requestService.getMyChangeRequests();
     const alreadyPending = (changes.data?.data ?? []).some(
-      (change) => change.originalRequestId === server.requestId
+      (change) => change.originalRequestId === requestId
         && change.changeType === "EXPIRES_AT"
         && change.status === "PENDING"
     );
     if (alreadyPending) throw new Error("이미 검토 중인 기간 연장 요청이 있어요.");
-    await requestService.createChangeRequest(server.requestId, {
+    await requestService.createChangeRequest(requestId, {
       changeType: "EXPIRES_AT",
       newValue: expiresAt,
       reason,
@@ -97,9 +96,9 @@ function UserPortalApp() {
         {error ? <div style={{ marginBottom: "var(--decs-space-m)" }}><Flashbar items={[{ id: "decs-user-data", type: "warning", header: error, dismissible: false }]} /></div> : null}
         {submitError ? <div style={{ marginBottom: "var(--decs-space-m)" }}><Flashbar items={[{ id: "decs-request-submit", type: "error", header: submitError, dismissible: false }]} /></div> : null}
         <Routes>
-          <Route index element={<UserDashboard userName={userName} server={server} expiryDays={expiryDays} activities={activities ?? []} onRequest={() => navigate("/user/request")} onConnect={() => navigate("/user/container")} onExtend={() => navigate("/user/container")} onDetail={() => navigate("/user/container")} />} />
+          <Route index element={<UserDashboard userName={userName} server={server} expiryDays={expiryDays} activities={activities ?? []} onRequest={() => navigate("/user/request")} onConnect={() => navigate("/user/container")} onExtend={() => navigate("/user/container", { state: { extend: true } })} onDetail={() => navigate("/user/container")} />} />
           <Route path="request" element={<RequestWizard onCancel={() => navigate("/user")} onDone={() => navigate("/user/requests")} gpuOptions={gpuOptions ?? []} envOptions={envOptions ?? []} groupOptions={groupOptions ?? []} onSubmit={submitRequest} />} />
-          <Route path="container" element={<UserContainerDetail onBack={() => navigate("/user")} onExtend={submitExtension} server={server} />} />
+          <Route path="container" element={<UserContainerDetail onBack={() => navigate("/user")} onExtend={submitExtension} servers={servers ?? []} />} />
           <Route path="requests" element={<RequestStatusPage />} />
           <Route path="change-requests" element={<MyChangeRequestsPage />} />
           <Route path="account" element={<AccountPage user={user} />} />
