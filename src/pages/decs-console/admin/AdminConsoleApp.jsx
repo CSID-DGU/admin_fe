@@ -44,7 +44,6 @@ function AdminConsoleApp() {
   const utilities = [
     { type: "custom", content: <RoleSwitch current="admin" /> },
     { text: t("common.language"), onClick: () => i18n.changeLanguage(i18n.language === "en" ? "ko" : "en") },
-    { iconName: "bell", ariaLabel: t("common.notifications"), badge: 3 },
     {
       type: "menu",
       iconName: "user-circle",
