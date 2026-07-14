@@ -82,8 +82,30 @@ function buildGpuOptions(gpuTypes) {
   }));
 }
 
+function buildServerVm(dto) {
+  const vm = mapUserServer(dto);
+  const serverName = dto.resourceGroup?.serverName ?? "";
+
+  return {
+    requestId: vm.id,
+    ubuntuUsername: dto.ubuntuUsername ?? "—",
+    image: vm.image,
+    expiresAt: vm.expiresAt,
+    gpuName: serverName || vm.gpuName,
+    gpuSpec: serverName ? vm.gpuName : null,
+    statusType: vm.statusType ?? "success",
+    statusLabel: vm.statusLabel ?? "사용 가능",
+    jobBadge: `내 서버 · ${serverName || vm.gpuName}`,
+    jobTitle: "내 서버",
+    daysLeft: vm.daysLeft ?? daysLeft(dto.expiresAt),
+    expiresText: formatExpiresText(vm.expiresAt),
+    sshCommand: vm.sshCommand || "—",
+    jupyterUrl: vm.jupyterUrl || "—",
+  };
+}
+
 export function useDecsUserData() {
-  const [server, setServer] = useState(undefined);
+  const [servers, setServers] = useState(undefined);
   const [activities, setActivities] = useState(undefined);
   const [gpuOptions, setGpuOptions] = useState(undefined);
   const [envOptions, setEnvOptions] = useState(undefined);
@@ -105,27 +127,11 @@ export function useDecsUserData() {
       let hasError = false;
 
       if (serversResult.status === "fulfilled" && serversResult.value?.status === 200) {
-        const servers = getArrayData(serversResult.value);
-        if (servers && servers.length > 0) {
-          const dto = servers[0];
-          const vm = mapUserServer(dto);
-
-          const serverName = dto.resourceGroup?.serverName ?? "";
-          setServer({
-            requestId: vm.id,
-            expiresAt: vm.expiresAt,
-            gpuName: serverName || vm.gpuName,
-            gpuSpec: serverName ? vm.gpuName : null,
-            statusType: vm.statusType ?? "success",
-            statusLabel: vm.statusLabel ?? "사용 가능",
-            jobBadge: `내 서버 · ${serverName || vm.gpuName}`,
-            jobTitle: "내 서버",
-            daysLeft: vm.daysLeft ?? daysLeft(dto.expiresAt),
-            expiresText: formatExpiresText(vm.expiresAt),
-            sshCommand: vm.sshCommand || "—",
-            jupyterUrl: vm.jupyterUrl || "—",
-          });
-        } else if (!servers) {
+        const serverDtos = getArrayData(serversResult.value);
+        if (serverDtos) {
+          // 만료 임박 순 — 대시보드 단일 카드와 만료 경고는 가장 급한 컨테이너 기준
+          setServers(serverDtos.map(buildServerVm).sort((a, b) => a.daysLeft - b.daysLeft));
+        } else {
           hasError = true;
         }
       } else {
@@ -212,10 +218,11 @@ export function useDecsUserData() {
     };
   }, []);
 
+  const server = servers?.[0];
   const expiryDays =
     server && server.daysLeft != null && server.daysLeft <= 7
       ? server.daysLeft
       : null;
 
-  return { server, expiryDays, activities, gpuOptions, envOptions, groupOptions, error };
+  return { server, servers, expiryDays, activities, gpuOptions, envOptions, groupOptions, error };
 }

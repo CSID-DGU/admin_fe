@@ -53,8 +53,10 @@ function formatDate(dateStr) {
 }
 
 function getPodExternalPorts(dto) {
-  const ports = dto.portMappings ?? dto.port_mappings ?? dto.podExternalPorts ?? dto.pod_external_ports;
-  return Array.isArray(ports) ? ports : [];
+  // BE가 legacy portMappings를 빈 배열로 함께 내려서, 비어있지 않은 첫 배열을 골라야 한다
+  const ports = [dto.portMappings, dto.port_mappings, dto.podExternalPorts, dto.pod_external_ports]
+    .find((candidate) => Array.isArray(candidate) && candidate.length > 0);
+  return ports ?? [];
 }
 
 function getExternalPort(port) {
