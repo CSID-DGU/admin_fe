@@ -1,4 +1,5 @@
 import i18n from "../i18n";
+import { PUBLIC_HOST, toPublicPort } from "./publicEndpoint";
 
 const STATUS_MAP = {
   Running: { type: "success", key: "running" },
@@ -142,10 +143,18 @@ export function mapUserServer(dto) {
   const host = getApiHost();
   const sshPort = getExternalPort(findPort(ports, "ssh", 22));
   const jupyterPort = getExternalPort(findPort(ports, "jupyter", 8888));
+  const sshPublicPort = toPublicPort(sshPort);
+  const jupyterPublicPort = toPublicPort(jupyterPort);
   const sshCommand = sshPort && dto.ubuntuUsername
-    ? `ssh ${dto.ubuntuUsername}@${host} -p ${sshPort}`
+    ? sshPublicPort
+      ? `ssh ${dto.ubuntuUsername}@${PUBLIC_HOST} -p ${sshPublicPort}`
+      : `ssh ${dto.ubuntuUsername}@${host} -p ${sshPort}`
     : "—";
-  const jupyterUrl = jupyterPort ? `${getApiProtocol()}//${host}:${jupyterPort}` : "—";
+  const jupyterUrl = jupyterPort
+    ? jupyterPublicPort
+      ? `http://${PUBLIC_HOST}:${jupyterPublicPort}`
+      : `${getApiProtocol()}//${host}:${jupyterPort}`
+    : "—";
 
   return {
     id: dto.requestId,

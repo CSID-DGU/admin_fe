@@ -14,6 +14,7 @@ import {
 import { useAuth } from "../hooks/useAuth";
 import { requestService } from "../services/requestService";
 import { mapRequestDtoToUiModel } from "../utils/requestMapper";
+import { PUBLIC_HOST, toPublicPort } from "../utils/publicEndpoint";
 
 const RequestStatusPage = () => {
   const [requests, setRequests] = useState([]);
@@ -463,6 +464,14 @@ const RequestStatusPage = () => {
                     const otherPorts = ports.filter(
                       (p) => p.internalPort !== 22 && p.internalPort !== 8888
                     );
+                    const sshPublicPort = sshPort && toPublicPort(sshPort.externalPort);
+                    const jupyterPublicPort = jupyterPort && toPublicPort(jupyterPort.externalPort);
+                    const sshText = sshPublicPort
+                      ? `ssh ${selectedRequest.ubuntu_username}@${PUBLIC_HOST} -p ${sshPublicPort}`
+                      : sshPort && `ssh ${selectedRequest.ubuntu_username}@<서버IP> -p ${sshPort.externalPort}`;
+                    const jupyterText = jupyterPublicPort
+                      ? `http://${PUBLIC_HOST}:${jupyterPublicPort}`
+                      : jupyterPort && `http://<서버IP>:${jupyterPort.externalPort}`;
                     return (
                       <KeyValuePairs
                         columns={1}
@@ -471,9 +480,9 @@ const RequestStatusPage = () => {
                             ? [
                                 {
                                   label: "SSH 접속",
-                                  value: `ssh ${selectedRequest.ubuntu_username}@<서버IP> -p ${sshPort.externalPort}`,
+                                  value: sshText,
                                   copyable: true,
-                                  copyText: `ssh ${selectedRequest.ubuntu_username}@<서버IP> -p ${sshPort.externalPort}`,
+                                  copyText: sshText,
                                 },
                               ]
                             : []),
@@ -481,18 +490,23 @@ const RequestStatusPage = () => {
                             ? [
                                 {
                                   label: "Jupyter 접속",
-                                  value: `http://<서버IP>:${jupyterPort.externalPort}`,
+                                  value: jupyterText,
                                   copyable: true,
-                                  copyText: `http://<서버IP>:${jupyterPort.externalPort}`,
+                                  copyText: jupyterText,
                                 },
                               ]
                             : []),
-                          ...otherPorts.map((port) => ({
-                            label: `추가 포트${
-                              port.usagePurpose ? ` (${port.usagePurpose})` : ""
-                            }`,
-                            value: `${port.externalPort} → ${port.internalPort}`,
-                          })),
+                          ...otherPorts.map((port) => {
+                            const publicPort = toPublicPort(port.externalPort);
+                            return {
+                              label: `추가 포트${
+                                port.usagePurpose ? ` (${port.usagePurpose})` : ""
+                              }`,
+                              value: publicPort
+                                ? `${PUBLIC_HOST}:${publicPort} → ${port.internalPort}`
+                                : `${port.externalPort} → ${port.internalPort}`,
+                            };
+                          }),
                         ]}
                       />
                     );
