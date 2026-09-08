@@ -63,7 +63,11 @@ const RequestManagementPage = () => {
   const sentinelRef = useRef(null);
   const [alert, setAlert] = useState(null);
   const [processingRequestId, setProcessingRequestId] = useState(null);
-  const [processingUsername, setProcessingUsername] = useState(null);
+  // 승인 처리 중인 신청의 진행 상황 폴링 키. 한 사용자가 신청을 여러 개 동시에 가질 수
+  // 있어(계정은 하나로 통합됐지만 Pod는 여러 개 발급 가능) username이 아니라 requestId로
+  // 구분한다 — processingRequestId는 버튼 중복 클릭 방지용이라 응답이 오면 바로 풀리는데,
+  // 이 값은 비동기 후처리(Pod 생성)가 끝날 때까지 별도로 살아있어야 해서 상태를 분리했다.
+  const [pollingRequestId, setPollingRequestId] = useState(null);
   const [provisioningStatus, setProvisioningStatus] = useState(null);
 
   // 목록에 PROCESSING 상태인 신청서가 있으면(다른 관리자가 처리 중이거나, 내가 승인 처리
@@ -73,11 +77,11 @@ const RequestManagementPage = () => {
 
   // 승인 처리 중(Pod 생성 포함)일 때 config-server의 세세한 진행 단계를 폴링해서 보여준다.
   // 조회 실패는 승인 흐름 자체에 영향을 주지 않으므로 조용히 무시한다.
-  const provisioningTargetUsername =
-    processingUsername || processingListRequest?.ubuntu_username || null;
+  const provisioningTargetRequestId =
+    pollingRequestId || processingListRequest?.request_id || null;
 
   useEffect(() => {
-    if (!provisioningTargetUsername) {
+    if (!provisioningTargetRequestId) {
       setProvisioningStatus(null);
       return;
     }
@@ -85,7 +89,7 @@ const RequestManagementPage = () => {
     let intervalId = null;
     const poll = async () => {
       try {
-        const res = await podService.getProvisioningStatus(provisioningTargetUsername);
+        const res = await podService.getProvisioningStatus(provisioningTargetRequestId);
         const data = res?.data ?? null;
         if (cancelled) return;
         if (data) {
@@ -103,7 +107,7 @@ const RequestManagementPage = () => {
           // 여기서 멈추지 않으면 다음 폴링(1초 뒤)에도 같은 stage를 또 감지해서
           // fetchRequests()와 배너 갱신이 끝없이 반복되며 화면이 계속 깜빡인다.
           if (intervalId) clearInterval(intervalId);
-          setProcessingUsername(null);
+          setPollingRequestId(null);
           // fetchRequests()는 시작할 때 setAlert(null)로 배너를 지운다. 순서를 안 지키고
           // 아래 setAlert보다 먼저 fetchRequests()를 fire-and-forget으로 부르면, 같은
           // 렌더 사이클에서 배치되면서 방금 세팅한 실패/성공 배너가 곧바로 지워져
@@ -127,7 +131,7 @@ const RequestManagementPage = () => {
       cancelled = true;
       clearInterval(intervalId);
     };
-  }, [provisioningTargetUsername]);
+  }, [provisioningTargetRequestId]);
 
   const fetchRequests = async () => {
     setIsLoading(true);
@@ -212,11 +216,11 @@ const RequestManagementPage = () => {
     if (processingRequestId !== null) return;
     setProcessingRequestId(request.request_id);
     if (newStatus === "FULFILLED") {
-      // 같은 사용자를 재승인할 때는 provisioningTargetUsername이 안 바뀌어서
+      // 같은 신청을 재승인할 때는 provisioningTargetRequestId가 안 바뀌어서
       // 폴링 useEffect가 재실행되지 않는다 — 이전 실패 시도의 진행 단계 메시지가
       // 첫 폴링(2초) 전까지 그대로 남아 보이는 걸 막기 위해 여기서 바로 지운다.
       setProvisioningStatus(null);
-      setProcessingUsername(request.ubuntu_username);
+      setPollingRequestId(request.request_id);
     }
     let isSubmitSuccess = false;
     try {
@@ -313,13 +317,13 @@ const RequestManagementPage = () => {
       }
     } finally {
       // processingRequestId는 버튼 중복 클릭 방지용이라 응답이 오면 바로 풀어도 된다.
-      // processingUsername은 여기서 무조건 지우지 않는다 — FULFILLED 제출이 성공했다면
+      // pollingRequestId는 여기서 무조건 지우지 않는다 — FULFILLED 제출이 성공했다면
       // 비동기 후처리가 아직 진행 중이므로, 진행 상태 폴링 배너가 계속 보여야 한다
       // (ready/failed로 끝나는 걸 폴링이 감지하면 그때 지운다). 제출 자체가 실패했거나
       // 거절(DENIED)인 경우엔 더 이상 폴링할 이유가 없으니 여기서 지운다.
       setProcessingRequestId(null);
       if (newStatus !== "FULFILLED" || !isSubmitSuccess) {
-        setProcessingUsername(null);
+        setPollingRequestId(null);
       }
     }
   };
