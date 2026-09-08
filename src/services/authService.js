@@ -134,6 +134,30 @@ export const authService = {
     }
   },
 
+  // 우분투 유저네임 등록 (가입 시 못 정한 기존 계정 전용, 1회성 — 이미 등록돼 있으면 실패)
+  registerUbuntuUsername: async (ubuntuUsername) => {
+    try {
+      const accessToken = authService.getAccessToken();
+      if (!accessToken) {
+        throw new Error("인증 토큰이 없습니다.");
+      }
+
+      const response = await apiClient.request("/api/users/me/ubuntu-username", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json;charset=UTF-8",
+          accept: "application/json;charset=UTF-8",
+          Authorization: `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify({ ubuntuUsername }),
+      });
+      return response;
+    } catch (error) {
+      if (error.status) throw error; // API 에러는 status 보존 위해 원본 유지
+      throw new Error(error.message || "우분투 유저네임 등록에 실패했습니다.");
+    }
+  },
+
   // 비밀번호 변경
   changePassword: async (currentPassword, newPassword) => {
     try {
