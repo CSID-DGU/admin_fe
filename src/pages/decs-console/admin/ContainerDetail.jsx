@@ -66,6 +66,9 @@ function ContainerDetail({ item, onBack, onRefetch }) {
   // 마이그레이션 진행 중일 때 config-server의 세세한 진행 단계를 폴링해서 보여준다.
   // 승인 요청 진행 상태(RequestManagementPage)와 동일한 패턴 — 조회 실패는
   // 마이그레이션 흐름 자체에 영향을 주지 않으므로 조용히 무시한다.
+  // podService.getProvisioningStatus의 인자명은 requestId지만, 마이그레이션 경로는
+  // 아직 config-server가 username 기준으로 진행 상황을 저장해서 여기서는 그대로
+  // username(c.name)을 넘긴다 — 승인(생성) 경로만 requestId로 바뀌었다.
   useEffect(() => {
     if (!isMigrating || !c?.name) {
       setMigrationStatus(null);
