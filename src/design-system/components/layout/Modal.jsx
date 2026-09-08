@@ -8,7 +8,7 @@ import { Icon } from "../icons/Icon.jsx";
  */
 let modalIdCounter = 0;
 
-export function Modal({ visible, onDismiss, header, children, footer, size = "medium", style }) {
+export function Modal({ visible, onDismiss, header, children, footer, size = "medium", style, dismissible = true }) {
   const titleId = React.useRef(`decs-modal-title-${++modalIdCounter}`).current;
   const dialogRef = React.useRef(null);
 
@@ -22,17 +22,17 @@ export function Modal({ visible, onDismiss, header, children, footer, size = "me
   }, [visible]);
 
   React.useEffect(() => {
-    if (!visible) return;
+    if (!visible || !dismissible) return;
     const onKeyDown = (e) => { if (e.key === "Escape") onDismiss?.(); };
     document.addEventListener("keydown", onKeyDown);
     return () => document.removeEventListener("keydown", onKeyDown);
-  }, [visible, onDismiss]);
+  }, [visible, dismissible, onDismiss]);
 
   if (!visible) return null;
   const widths = { small: "400px", medium: "600px", large: "800px" };
   return (
     <div
-      onMouseDown={(e) => { if (e.target === e.currentTarget) onDismiss?.(); }}
+      onMouseDown={(e) => { if (dismissible && e.target === e.currentTarget) onDismiss?.(); }}
       style={{
         position: "fixed", inset: 0, zIndex: 1000,
         background: "rgba(0, 7, 22, 0.35)",
@@ -56,9 +56,11 @@ export function Modal({ visible, onDismiss, header, children, footer, size = "me
       >
         <div style={{ display: "flex", alignItems: "flex-start", gap: "var(--decs-space-m)", padding: "var(--decs-space-xl) var(--decs-space-xl) var(--decs-space-m)" }}>
           <h2 id={titleId} style={{ flex: 1, margin: 0, fontSize: "var(--decs-fs-heading-l)", lineHeight: "var(--decs-lh-heading-l)", fontWeight: "var(--decs-fw-bold)", color: "var(--decs-text-heading)" }}>{header}</h2>
-          <button onClick={onDismiss} aria-label="Close" style={{ background: "none", border: "none", cursor: "pointer", color: "var(--decs-text-secondary)", display: "inline-flex", padding: "var(--decs-space-xs)" }}>
-            <Icon name="x-mark" size={18} />
-          </button>
+          {dismissible ? (
+            <button onClick={onDismiss} aria-label="Close" style={{ background: "none", border: "none", cursor: "pointer", color: "var(--decs-text-secondary)", display: "inline-flex", padding: "var(--decs-space-xs)" }}>
+              <Icon name="x-mark" size={18} />
+            </button>
+          ) : null}
         </div>
         <div style={{ padding: "0 var(--decs-space-xl) var(--decs-space-xl)", overflowY: "auto", fontSize: "var(--decs-fs-body-m)", lineHeight: "var(--decs-lh-body-m)", color: "var(--decs-text-body)" }}>
           {children}

@@ -3,6 +3,7 @@ import { authService } from "../services/authService";
 import { Button, Modal } from "../design-system";
 import { useTranslation } from "react-i18next";
 import { sessionEventManager } from "../services/sessionEventManager";
+import { UbuntuUsernameRegisterForm } from "../components/Auth/UbuntuUsernameRegisterForm";
 
 const AuthContext = createContext(null);
 
@@ -169,11 +170,23 @@ export const AuthProvider = ({ children }) => {
     handleSessionExpired,
   };
 
+  // 가입 시점에 우분투 유저네임을 못 받은 계정은 로그인 직후부터 컨테이너 신청이
+  // 막혀 있다(UBUNTU_USERNAME_NOT_ASSIGNED). 마이페이지까지 스스로 찾아가지 않으면
+  // 영영 등록을 못 하는 사용자가 많아, 등록 전에는 닫을 수 없는 모달로 바로 요구한다.
+  // 관리자 계정도 예외 없이 뜬다.
+  const needsUbuntuUsername = !isLoading && isAuthenticated && !!user && !user.ubuntuUsername;
+
   return (
     <AuthContext.Provider value={value}>
       {children}
       <Modal visible={showSessionExpiredModal} onDismiss={handleSessionExpiredConfirm} header={sessionEndReason === "ACCOUNT_DISABLED" ? "계정 비활성화" : "다시 로그인이 필요합니다"} size="small" footer={<Button variant="primary" onClick={handleSessionExpiredConfirm}>{sessionEndReason === "ACCOUNT_DISABLED" ? "확인" : t("auth.login")}</Button>}>
         {sessionEndReason === "ACCOUNT_DISABLED" ? "계정이 비활성화되었습니다. 관리자에게 문의하세요." : "보안 업데이트 또는 세션 만료로 로그인이 해제되었습니다. 다시 로그인해주세요."}
+      </Modal>
+      <Modal visible={needsUbuntuUsername} dismissible={false} header="Ubuntu 유저네임 등록이 필요합니다" size="small">
+        <p style={{ marginTop: 0 }}>
+          컨테이너 신청·SSH 접속에 쓰이는 Ubuntu 유저네임이 아직 없어요. 등록해야 서비스를 계속 이용할 수 있어요 — 한 번 등록하면 바꿀 수 없어요.
+        </p>
+        <UbuntuUsernameRegisterForm formId="mandatory-ubuntu-username" autoFocus />
       </Modal>
     </AuthContext.Provider>
   );
