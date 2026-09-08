@@ -51,6 +51,11 @@ const RequestManagementPage = () => {
   const [requests, setRequests] = useState([]);
   const [selectedRequest, setSelectedRequest] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  // isLoading은 새로고침 버튼 자체의 스피너에도 쓰인다 — 그걸 그대로 페이지 전체를
+  // 가리는 조건으로 쓰면, 수동 새로고침이든 승인 후 폴링이 트리거한 백그라운드
+  // 새로고침이든 fetchRequests()가 불릴 때마다 화면 전체가 스피너로 바뀌었다가
+  // 돌아오며 깜빡인다. 최초 1회 로드에만 페이지 전체를 가리도록 따로 추적한다.
+  const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
   const [lastUpdated, setLastUpdated] = useState(null);
   const [filter, setFilter] = useState("PENDING"); // PENDING, FULFILLED, DENIED, DELETED
   const [period, setPeriod] = useState("3M"); // 1M, 3M, 6M, ALL
@@ -77,6 +82,7 @@ const RequestManagementPage = () => {
       return;
     }
     let cancelled = false;
+    let intervalId = null;
     const poll = async () => {
       try {
         const res = await podService.getProvisioningStatus(provisioningTargetUsername);
@@ -93,7 +99,16 @@ const RequestManagementPage = () => {
         // 없다 — config-server가 남기는 stage가 ready(성공)/failed(실패)로 끝나는 걸
         // 폴링으로 확인한 뒤에야 목록을 새로고침하고 최종 결과를 안내한다.
         if (data?.stage === "ready" || data?.stage === "failed") {
+          // stage는 ready/failed로 끝난 뒤에도 config-server에 계속 그대로 남아있다.
+          // 여기서 멈추지 않으면 다음 폴링(1초 뒤)에도 같은 stage를 또 감지해서
+          // fetchRequests()와 배너 갱신이 끝없이 반복되며 화면이 계속 깜빡인다.
+          if (intervalId) clearInterval(intervalId);
           setProcessingUsername(null);
+          // fetchRequests()는 시작할 때 setAlert(null)로 배너를 지운다. 순서를 안 지키고
+          // 아래 setAlert보다 먼저 fetchRequests()를 fire-and-forget으로 부르면, 같은
+          // 렌더 사이클에서 배치되면서 방금 세팅한 실패/성공 배너가 곧바로 지워져
+          // 화면에는 한 번도 안 뜬 것처럼 보인다 — 반드시 fetchRequests가 끝난 뒤에 세팅한다.
+          await fetchRequests();
           setAlert({
             type: data.stage === "ready" ? "success" : "error",
             message:
@@ -101,17 +116,16 @@ const RequestManagementPage = () => {
                 ? "승인 처리가 완료되었습니다."
                 : `승인 처리가 실패했습니다: ${data.message ?? "원인 불명"} — 요청이 대기중 상태로 되돌아갔을 수 있습니다.`,
           });
-          fetchRequests();
         }
       } catch {
         // ignore
       }
     };
     poll();
-    const interval = setInterval(poll, 1000);
+    intervalId = setInterval(poll, 1000);
     return () => {
       cancelled = true;
-      clearInterval(interval);
+      clearInterval(intervalId);
     };
   }, [provisioningTargetUsername]);
 
@@ -146,6 +160,7 @@ const RequestManagementPage = () => {
       });
     } finally {
       setIsLoading(false);
+      setHasLoadedOnce(true);
     }
   };
 
@@ -422,7 +437,7 @@ const RequestManagementPage = () => {
     },
   ];
 
-  if (isLoading) {
+  if (isLoading && !hasLoadedOnce) {
     return (
       <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: 256 }}>
         <StatusIndicator type="loading">
