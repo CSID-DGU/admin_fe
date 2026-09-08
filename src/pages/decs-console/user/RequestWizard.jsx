@@ -1,14 +1,13 @@
 // RequestWizard — 사용 목적 → 서버 선택 → GPU → 기간 → 개발 환경 → 확인
 import React from "react";
 import { Wizard, Cards, FormField, Select, Input, KeyValuePairs, Alert, Container, Header, StatusIndicator, Button, Badge, Table } from "../../../design-system";
-import { requestService } from "../../../services/requestService";
 
 function toLocalDateInput(date) {
   const offset = date.getTimezoneOffset() * 60_000;
   return new Date(date.getTime() - offset).toISOString().slice(0, 10);
 }
 
-function RequestWizard({ onCancel, onDone, gpuOptions: gpuOptionsProp, envOptions: envOptionsProp, groupOptions: groupOptionsProp, onSubmit: onSubmitProp }) {
+function RequestWizard({ onCancel, onDone, gpuOptions: gpuOptionsProp, envOptions: envOptionsProp, groupOptions: groupOptionsProp, onSubmit: onSubmitProp, accountUsername }) {
   const [step, setStep] = React.useState(0);
   const [purpose, setPurpose] = React.useState("");
   const [selectedServer, setSelectedServer] = React.useState("");
@@ -19,7 +18,6 @@ function RequestWizard({ onCancel, onDone, gpuOptions: gpuOptionsProp, envOption
     return toLocalDateInput(d);
   });
   const [env, setEnv] = React.useState("");
-  const [ubuntuUsername, setUbuntuUsername] = React.useState("");
   const [ubuntuPassword, setUbuntuPassword] = React.useState("");
   const [submitting, setSubmitting] = React.useState(false);
   const [done, setDone] = React.useState(false);
@@ -32,7 +30,6 @@ function RequestWizard({ onCancel, onDone, gpuOptions: gpuOptionsProp, envOption
   const [portPurpose, setPortPurpose] = React.useState("");
   const [portRequests, setPortRequests] = React.useState([]);
   const [portError, setPortError] = React.useState(null);
-  const [checkingUsername, setCheckingUsername] = React.useState(false);
 
   const gpuOptions = React.useMemo(() => gpuOptionsProp ?? [], [gpuOptionsProp]);
   const envOptions = React.useMemo(() => envOptionsProp ?? [], [envOptionsProp]);
@@ -53,14 +50,9 @@ function RequestWizard({ onCancel, onDone, gpuOptions: gpuOptionsProp, envOption
   );
   const selectedGroupIds = React.useMemo(() => new Set(selectedGroups.map((g) => g.value)), [selectedGroups]);
   const groupSelectOptions = groupOptions.map((g) => ({ ...g, disabled: selectedGroupIds.has(g.value) }));
-  const ubuntuUsernamePattern = /^[a-z][a-z0-9_-]{2,49}$/;
-  const ubuntuUsernameFormatError = ubuntuUsername && !ubuntuUsernamePattern.test(ubuntuUsername)
-    ? "소문자로 시작하고 소문자·숫자·_·-만 사용해 3~50자로 입력해주세요."
-    : null;
   const ubuntuPasswordLengthError = ubuntuPassword && ubuntuPassword.length < 8
     ? "비밀번호는 8자 이상 입력해주세요."
     : null;
-  const ubuntuUsernameError = envErrors.ubuntuUsername || ubuntuUsernameFormatError;
   const ubuntuPasswordError = envErrors.ubuntuPassword || ubuntuPasswordLengthError;
 
   React.useEffect(() => {
@@ -69,11 +61,6 @@ function RequestWizard({ onCancel, onDone, gpuOptions: gpuOptionsProp, envOption
 
   function validateDevelopmentStep() {
     const nextErrors = {};
-    if (!ubuntuUsername) {
-      nextErrors.ubuntuUsername = "Ubuntu 사용자명을 입력해주세요.";
-    } else if (!ubuntuUsernamePattern.test(ubuntuUsername)) {
-      nextErrors.ubuntuUsername = "소문자로 시작하고 소문자·숫자·_·-만 사용해 3~50자로 입력해주세요.";
-    }
     if (!ubuntuPassword) {
       nextErrors.ubuntuPassword = "Ubuntu 비밀번호를 입력해주세요.";
     } else if (ubuntuPassword.length < 8) {
@@ -118,25 +105,9 @@ function RequestWizard({ onCancel, onDone, gpuOptions: gpuOptionsProp, envOption
     return true;
   }
 
-  async function handleNavigate(nextStep) {
+  function handleNavigate(nextStep) {
     setError(null);
     if (!validateStep(nextStep)) return;
-    if (step === 4 && nextStep > step) {
-      setCheckingUsername(true);
-      try {
-        const response = await requestService.checkUbuntuUsername(ubuntuUsername);
-        const available = response.data?.available ?? response.data?.data?.available;
-        if (available === false) {
-          setEnvErrors((prev) => ({ ...prev, ubuntuUsername: "이미 사용 중인 Ubuntu 사용자명입니다." }));
-          return;
-        }
-      } catch {
-        setEnvErrors((prev) => ({ ...prev, ubuntuUsername: "사용자명 중복 확인에 실패했습니다. 잠시 후 다시 시도해주세요." }));
-        return;
-      } finally {
-        setCheckingUsername(false);
-      }
-    }
     setStep(nextStep);
   }
 
@@ -273,13 +244,13 @@ function RequestWizard({ onCancel, onDone, gpuOptions: gpuOptionsProp, envOption
           <FormField label="기본 환경">
             <Select selectedValue={env} onChange={setEnv} options={envOptions} />
           </FormField>
-          <FormField label="Ubuntu 사용자명" errorText={ubuntuUsernameError}>
-            <Input
-              value={ubuntuUsername}
-              onChange={(value) => { setUbuntuUsername(value); setEnvErrors((prev) => ({ ...prev, ubuntuUsername: null })); }}
-              placeholder="소문자·숫자, 3~50자 (SSH 로그인 계정)"
-              invalid={!!ubuntuUsernameError}
-            />
+          <FormField label="Ubuntu 사용자명" constraintText="가입할 때 정한 계정 이름이라 신청마다 바꿀 수 없어요.">
+            <div style={{ display: "flex", alignItems: "center", gap: "var(--decs-space-xs)", minHeight: 32 }}>
+              <span style={{ color: "var(--decs-text-secondary)", fontSize: "var(--decs-fs-body-m)" }}>본인 계정</span>
+              {accountUsername
+                ? <Badge color="grey">{accountUsername}</Badge>
+                : <span style={{ color: "var(--decs-text-secondary)", fontSize: "var(--decs-fs-body-m)" }}>—</span>}
+            </div>
           </FormField>
           <FormField label="Ubuntu 비밀번호" errorText={ubuntuPasswordError}>
             <Input
@@ -340,7 +311,7 @@ function RequestWizard({ onCancel, onDone, gpuOptions: gpuOptionsProp, envOption
             { label: "GPU", value: (filteredGpuOptions.find((o) => o.id === gpu[0]?.id) || {}).title || "—" },
             { label: "사용 만료일", value: expiresDate || "—" },
             { label: "개발 환경", value: envOptions.find((o) => o.value === env)?.label ?? env },
-            { label: "Ubuntu 사용자명", value: ubuntuUsername || <span style={{ color: "var(--decs-status-warning)", fontWeight: 700 }}>미입력</span> },
+            { label: "Ubuntu 사용자명", value: accountUsername || "—" },
             { label: "공유 그룹", value: selectedGroups.length > 0 ? selectedGroups.map((g) => g.label).join(", ") : "—" },
             { label: "추가 포트", value: portRequests.length > 0 ? portRequests.map((p) => `${p.internalPort} (${p.usagePurpose})`).join(", ") : "—" },
           ]} />
@@ -357,7 +328,6 @@ function RequestWizard({ onCancel, onDone, gpuOptions: gpuOptionsProp, envOption
       !selectedServer ? "서버" : null,
       !selectedGpu ? "GPU" : null,
       !env ? "개발 환경" : null,
-      !ubuntuUsername ? "Ubuntu 사용자명" : null,
       !ubuntuPassword ? "Ubuntu 비밀번호" : null,
     ].filter(Boolean);
     const developmentValid = validateDevelopmentStep();
@@ -373,7 +343,6 @@ function RequestWizard({ onCancel, onDone, gpuOptions: gpuOptionsProp, envOption
       gpu: selectedGpu.id,
       expiresAt: `${expiresDate}T23:59:59`,
       env,
-      ubuntuUsername,
       ubuntuPassword,
       ubuntuGids: selectedGroups.map((g) => g.value),
       portRequests,
@@ -394,7 +363,7 @@ function RequestWizard({ onCancel, onDone, gpuOptions: gpuOptionsProp, envOption
       <Header variant="h1">GPU 신청</Header>
       {error ? <div style={{ marginBottom: "var(--decs-space-m)" }}><Alert type="error">{error}</Alert></div> : null}
       <Container>
-        <Wizard steps={steps} activeStepIndex={step} onNavigate={handleNavigate} onCancel={onCancel} onSubmit={submit} submitLabel="신청하기" isLoadingNextStep={submitting || checkingUsername} />
+        <Wizard steps={steps} activeStepIndex={step} onNavigate={handleNavigate} onCancel={onCancel} onSubmit={submit} submitLabel="신청하기" isLoadingNextStep={submitting} />
       </Container>
     </div>
   );
