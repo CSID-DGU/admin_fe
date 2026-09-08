@@ -13,7 +13,6 @@ import {
   Tabs,
 } from "../design-system";
 import { useAuth } from "../hooks/useAuth";
-import { UbuntuUsernameRegisterForm } from "../components/Auth/UbuntuUsernameRegisterForm";
 
 const AccountPage = ({ user }) => {
   const { updateUser } = useAuth();
@@ -210,23 +209,6 @@ const AccountPage = ({ user }) => {
         이메일·학번·이름·학과는 변경할 수 없어요. 변경이 필요하면 관리자에게
         문의해 주세요.
       </p>
-
-      {/* 가입 시 Ubuntu 유저네임을 못 받은 계정(이 필드가 생기기 전에 가입한 계정)만
-          여기서 1회 등록한다 — 한 번 등록하면 다시 바꿀 수 없다. 로그인 직후 강제
-          모달(AuthContext)에서 이미 등록했다면 보통 이 블록까지 올 일은 없다. */}
-      {!user?.ubuntuUsername && (
-        <div className="space-y-4 rounded-lg border border-(--decs-border-divider) p-4">
-          <Header variant="h3">Ubuntu 유저네임 등록</Header>
-          <p className="text-sm text-(--decs-text-secondary)">
-            아직 Ubuntu 유저네임이 등록되어 있지 않아요. 컨테이너를 신청하려면
-            먼저 등록해주세요 — 한 번 등록하면 바꿀 수 없어요.
-          </p>
-          <UbuntuUsernameRegisterForm
-            formId="account-ubuntu-username"
-            onSuccess={() => setAlert({ type: "success", message: "Ubuntu 유저네임이 등록되었습니다." })}
-          />
-        </div>
-      )}
 
       {/* Editable form */}
       <form onSubmit={handleProfileSubmit} className="space-y-6">
