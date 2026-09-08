@@ -82,7 +82,13 @@ const RequestManagementPage = () => {
         const res = await podService.getProvisioningStatus(provisioningTargetUsername);
         const data = res?.data ?? null;
         if (cancelled) return;
-        setProvisioningStatus(data);
+        if (data) {
+          // config-server가 단계 전환 사이에 message를 잠깐 비운 채 응답할 때가 있다.
+          // 그대로 반영하면 "(현재 단계: ...)" 문구가 매 폴링(1초)마다 사라졌다
+          // 나타나면서 배너 높이가 흔들려 깜빡이는 것처럼 보인다 — message가 없는
+          // 응답에서는 직전에 표시하던 값을 그대로 유지한다.
+          setProvisioningStatus((prev) => ({ ...data, message: data.message || prev?.message || null }));
+        }
         // 승인 후처리는 비동기라 approveRequest() 응답만으로는 실제 완료 여부를 알 수
         // 없다 — config-server가 남기는 stage가 ready(성공)/failed(실패)로 끝나는 걸
         // 폴링으로 확인한 뒤에야 목록을 새로고침하고 최종 결과를 안내한다.
@@ -246,12 +252,10 @@ const RequestManagementPage = () => {
           )
         );
 
-        if (newStatus === "FULFILLED") {
-          setAlert({
-            type: "info",
-            message: `${request.user_name}님의 신청서 승인 처리를 시작했습니다. 완료까지 최대 10분이 걸릴 수 있으며, 진행 상태는 위 배너에서 확인할 수 있습니다.`,
-          });
-        } else {
+        // FULFILLED는 여기서 별도 안내를 띄우지 않는다 — processingRequestId를 이미 위에서
+        // 세팅해뒀기 때문에 아래 상시 진행 배너가 이 렌더에서 바로 나타난다. 둘 다 띄우면
+        // "시작했다"는 안내와 "진행 중이다"는 배너가 동시에 겹쳐 뜨는 것처럼 보인다.
+        if (newStatus !== "FULFILLED") {
           setAlert({
             type: "success",
             message: `${request.user_name}님의 신청서가 성공적으로 거절되었습니다.`,
