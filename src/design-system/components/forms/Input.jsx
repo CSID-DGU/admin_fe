@@ -5,7 +5,7 @@ import { Icon } from "../icons/Icon.jsx";
  * Input — single-line text/number input matching Cloudscape. Set `invalid` to
  * show the error border (pair with FormField errorText). Optional leading icon.
  */
-export function Input({ value, onChange, placeholder, type = "text", disabled, invalid, readOnly, iconName, id, ariaLabel, onKeyDown, style }) {
+export function Input({ value, onChange, placeholder, type = "text", disabled, invalid, readOnly, iconName, id, ariaLabel, onKeyDown, autoFocus, style }) {
   const [focus, setFocus] = React.useState(false);
   const borderColor = invalid
     ? "var(--decs-status-error)"
@@ -26,6 +26,7 @@ export function Input({ value, onChange, placeholder, type = "text", disabled, i
         placeholder={placeholder}
         disabled={disabled}
         readOnly={readOnly}
+        autoFocus={autoFocus}
         aria-label={ariaLabel}
         aria-invalid={invalid || undefined}
         onKeyDown={onKeyDown}

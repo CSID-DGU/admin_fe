@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { authService } from "../services/authService";
-import { requestService } from "../services/requestService";
 import {
   Alert,
   Badge,
@@ -14,13 +13,7 @@ import {
   Tabs,
 } from "../design-system";
 import { useAuth } from "../hooks/useAuth";
-
-// SignupPage와 동일한 형식 규칙 — 가입 때 입력칸이 없던 기존 계정을 위한 1회성
-// 등록 폼이라, 서버가 허용하는 값 규칙과 반드시 일치해야 한다.
-const UBUNTU_USERNAME_PATTERN = /^[a-z][a-z0-9_-]{2,49}$/;
-const UBUNTU_USERNAME_FORMAT_ERROR = "소문자로 시작하고 소문자·숫자·_·-만 사용해 3~50자로 입력해주세요.";
-const UBUNTU_USERNAME_TAKEN_ERROR = "이미 사용 중인 Ubuntu 사용자명입니다.";
-const UBUNTU_USERNAME_CHECK_FAILED_ERROR = "사용자명 중복 확인에 실패했습니다. 잠시 후 다시 시도해주세요.";
+import { UbuntuUsernameRegisterForm } from "../components/Auth/UbuntuUsernameRegisterForm";
 
 const AccountPage = ({ user }) => {
   const { updateUser } = useAuth();
@@ -36,79 +29,6 @@ const AccountPage = ({ user }) => {
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
   const [alert, setAlert] = useState(null);
-
-  // 우분투 유저네임이 아직 없는 계정(이 필드가 생기기 전에 가입한 계정)만 등록 폼을 쓴다.
-  const [ubuntuUsernameInput, setUbuntuUsernameInput] = useState("");
-  const [usernameStatus, setUsernameStatus] = useState(null);
-  const [isRegisteringUsername, setIsRegisteringUsername] = useState(false);
-
-  useEffect(() => {
-    if (!UBUNTU_USERNAME_PATTERN.test(ubuntuUsernameInput)) {
-      setUsernameStatus(null);
-      return undefined;
-    }
-    setUsernameStatus("checking");
-    let cancelled = false;
-    const timer = setTimeout(async () => {
-      try {
-        const response = await requestService.checkUbuntuUsername(ubuntuUsernameInput);
-        const available = response.data?.available ?? response.data?.data?.available;
-        if (!cancelled) setUsernameStatus(available === false ? "taken" : "available");
-      } catch {
-        if (!cancelled) setUsernameStatus("failed");
-      }
-    }, 400);
-    return () => {
-      cancelled = true;
-      clearTimeout(timer);
-    };
-  }, [ubuntuUsernameInput]);
-
-  const usernameTakenError = usernameStatus === "taken" ? UBUNTU_USERNAME_TAKEN_ERROR : null;
-  const usernameFormatError =
-    ubuntuUsernameInput && !UBUNTU_USERNAME_PATTERN.test(ubuntuUsernameInput)
-      ? UBUNTU_USERNAME_FORMAT_ERROR
-      : null;
-  const usernameError = errors.ubuntuUsername || usernameFormatError || usernameTakenError;
-  const usernameConstraint =
-    usernameStatus === "checking"
-      ? "사용 가능 여부를 확인하는 중이에요."
-      : usernameStatus === "available"
-      ? "사용할 수 있는 이름이에요."
-      : usernameStatus === "failed"
-      ? UBUNTU_USERNAME_CHECK_FAILED_ERROR
-      : "컨테이너 SSH 접속·홈 디렉터리에 쓰이는 이름이에요. 한 번 등록하면 바꿀 수 없어요.";
-
-  const handleRegisterUbuntuUsername = async (e) => {
-    e.preventDefault();
-    if (!ubuntuUsernameInput) {
-      setErrors((prev) => ({ ...prev, ubuntuUsername: "유저네임을 입력해주세요." }));
-      return;
-    }
-    if (!UBUNTU_USERNAME_PATTERN.test(ubuntuUsernameInput)) {
-      setErrors((prev) => ({ ...prev, ubuntuUsername: UBUNTU_USERNAME_FORMAT_ERROR }));
-      return;
-    }
-
-    setIsRegisteringUsername(true);
-    setAlert(null);
-    try {
-      const response = await authService.registerUbuntuUsername(ubuntuUsernameInput);
-      if (response.status !== 200) {
-        throw new Error("Ubuntu 유저네임 등록에 실패했습니다.");
-      }
-      setAlert({ type: "success", message: "Ubuntu 유저네임이 등록되었습니다." });
-      setUbuntuUsernameInput("");
-      await updateUser();
-    } catch (error) {
-      setAlert({
-        type: "error",
-        message: error.message || "Ubuntu 유저네임 등록에 실패했습니다.",
-      });
-    } finally {
-      setIsRegisteringUsername(false);
-    }
-  };
 
   useEffect(() => {
     // 사용자 정보 로드
@@ -292,46 +212,20 @@ const AccountPage = ({ user }) => {
       </p>
 
       {/* 가입 시 Ubuntu 유저네임을 못 받은 계정(이 필드가 생기기 전에 가입한 계정)만
-          여기서 1회 등록한다 — 한 번 등록하면 다시 바꿀 수 없다. */}
+          여기서 1회 등록한다 — 한 번 등록하면 다시 바꿀 수 없다. 로그인 직후 강제
+          모달(AuthContext)에서 이미 등록했다면 보통 이 블록까지 올 일은 없다. */}
       {!user?.ubuntuUsername && (
-        <form
-          onSubmit={handleRegisterUbuntuUsername}
-          className="space-y-4 rounded-lg border border-(--decs-border-divider) p-4"
-        >
+        <div className="space-y-4 rounded-lg border border-(--decs-border-divider) p-4">
           <Header variant="h3">Ubuntu 유저네임 등록</Header>
           <p className="text-sm text-(--decs-text-secondary)">
             아직 Ubuntu 유저네임이 등록되어 있지 않아요. 컨테이너를 신청하려면
             먼저 등록해주세요 — 한 번 등록하면 바꿀 수 없어요.
           </p>
-          <FormField
-            label="Ubuntu 유저네임"
-            errorText={usernameError}
-            constraintText={usernameConstraint}
-            htmlFor="account-ubuntu-username"
-          >
-            <Input
-              id="account-ubuntu-username"
-              value={ubuntuUsernameInput}
-              onChange={(value) => {
-                setUbuntuUsernameInput(value);
-                if (errors.ubuntuUsername) {
-                  setErrors((prev) => ({ ...prev, ubuntuUsername: "" }));
-                }
-              }}
-              invalid={!!usernameError}
-              placeholder="소문자·숫자, 3~50자 (SSH 로그인 계정)"
-            />
-          </FormField>
-          <div className="flex justify-end">
-            <Button
-              variant="primary"
-              loading={isRegisteringUsername}
-              disabled={isRegisteringUsername || usernameStatus === "checking"}
-            >
-              등록
-            </Button>
-          </div>
-        </form>
+          <UbuntuUsernameRegisterForm
+            formId="account-ubuntu-username"
+            onSuccess={() => setAlert({ type: "success", message: "Ubuntu 유저네임이 등록되었습니다." })}
+          />
+        </div>
       )}
 
       {/* Editable form */}
