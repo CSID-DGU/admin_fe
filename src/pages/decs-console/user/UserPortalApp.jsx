@@ -89,7 +89,7 @@ function UserPortalApp() {
         {error ? <div style={{ marginBottom: "var(--decs-space-m)" }}><Flashbar items={[{ id: "decs-user-data", type: "warning", header: error, dismissible: false }]} /></div> : null}
         <Routes>
           <Route index element={<UserDashboard userName={userName} server={server} expiryDays={expiryDays} activities={activities ?? []} onRequest={() => navigate("/user/request")} onConnect={() => navigate("/user/container")} onExtend={() => navigate("/user/container", { state: { extend: true } })} onDetail={() => navigate("/user/container")} />} />
-          <Route path="request" element={<RequestWizard onCancel={() => navigate("/user")} onDone={() => navigate("/user/requests")} gpuOptions={gpuOptions ?? []} envOptions={envOptions ?? []} groupOptions={groupOptions ?? []} onSubmit={submitRequest} />} />
+          <Route path="request" element={<RequestWizard onCancel={() => navigate("/user")} onDone={() => navigate("/user/requests")} gpuOptions={gpuOptions ?? []} envOptions={envOptions ?? []} groupOptions={groupOptions ?? []} onSubmit={submitRequest} accountUsername={user?.ubuntuUsername} />} />
           <Route path="container" element={<UserContainerDetail onBack={() => navigate("/user")} onExtend={submitExtension} servers={servers ?? []} />} />
           <Route path="requests" element={<RequestStatusPage />} />
           <Route path="change-requests" element={<MyChangeRequestsPage />} />
@@ -116,7 +116,6 @@ function toRequestPayload(form) {
   return {
     resourceGroupId: parseInt(form.gpu, 10),
     imageId: parseInt(form.env, 10),
-    ubuntuUsername: form.ubuntuUsername,
     ubuntuPassword: form.ubuntuPassword,
     // 30083 신청 DTO의 레거시 필수 필드. PVC UI에서는 노출하지 않는다.
     volumeSizeGiB: 20,

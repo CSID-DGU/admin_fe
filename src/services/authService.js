@@ -58,6 +58,7 @@ export const authService = {
         department: userData.department,
         studentId: userData.studentId,
         phone: userData.phone,
+        ubuntuUsername: userData.ubuntuUsername,
       });
       return response;
     } catch (error) {
