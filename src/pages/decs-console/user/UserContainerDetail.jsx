@@ -103,7 +103,10 @@ function UserContainerDetail({ onBack, onExtend, servers = [] }) {
                 }}
               >
                 <div>
-                  <div style={{ fontWeight: 600, color: "var(--decs-text-heading)" }}>{item.ubuntuUsername}</div>
+                  {/* 내 컨테이너 전부 같은 우분투 유저네임을 쓰므로(웹 계정당 하나로 고정),
+                      그걸 제목으로 쓰면 여러 개일 때 전혀 구분이 안 된다 — 신청 시 적어낸
+                      사용 목적을 대신 쓴다. */}
+                  <div style={{ fontWeight: 600, color: "var(--decs-text-heading)" }}>{item.jobTitle}</div>
                   <div style={{ fontSize: "var(--decs-fs-body-s)", color: "var(--decs-text-secondary)" }}>
                     {item.gpuName}{item.gpuSpec ? ` · ${item.gpuSpec}` : ""} · {item.expiresText}
                   </div>
