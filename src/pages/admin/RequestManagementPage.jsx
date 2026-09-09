@@ -94,7 +94,7 @@ const RequestManagementPage = () => {
         if (cancelled) return;
         if (data) {
           // config-server가 단계 전환 사이에 message를 잠깐 비운 채 응답할 때가 있다.
-          // 그대로 반영하면 "(현재 단계: ...)" 문구가 매 폴링(1초)마다 사라졌다
+          // 그대로 반영하면 "(현재 단계: ...)" 문구가 매 폴링(3초)마다 사라졌다
           // 나타나면서 배너 높이가 흔들려 깜빡이는 것처럼 보인다 — message가 없는
           // 응답에서는 직전에 표시하던 값을 그대로 유지한다.
           setProvisioningStatus((prev) => ({ ...data, message: data.message || prev?.message || null }));
@@ -104,7 +104,7 @@ const RequestManagementPage = () => {
         // 폴링으로 확인한 뒤에야 목록을 새로고침하고 최종 결과를 안내한다.
         if (data?.stage === "ready" || data?.stage === "failed") {
           // stage는 ready/failed로 끝난 뒤에도 config-server에 계속 그대로 남아있다.
-          // 여기서 멈추지 않으면 다음 폴링(1초 뒤)에도 같은 stage를 또 감지해서
+          // 여기서 멈추지 않으면 다음 폴링(3초 뒤)에도 같은 stage를 또 감지해서
           // fetchRequests()와 배너 갱신이 끝없이 반복되며 화면이 계속 깜빡인다.
           if (intervalId) clearInterval(intervalId);
           setPollingRequestId(null);
@@ -126,7 +126,7 @@ const RequestManagementPage = () => {
       }
     };
     poll();
-    intervalId = setInterval(poll, 1000);
+    intervalId = setInterval(poll, 3000);
     return () => {
       cancelled = true;
       clearInterval(intervalId);
@@ -218,7 +218,7 @@ const RequestManagementPage = () => {
     if (newStatus === "FULFILLED") {
       // 같은 신청을 재승인할 때는 provisioningTargetRequestId가 안 바뀌어서
       // 폴링 useEffect가 재실행되지 않는다 — 이전 실패 시도의 진행 단계 메시지가
-      // 첫 폴링(2초) 전까지 그대로 남아 보이는 걸 막기 위해 여기서 바로 지운다.
+      // 첫 폴링(3초) 전까지 그대로 남아 보이는 걸 막기 위해 여기서 바로 지운다.
       setProvisioningStatus(null);
       setPollingRequestId(request.request_id);
     }
