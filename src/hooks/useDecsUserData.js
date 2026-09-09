@@ -96,10 +96,15 @@ function buildGpuOptions(gpuTypes) {
 function buildServerVm(dto) {
   const vm = mapUserServer(dto);
   const serverName = dto.resourceGroup?.serverName ?? "";
+  // 웹 계정 하나당 우분투 유저네임이 하나로 고정되면서, 한 사용자가 컨테이너를 여러 개
+  // 동시에 가질 때 ubuntuUsername만으로는 서로 구분이 안 된다 — 신청 시 적어낸 사용
+  // 목적이 그나마 본인이 알아볼 수 있는 유일한 값이라 이걸 제목으로 쓴다.
+  const usagePurpose = dto.usagePurpose ?? dto.usage_purpose;
 
   return {
     requestId: vm.id,
     ubuntuUsername: dto.ubuntuUsername ?? "—",
+    usagePurpose,
     image: vm.image,
     expiresAt: vm.expiresAt,
     gpuName: serverName || vm.gpuName,
@@ -107,7 +112,7 @@ function buildServerVm(dto) {
     statusType: vm.statusType ?? "success",
     statusLabel: vm.statusLabel ?? "사용 가능",
     jobBadge: `내 서버 · ${serverName || vm.gpuName}`,
-    jobTitle: "내 서버",
+    jobTitle: usagePurpose || "내 서버",
     daysLeft: vm.daysLeft ?? daysLeft(dto.expiresAt),
     expiresText: formatExpiresText(vm.expiresAt),
     sshCommand: vm.sshCommand || "—",
