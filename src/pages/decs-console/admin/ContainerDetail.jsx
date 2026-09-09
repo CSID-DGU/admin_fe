@@ -5,7 +5,6 @@ import {
   Button, Modal, Alert, FormField, Input,
 } from "../../../design-system";
 import { requestService } from "../../../services/requestService";
-import userService from "../../../services/userService";
 import { nodeService } from "../../../services/nodeService";
 import { podService } from "../../../services/podService";
 
@@ -199,9 +198,13 @@ function ContainerDetail({ item, onBack, onRefetch }) {
     setDeleteError(null);
     setIsDeleting(true);
     try {
-      await userService.deleteUbuntuAccount(c.name);
+      await requestService.deleteContainer(c.requestId);
+      setDeleteOpen(false);
       onRefetch?.();
-      onBack();
+      setAlert({ type: "success", message: `컨테이너 "${c.name}"을(를) 삭제했습니다.` });
+      // 삭제된 컨테이너는 더 이상 존재하지 않아 이 페이지에 계속 머물면 로그/이벤트 탭이
+      // 깨진 상태로 남는다 — 성공 메시지를 잠깐 보여준 뒤 목록으로 돌아간다.
+      setTimeout(() => onBack(), 1500);
     } catch (error) {
       console.error("Failed to delete container:", error);
       setDeleteError(error.message || "컨테이너 삭제에 실패했습니다.");
