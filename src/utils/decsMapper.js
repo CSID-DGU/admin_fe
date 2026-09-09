@@ -102,7 +102,11 @@ export function mapAdminContainer(dto) {
     : "—";
 
   return {
-    id: String(dto.ubuntuUsername ?? dto.userId),
+    // 한 사용자가 컨테이너를 여러 개 동시에 가질 수 있어 ubuntuUsername은 행마다 겹칠 수
+    // 있다 — id가 겹치면 목록의 Table trackBy와 상세 페이지 라우팅(/admin/containers/:id)이
+    // 같은 유저의 다른 컨테이너를 클릭해도 항상 같은(첫 번째로 매칭되는) 컨테이너를 가리켜서,
+    // 엉뚱한 컨테이너를 보거나 지우게 된다. requestId는 컨테이너 하나당 유일하므로 이걸로 쓴다.
+    id: String(dto.requestId ?? dto.ubuntuUsername ?? dto.userId),
     requestId: dto.requestId,
     name: dto.ubuntuUsername ?? dto.userName ?? "—",
     user: dto.ubuntuUsername ?? dto.userName ?? "—",

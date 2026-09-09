@@ -43,6 +43,14 @@ export const requestService = {
       signal: AbortSignal.timeout(600_000),
     }),
 
+  // 컨테이너(신청) 개별 삭제 — userService.deleteUbuntuAccount(username)는 그 유저네임에
+  // 딸린 살아있는 신청을 전부 지우므로, 한 사용자가 컨테이너를 여러 개 가진 상태에서 이걸
+  // 개별 삭제에 쓰면 안 된다. requestId로 정확히 이 컨테이너 하나만 지운다.
+  deleteContainer: (requestId) =>
+    apiClient.delete(`/api/admin/requests/${requestId}`, {
+      signal: AbortSignal.timeout(600_000),
+    }),
+
   getGpuTypes: () => apiClient.get("/api/resources/gpu-types"),
   getGroups: () => apiClient.get("/api/groups"),
   checkUbuntuUsername: (username) =>
