@@ -85,7 +85,7 @@ function ContainerDetail({ item, onBack, onRefetch }) {
       } catch {
         // ignore
       } finally {
-        if (!cancelled) timeoutId = setTimeout(poll, 1000);
+        if (!cancelled) timeoutId = setTimeout(poll, 3000);
       }
     };
     poll();

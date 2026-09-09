@@ -52,8 +52,12 @@ export function useDecsAdminData() {
           Promise.allSettled(activeContainers.map((container) =>
             container.podName ? podService.getPod(container.podName) : Promise.resolve(null)
           )),
+          // getProvisioningStatus는 이제 requestId를 받는다(/pod-status/requests/{requestId}/status) —
+          // username을 넘기면 존재하지 않는 경로를 조회해 매번 실패한다. Pod가 아직 생성
+          // 중이라 getPod가 실패하는 컨테이너는 이 값으로 진행 단계(stage)를 대신 보여주므로,
+          // 여기가 계속 깨져 있으면 그런 컨테이너가 전부 "확인 불가"로만 보인다.
           Promise.allSettled(activeContainers.map((container) =>
-            container.ubuntuUsername ? podService.getProvisioningStatus(container.ubuntuUsername) : Promise.resolve(null)
+            container.requestId ? podService.getProvisioningStatus(container.requestId) : Promise.resolve(null)
           )),
         ]);
         if (cancelledRef.current) return;
