@@ -152,12 +152,31 @@ const endSentence = (x) => [
   x.unknown ? "결과를 알 수 없는 오류였음" : null,
 ].filter(Boolean).join(" · ");
 
+// 초를 "3분 35초"처럼. 1분 미만은 소수 한 자리까지.
+const duration = (sec) => {
+  if (sec == null) return null;
+  if (sec < 60) return `${Number(sec).toFixed(1)}초`;
+  const m = Math.floor(sec / 60);
+  const r = Math.round(sec - m * 60);
+  return r ? `${m}분 ${r}초` : `${m}분`;
+};
+
+// 컨테이너 준비 대기: 오래 걸린 이유(이미지 다운로드, 볼륨 마운트 재시도, 컨테이너 재시작)를 보인다.
+const readySentence = (x) => [
+  x.image_source === "pulled"
+    ? `이미지 새로 받음${x.image_pull_seconds != null ? ` (${duration(x.image_pull_seconds)}${x.image_size_mb ? `, ${(x.image_size_mb / 1024).toFixed(1)}GB` : ""})` : ""}`
+    : x.image_source === "cached" ? "노드에 있던 이미지 사용" : null,
+  x.mount_retries ? `볼륨 마운트 재시도 ${x.mount_retries}번` : null,
+  x.restarts ? `컨테이너 재시작 ${x.restarts}번` : null,
+].filter(Boolean).join(" · ");
+
 const stepDetail = (s) => {
   const x = s.summary ?? {};
   const ok = s.phase === "SUCCESS";
   const parts = [];
   if (s.probe) parts.push(probeSentence(s, x, ok));
   else if (s.action === "PROVISION" || s.action === "REVOKE") parts.push(endSentence(x));
+  else if (s.action === "WAIT_READY") parts.push(readySentence(x));
   if (s.error_code && !ok) {
     const label = errorLabel(s.error_code);
     // DEGRADED는 작업 결과 줄에서 이미 보인다
