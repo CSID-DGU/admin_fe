@@ -7,6 +7,9 @@ export const requestService = {
   getContainerImages: () => apiClient.get("/api/images"),
   getUserRequests: () => apiClient.get("/api/requests/my"),
   getAllRequests: () => apiClient.get("/api/admin/requests"),
+  // 신청의 생성·회수 작업 단계 기록(신청 상세). 관리자 API로만 받는다.
+  getJobSteps: (requestId) =>
+    apiClient.get(`/api/admin/requests/${encodeURIComponent(requestId)}/job-steps`),
 
   approveRequest: (data) =>
     apiClient.patch("/api/admin/requests/approve", data, {
