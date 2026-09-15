@@ -15,8 +15,11 @@ function ContainerManagement({ onOpenDetail, containers = [] }) {
   const [visibleCount, setVisibleCount] = React.useState(BATCH_SIZE);
   const sentinelRef = React.useRef(null);
 
+  // 한 사용자가 컨테이너를 여러 개 가질 수 있어 이름·사용자만으로는 구분되지 않는다 — 신청 번호와
+  // Pod 이름으로도 찾을 수 있게 한다.
   let rows = all.filter((c) =>
-    (q === "" || c.name.includes(q) || c.user.includes(q)) &&
+    (q === "" || c.name.includes(q) || c.user.includes(q) ||
+      (c.podName ?? "").includes(q) || String(c.requestId ?? "") === q.replace(/^#/, "")) &&
     (statusFilter === "all" || c.status === statusFilter)
   );
   if (sort.col) {
@@ -53,7 +56,7 @@ function ContainerManagement({ onOpenDetail, containers = [] }) {
           </Header>
           <div style={{ display: "flex", gap: "var(--decs-space-s)" }}>
             <div style={{ flex: 1, maxWidth: 320 }}>
-              <Input value={q} onChange={setQ} iconName="magnifying-glass" placeholder="이름 또는 사용자 검색" type="search" />
+              <Input value={q} onChange={setQ} iconName="magnifying-glass" placeholder="이름·사용자·Pod 이름·신청 번호 검색" type="search" />
             </div>
             <div style={{ width: 200 }}>
               <Select selectedValue={statusFilter} onChange={setStatusFilter} options={[
@@ -75,7 +78,20 @@ function ContainerManagement({ onOpenDetail, containers = [] }) {
           items={pageRows}
           empty="조건에 맞는 컨테이너가 없습니다."
           columns={[
-            { id: "name", header: "이름", sortingField: "name", cell: (c) => <a href="#" onClick={(e) => { e.preventDefault(); onOpenDetail(c); }} style={{ color: "var(--decs-text-link)", fontWeight: 600, textDecoration: "none" }}>{c.name}</a> },
+            {
+              id: "name",
+              header: "이름",
+              sortingField: "name",
+              cell: (c) => (
+                <div style={{ display: "flex", flexDirection: "column", gap: "var(--decs-space-xxxs)" }}>
+                  <a href="#" onClick={(e) => { e.preventDefault(); onOpenDetail(c); }} style={{ color: "var(--decs-text-link)", fontWeight: 600, textDecoration: "none" }}>{c.name}</a>
+                  {/* 같은 사용자의 컨테이너끼리는 이름이 같다(웹 계정당 우분투 유저네임 하나) — 신청 번호와 Pod 이름으로 구분한다. */}
+                  <span style={{ color: "var(--decs-text-secondary)", fontSize: "var(--decs-fs-body-s)" }}>
+                    {[c.requestId != null ? `신청 #${c.requestId}` : null, c.podName].filter(Boolean).join(" · ") || "—"}
+                  </span>
+                </div>
+              ),
+            },
             { id: "user", header: "사용자", sortingField: "user", cell: (c) => c.user },
             { id: "gpu", header: "리소스 그룹", cell: (c) => <Badge color="brand">{c.gpu}</Badge> },
             { id: "node", header: "노드", sortingField: "node", cell: (c) => c.node },
