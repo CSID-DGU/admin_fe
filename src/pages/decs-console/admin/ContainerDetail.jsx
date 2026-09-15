@@ -9,6 +9,11 @@ import userService from "../../../services/userService";
 import { nodeService } from "../../../services/nodeService";
 import { podService } from "../../../services/podService";
 
+// 노드 이름의 클러스터 접두어(farm2 → farm, LAB10 → lab). 노드 표에는 FARM·LAB 두 클러스터가 함께 있고
+// 대소문자도 k8s 노드 이름과 다르다.
+const clusterOf = (name) => (String(name ?? "").match(/^[a-z]+/i)?.[0] ?? "").toLowerCase();
+const sameNode = (a, b) => String(a ?? "").toLowerCase() === String(b ?? "").toLowerCase();
+
 function ContainerDetail({ item, onBack, onRefetch }) {
   const c = item;
 
@@ -108,7 +113,7 @@ function ContainerDetail({ item, onBack, onRefetch }) {
   }
 
   const openMigrate = async () => {
-    setSelectedNodes(c.node && c.node !== "—" ? [c.node] : []);
+    setSelectedNodes([]);
     setMigrateRatioInput("");
     setMigrateForce(false);
     setMigrateFormError(null);
@@ -116,7 +121,12 @@ function ContainerDetail({ item, onBack, onRefetch }) {
     setNodesLoading(true);
     try {
       const response = await nodeService.getAllNodes();
-      setAvailableNodes(response.data?.data ?? response.data ?? []);
+      const allNodes = response.data?.data ?? response.data ?? [];
+      // 다른 클러스터의 노드로는 옮길 수 없다(config-server가 UNKNOWN_NODE로 작업 전체를 거절). 현재 노드를 모르면 전부 보인다.
+      const cluster = clusterOf(c.node === "—" ? "" : c.node);
+      const candidates = cluster ? allNodes.filter((node) => clusterOf(node.nodeId) === cluster) : allNodes;
+      setAvailableNodes(candidates);
+      setSelectedNodes(candidates.filter((node) => sameNode(node.nodeId, c.node)).map((node) => node.nodeId));
     } catch (error) {
       console.error("Failed to load nodes:", error);
       setMigrateFormError("노드 목록을 불러오지 못했습니다.");
@@ -383,7 +393,7 @@ function ContainerDetail({ item, onBack, onRefetch }) {
                       padding: "var(--decs-space-xs) var(--decs-space-s)",
                       border: "1px solid var(--decs-border-container)",
                       borderRadius: "var(--decs-radius-input)",
-                      background: node.nodeId === c.node ? "var(--decs-surface-sunken)" : "transparent",
+                      background: sameNode(node.nodeId, c.node) ? "var(--decs-surface-sunken)" : "transparent",
                       cursor: isMigrating ? "default" : "pointer",
                     }}
                   >
@@ -396,7 +406,7 @@ function ContainerDetail({ item, onBack, onRefetch }) {
                     <span style={{ fontWeight: 600, color: "var(--decs-text-heading)" }}>{node.nodeId}</span>
                     <span style={{ color: "var(--decs-text-secondary)", fontSize: "var(--decs-fs-body-s)" }}>
                       {node.resourceGroupName} · GPU {node.numberGpu}
-                      {node.nodeId === c.node ? " · 현재 노드" : ""}
+                      {sameNode(node.nodeId, c.node) ? " · 현재 노드" : ""}
                     </span>
                   </label>
                 ))}
