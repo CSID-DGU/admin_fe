@@ -75,8 +75,7 @@ const RequestManagementPage = () => {
   // 클릭한 적 없어도 그 신청서 기준으로 상태 배너/폴링을 이어간다.
   const processingListRequest = requests.find((r) => r.status === "PROCESSING") || null;
 
-  // 승인 처리 중(Pod 생성 포함)일 때 config-server의 세세한 진행 단계를 폴링해서 보여준다.
-  // 조회 실패는 승인 흐름 자체에 영향을 주지 않으므로 조용히 무시한다.
+  // 승인 처리 중(Pod 생성 포함)일 때 진행 단계와 승인 결과를 폴링한다.
   const provisioningTargetRequestId =
     pollingRequestId || processingListRequest?.request_id || null;
 
@@ -87,42 +86,69 @@ const RequestManagementPage = () => {
     }
     let cancelled = false;
     let intervalId = null;
+    // 진행 단계가 failed인데 신청이 계속 PROCESSING으로 조회된 연속 횟수. 일반 실패는 admin_be가
+    // 몇 초 안에 신청을 PENDING으로 되돌리므로, 여러 번 이어질 때만 "자원을 남긴 채 관리자 확인으로
+    // 넘어간 실패"로 본다.
+    let failedWhileProcessing = 0;
+
+    const finish = async (nextAlert) => {
+      // 끝난 뒤에도 같은 결과가 계속 조회되므로 여기서 멈추지 않으면 목록 새로고침과 배너 갱신이
+      // 3초마다 반복되며 화면이 깜빡인다.
+      if (intervalId) clearInterval(intervalId);
+      setPollingRequestId(null);
+      // fetchRequests()는 시작할 때 setAlert(null)로 배너를 지우므로, 반드시 끝난 뒤에 세팅한다.
+      await fetchRequests();
+      if (!cancelled) setAlert(nextAlert);
+    };
+
     const poll = async () => {
+      // 1) 진행 단계 — "(현재 단계: …)" 표시에만 쓴다. 조회 실패는 표시만 멈추고 판정에는 영향이 없다.
+      let stage = null;
       try {
         const res = await podService.getProvisioningStatus(provisioningTargetRequestId);
-        const data = res?.data ?? null;
+        stage = res?.data ?? null;
         if (cancelled) return;
-        if (data) {
-          // config-server가 단계 전환 사이에 message를 잠깐 비운 채 응답할 때가 있다.
-          // 그대로 반영하면 "(현재 단계: ...)" 문구가 매 폴링(3초)마다 사라졌다
-          // 나타나면서 배너 높이가 흔들려 깜빡이는 것처럼 보인다 — message가 없는
-          // 응답에서는 직전에 표시하던 값을 그대로 유지한다.
-          setProvisioningStatus((prev) => ({ ...data, message: data.message || prev?.message || null }));
-        }
-        // 승인 후처리는 비동기라 approveRequest() 응답만으로는 실제 완료 여부를 알 수
-        // 없다 — config-server가 남기는 stage가 ready(성공)/failed(실패)로 끝나는 걸
-        // 폴링으로 확인한 뒤에야 목록을 새로고침하고 최종 결과를 안내한다.
-        if (data?.stage === "ready" || data?.stage === "failed") {
-          // stage는 ready/failed로 끝난 뒤에도 config-server에 계속 그대로 남아있다.
-          // 여기서 멈추지 않으면 다음 폴링(3초 뒤)에도 같은 stage를 또 감지해서
-          // fetchRequests()와 배너 갱신이 끝없이 반복되며 화면이 계속 깜빡인다.
-          if (intervalId) clearInterval(intervalId);
-          setPollingRequestId(null);
-          // fetchRequests()는 시작할 때 setAlert(null)로 배너를 지운다. 순서를 안 지키고
-          // 아래 setAlert보다 먼저 fetchRequests()를 fire-and-forget으로 부르면, 같은
-          // 렌더 사이클에서 배치되면서 방금 세팅한 실패/성공 배너가 곧바로 지워져
-          // 화면에는 한 번도 안 뜬 것처럼 보인다 — 반드시 fetchRequests가 끝난 뒤에 세팅한다.
-          await fetchRequests();
-          setAlert({
-            type: data.stage === "ready" ? "success" : "error",
-            message:
-              data.stage === "ready"
-                ? "승인 처리가 완료되었습니다."
-                : `승인 처리가 실패했습니다: ${data.message ?? "원인 불명"} — 요청이 대기중 상태로 되돌아갔을 수 있습니다.`,
-          });
+        if (stage) {
+          // config-server가 단계 전환 사이에 message를 잠깐 비운 채 응답할 때가 있다. 그대로 반영하면
+          // 문구가 폴링마다 사라졌다 나타나 깜빡이므로, message가 없으면 직전 값을 유지한다.
+          setProvisioningStatus((prev) => ({ ...stage, message: stage.message || prev?.message || null }));
         }
       } catch {
         // ignore
+      }
+
+      // 2) 최종 판정 — admin_be의 신청 상태로 한다. 진행 단계의 ready는 컨테이너가 만들어진 직후에
+      //    기록되고 접근 확인은 그 뒤에 돌기 때문에, ready만 보고 완료로 안내하면 틀릴 수 있다.
+      let status = null;
+      try {
+        const response = await requestService.getAllRequests();
+        if (cancelled) return;
+        const found = (response.data?.data ?? []).find((r) => r.requestId === provisioningTargetRequestId);
+        status = found?.status ?? null;
+      } catch {
+        return;
+      }
+
+      const reason = stage?.stage === "failed" && stage.message ? stage.message : null;
+      if (status === "FULFILLED") {
+        await finish({ type: "success", message: "승인 처리가 완료되었습니다." });
+      } else if (status === "PENDING") {
+        await finish({
+          type: "error",
+          message: `승인 처리가 실패해 신청이 대기중으로 되돌아갔습니다${reason ? ` (원인: ${reason})` : ""}. 원인을 확인한 뒤 다시 승인해주세요.`,
+        });
+      } else if (status === "DENIED") {
+        await finish({ type: "warning", message: "승인 처리 중에 신청이 거절되었습니다." });
+      } else if (status === "PROCESSING" && stage?.stage === "failed") {
+        failedWhileProcessing += 1;
+        if (failedWhileProcessing >= 3) {
+          await finish({
+            type: "warning",
+            message: `자동으로 복구되지 않아 관리자 확인이 필요합니다${reason ? ` (원인: ${reason})` : ""}. 신청은 처리중으로 남아 있고 만들어진 컨테이너·계정은 정리되지 않았으니, 다시 승인하지 말고 상태를 확인해주세요.`,
+          });
+        }
+      } else {
+        failedWhileProcessing = 0;
       }
     };
     poll();
@@ -215,14 +241,6 @@ const RequestManagementPage = () => {
   const handleStatusUpdate = async (request, newStatus, comment = "") => {
     if (processingRequestId !== null) return;
     setProcessingRequestId(request.request_id);
-    if (newStatus === "FULFILLED") {
-      // 같은 신청을 재승인할 때는 provisioningTargetRequestId가 안 바뀌어서
-      // 폴링 useEffect가 재실행되지 않는다 — 이전 실패 시도의 진행 단계 메시지가
-      // 첫 폴링(3초) 전까지 그대로 남아 보이는 걸 막기 위해 여기서 바로 지운다.
-      setProvisioningStatus(null);
-      setPollingRequestId(request.request_id);
-    }
-    let isSubmitSuccess = false;
     try {
       let response;
 
@@ -248,11 +266,17 @@ const RequestManagementPage = () => {
       }
 
       if (response.status === 200) {
-        isSubmitSuccess = true;
         const processedAt = new Date().toISOString();
-        // 승인(FULFILLED)은 이제 후처리가 비동기라, 응답이 왔다고 실제로 끝난 게 아니다 —
+        if (newStatus === "FULFILLED") {
+          // 폴링은 승인 API가 응답한 뒤에 시작한다. admin_be는 생성 작업을 등록해 진행 단계를 새로
+          // 기록한 다음 응답하므로, 그 전에 조회하면 같은 신청의 지난 시도가 남긴 failed 단계를 읽고
+          // 실제 결과와 무관한 실패를 안내하게 된다. 지난 시도의 단계 문구도 여기서 지운다.
+          setProvisioningStatus(null);
+          setPollingRequestId(request.request_id);
+        }
+        // 승인(FULFILLED)은 후처리가 비동기라, 응답이 왔다고 실제로 끝난 게 아니다 —
         // 서버가 돌려준 실제 상태(보통 PROCESSING)를 그대로 반영한다. 최종 완료/실패는
-        // provisioningStatus 폴링이 ready/failed를 감지했을 때 별도로 안내한다.
+        // 폴링이 신청 상태로 판정해 별도로 안내한다.
         const actualStatus = newStatus === "FULFILLED"
           ? (response.data?.data?.status ?? response.data?.status ?? "PROCESSING")
           : newStatus;
@@ -317,14 +341,8 @@ const RequestManagementPage = () => {
       }
     } finally {
       // processingRequestId는 버튼 중복 클릭 방지용이라 응답이 오면 바로 풀어도 된다.
-      // pollingRequestId는 여기서 무조건 지우지 않는다 — FULFILLED 제출이 성공했다면
-      // 비동기 후처리가 아직 진행 중이므로, 진행 상태 폴링 배너가 계속 보여야 한다
-      // (ready/failed로 끝나는 걸 폴링이 감지하면 그때 지운다). 제출 자체가 실패했거나
-      // 거절(DENIED)인 경우엔 더 이상 폴링할 이유가 없으니 여기서 지운다.
+      // pollingRequestId는 승인 제출이 성공했을 때만 세팅되고, 폴링이 결과를 판정하면 지운다.
       setProcessingRequestId(null);
-      if (newStatus !== "FULFILLED" || !isSubmitSuccess) {
-        setPollingRequestId(null);
-      }
     }
   };
 
