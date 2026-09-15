@@ -230,6 +230,9 @@ export const JobStepsTimeline = ({ requestId }) => {
   const [history, setHistory] = useState(null);
   const [loading, setLoading] = useState(false);
   const [failed, setFailed] = useState(false);
+  // admin_be가 아직 작업 기록 API를 제공하지 않는 환경(옛 동기 승인 경로)에서는 404가 온다.
+  // 그때는 오류로 보이지 않게 이 영역을 통째로 숨긴다.
+  const [unsupported, setUnsupported] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -237,8 +240,9 @@ export const JobStepsTimeline = ({ requestId }) => {
     try {
       const res = await requestService.getJobSteps(requestId);
       setHistory(res?.data?.data ?? null);
-    } catch {
-      setFailed(true);
+    } catch (error) {
+      if (error?.response?.status === 404) setUnsupported(true);
+      else setFailed(true);
     } finally {
       setLoading(false);
     }
@@ -256,6 +260,8 @@ export const JobStepsTimeline = ({ requestId }) => {
         ...(history.revoke?.jobs ?? []).map((job) => ({ ...job, kind: "revoke" })),
       ].sort((a, b) => new Date(a.started_at ?? 0) - new Date(b.started_at ?? 0))
     : [];
+
+  if (unsupported) return null;
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "var(--decs-space-s)", marginTop: "var(--decs-space-m)" }}>
