@@ -116,28 +116,6 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const signup = async () => {
-    try {
-      // TODO: Replace with actual API call
-      // const response = await fetch("/api/auth/signup", {
-      //   method: "POST",
-      //   headers: { "Content-Type": "application/json" },
-      //   body: JSON.stringify(userData)
-      // });
-
-      // if (!response.ok) {
-      //   throw new Error("Signup failed");
-      // }
-
-      // Mock signup for development
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      return { success: true };
-    } catch (error) {
-      return { success: false, error: error.message };
-    }
-  };
-
   const updateUser = async () => {
     try {
       // 사용자 정보를 다시 불러와서 최신 상태로 업데이트
@@ -165,7 +143,6 @@ export const AuthProvider = ({ children }) => {
     isAuthenticated,
     login,
     logout,
-    signup,
     updateUser,
     handleSessionExpired,
   };
