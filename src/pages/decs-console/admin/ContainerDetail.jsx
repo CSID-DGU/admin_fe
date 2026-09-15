@@ -225,7 +225,7 @@ function ContainerDetail({ item, onBack, onRefetch }) {
     setIsDeleting(true);
     try {
       // 계정 회수는 사용자 번호로 한다(같은 사용자의 살아 있는 컨테이너가 모두 회수된다).
-      await userService.deleteUbuntuAccount(item?.userId ?? c.userId);
+      await userService.deleteUbuntuAccount(c.userId);
       onRefetch?.();
       onBack();
     } catch (error) {
