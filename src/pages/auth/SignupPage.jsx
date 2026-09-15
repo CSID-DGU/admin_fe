@@ -5,8 +5,9 @@ import { Alert, Button, FormField, Input } from "../../design-system";
 import { authService } from "../../services/authService";
 import { requestService } from "../../services/requestService";
 
-const UBUNTU_USERNAME_PATTERN = /^[a-z][a-z0-9_-]{2,49}$/;
-const UBUNTU_USERNAME_FORMAT_ERROR = "소문자로 시작하고 소문자·숫자·_·-만 사용해 3~50자로 입력해주세요.";
+// 계정 이름은 쿠버네티스 자원 이름(Secret 등)에도 들어가 밑줄을 쓸 수 없고, 리눅스 계정 이름 상한은 32자다.
+const UBUNTU_USERNAME_PATTERN = /^(?!(?:root|admin|nobody|daemon|bin|sys|ubuntu|svmanager|ailab-krb5)$)[a-z][a-z0-9-]{1,30}[a-z0-9]$/;
+const UBUNTU_USERNAME_FORMAT_ERROR = "소문자로 시작하고 소문자·숫자·하이픈(-)만 사용해 3~32자로 입력해주세요. 끝은 소문자나 숫자여야 하고, 시스템 계정 이름은 쓸 수 없습니다.";
 const UBUNTU_USERNAME_TAKEN_ERROR = "이미 사용 중인 Ubuntu 사용자명입니다.";
 const UBUNTU_USERNAME_CHECK_FAILED_ERROR = "사용자명 중복 확인에 실패했습니다. 잠시 후 다시 시도해주세요.";
 
