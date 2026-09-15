@@ -31,10 +31,10 @@ class UserService {
     }
   }
 
-  // 우분투 계정(컨테이너) 단독 삭제
-  async deleteUbuntuAccount(username) {
+  // 사용자의 우분투 계정 회수(살아 있는 컨테이너를 모두 회수한 뒤 계정 삭제, 홈은 보존)
+  async deleteUbuntuAccount(userId) {
     try {
-      const response = await apiClient.request(`/api/admin/users/ubuntu/${username}`, {
+      const response = await apiClient.request(`/api/admin/users/${userId}/ubuntu-account`, {
         method: "DELETE",
       });
 
@@ -48,8 +48,12 @@ class UserService {
   // 사용자 임시 비활성화 (계정/컨테이너는 유지, 로그인만 차단)
   async deactivateUser(userId) {
     try {
-      const response = await apiClient.request(`/api/admin/users/${userId}/deactivate`, {
+      const response = await apiClient.request(`/api/admin/users/${userId}`, {
         method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ active: false }),
       });
 
       return response;
@@ -62,8 +66,12 @@ class UserService {
   // 비활성화된 사용자 재활성화
   async reactivateUser(userId) {
     try {
-      const response = await apiClient.request(`/api/admin/users/${userId}/reactivate`, {
+      const response = await apiClient.request(`/api/admin/users/${userId}`, {
         method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ active: true }),
       });
 
       return response;

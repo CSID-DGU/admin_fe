@@ -25,7 +25,7 @@ const ACTION_LABELS = {
   REMOVE_KRB5: "Kerberos 정리",
 };
 
-const KIND_LABELS = { provision: "생성 작업", revoke: "회수 작업" };
+const KIND_LABELS = { provision: "생성 작업", revoke: "회수 작업", migrate: "마이그레이션 작업" };
 
 const PROBE_LABELS = {
   uid: "계정 권한",
@@ -71,6 +71,8 @@ const PHASE_META = {
   RETRY: { type: "warning", label: "다시 시도" },
   UNKNOWN: { type: "warning", label: "결과 불명" },
   START: { type: "in-progress", label: "진행 중" },
+  // 진행 상황 변화 기록(이미지 다운로드 중 → 컨테이너 시작 중 등). 결과가 아니라 흐름을 보여 준다.
+  INFO: { type: "info", label: "진행" },
 };
 
 const ERROR_LABELS = {
@@ -111,7 +113,8 @@ const stepTitle = (s) => {
   if (s.action === "VERIFY_ACCESS") return `접근 확인: ${PROBE_LABELS[s.probe] ?? s.probe}`;
   if (s.action === "VERIFY_REVOKED") return `차단 확인: ${PROBE_LABELS[s.probe] ?? s.probe}`;
   if (s.phase === "RETRY") return `다시 시도: ${STEP_LABELS[s.step] ?? s.step}`;
-  if (s.action === "PROVISION" || s.action === "REVOKE") return "작업 종료";
+  if (s.action === "PROGRESS") return `진행: ${s.summary?.message || s.summary?.stage || "단계 변경"}`;
+  if (s.action === "PROVISION" || s.action === "REVOKE" || s.action === "MIGRATE") return "작업 종료";
   return ACTION_LABELS[s.action] ?? s.action;
 };
 
@@ -175,12 +178,12 @@ const stepDetail = (s) => {
   const ok = s.phase === "SUCCESS";
   const parts = [];
   if (s.probe) parts.push(probeSentence(s, x, ok));
-  else if (s.action === "PROVISION" || s.action === "REVOKE") parts.push(endSentence(x));
+  else if (s.action === "PROVISION" || s.action === "REVOKE" || s.action === "MIGRATE") parts.push(endSentence(x));
   else if (s.action === "WAIT_READY") parts.push(readySentence(x));
   if (s.error_code && !ok) {
     const label = errorLabel(s.error_code);
     // DEGRADED는 작업 결과 줄에서 이미 보인다
-    if (!(s.action === "PROVISION" || s.action === "REVOKE") || s.error_code !== "DEGRADED") parts.push(label);
+    if (!(s.action === "PROVISION" || s.action === "REVOKE" || s.action === "MIGRATE") || s.error_code !== "DEGRADED") parts.push(label);
   }
   if (x.rc != null && x.rc !== 0) parts.push(`명령 종료 코드 ${x.rc}`);
   return parts.filter(Boolean).join(" · ");
@@ -277,6 +280,7 @@ export const JobStepsTimeline = ({ requestId }) => {
     ? [
         ...(history.provision?.jobs ?? []).map((job) => ({ ...job, kind: "provision" })),
         ...(history.revoke?.jobs ?? []).map((job) => ({ ...job, kind: "revoke" })),
+        ...(history.migrate?.jobs ?? []).map((job) => ({ ...job, kind: "migrate" })),
       ].sort((a, b) => new Date(a.started_at ?? 0) - new Date(b.started_at ?? 0))
     : [];
 
@@ -292,7 +296,7 @@ export const JobStepsTimeline = ({ requestId }) => {
       </div>
       {failed ? <StatusIndicator type="error">작업 기록을 불러오지 못했습니다.</StatusIndicator> : null}
       {!failed && !history && loading ? <StatusIndicator type="loading">작업 기록을 불러오는 중...</StatusIndicator> : null}
-      {history && jobs.length === 0 ? <StatusIndicator type="info">아직 실행된 생성·회수 작업이 없습니다.</StatusIndicator> : null}
+      {history && jobs.length === 0 ? <StatusIndicator type="info">아직 실행된 생성·회수·마이그레이션 작업이 없습니다.</StatusIndicator> : null}
       {jobs.map((job) => (
         <JobBlock key={`${job.kind}-${job.job_id}`} job={job} />
       ))}

@@ -66,11 +66,9 @@ function ContainerDetail({ item, onBack, onRefetch }) {
   // 마이그레이션 진행 중일 때 config-server의 세세한 진행 단계를 폴링해서 보여준다.
   // 승인 요청 진행 상태(RequestManagementPage)와 동일한 패턴 — 조회 실패는
   // 마이그레이션 흐름 자체에 영향을 주지 않으므로 조용히 무시한다.
-  // podService.getProvisioningStatus의 인자명은 requestId지만, 마이그레이션 경로는
-  // 아직 config-server가 username 기준으로 진행 상황을 저장해서 여기서는 그대로
-  // username(c.name)을 넘긴다 — 승인(생성) 경로만 requestId로 바뀌었다.
+  // 마이그레이션 작업도 생성 작업처럼 신청 번호로 진행 상황을 기록한다.
   useEffect(() => {
-    if (!isMigrating || !c?.name) {
+    if (!isMigrating || !c?.requestId) {
       setMigrationStatus(null);
       return;
     }
@@ -80,7 +78,7 @@ function ContainerDetail({ item, onBack, onRefetch }) {
     // 요청이 겹치면 먼저 보낸(오래된 단계) 응답이 나중에 도착해 최신 단계를 덮어쓸 수 있다.
     const poll = async () => {
       try {
-        const res = await podService.getProvisioningStatus(c.name);
+        const res = await podService.getProvisioningStatus(c.requestId);
         if (!cancelled) setMigrationStatus(res?.data ?? null);
       } catch {
         // ignore
@@ -93,7 +91,7 @@ function ContainerDetail({ item, onBack, onRefetch }) {
       cancelled = true;
       clearTimeout(timeoutId);
     };
-  }, [isMigrating, c?.name]);
+  }, [isMigrating, c?.requestId]);
 
   if (!c) {
     return (
@@ -158,23 +156,50 @@ function ContainerDetail({ item, onBack, onRefetch }) {
 
     setMigrateFormError(null);
     setIsMigrating(true);
+    const SKIP_REASONS = {
+      no_candidate_node: "현재 노드 말고 고른 후보 노드가 없습니다.",
+      no_significant_improvement: "후보 노드의 GPU 여유가 기준만큼 좋지 않습니다.",
+    };
     try {
-      const response = await requestService.migrateRequest(c.requestId, nodes, minImprovementRatio, migrateForce);
-      const result = response.data?.data ?? response.data;
+      // 작업만 등록하고 202로 돌아온다. 끝날 때까지 마지막 마이그레이션 결과를 3초마다 확인한다
+      // (새 노드에서 이미지를 처음 받으면 수 분 걸린다).
+      await requestService.migrateRequest(c.requestId, nodes, minImprovementRatio, migrateForce);
+      const deadline = Date.now() + 15 * 60 * 1000;
+      let result = null;
+      while (Date.now() < deadline) {
+        await new Promise((resolve) => setTimeout(resolve, 3000));
+        try {
+          const res = await requestService.getLatestMigration(c.requestId);
+          const latest = res.data?.data ?? res.data;
+          if (latest && ["SUCCESS", "FAIL", "UNKNOWN"].includes(latest.phase)) {
+            result = latest;
+            break;
+          }
+        } catch {
+          // 조회 한 번 실패는 다음 바퀴에 다시 본다
+        }
+      }
 
-      if (result?.status === "migrated") {
+      if (!result) {
+        setAlert({ type: "warning", message: "마이그레이션이 아직 끝나지 않았습니다. 잠시 뒤 목록을 새로고침해 확인해주세요." });
+      } else if (result.phase === "SUCCESS" && result.status === "migrated") {
         setAlert({
           type: "success",
-          message: `Pod를 ${result.from} → ${result.to}(으)로 마이그레이션했습니다.${
-            result.old_pod_cleanup === "failed" ? " (기존 Pod 정리는 실패해 수동 확인이 필요합니다.)" : ""
+          message: `Pod를 ${result.fromNode} → ${result.toNode}(으)로 옮겼습니다. 홈 디렉터리는 그대로이고 컨테이너 안에서 설치한 패키지 등은 초기화됩니다.${
+            result.oldPodCleanup === "failed" ? " (기존 Pod 정리는 실패해 수동 확인이 필요합니다.)" : ""
           }`,
         });
-      } else {
+      } else if (result.phase === "SUCCESS") {
         setAlert({
           type: "info",
-          message: `마이그레이션을 건너뛰었습니다: ${result?.reason ?? "개선 효과가 충분하지 않습니다."}${
-            result?.best_candidate ? ` (최적 후보: ${result.best_candidate})` : ""
-          }`,
+          message: `마이그레이션을 건너뛰었습니다: ${SKIP_REASONS[result.reason] ?? result.reason ?? "옮길 이유가 없습니다."}`,
+        });
+      } else if (result.phase === "UNKNOWN") {
+        setAlert({ type: "warning", message: "마이그레이션 결과를 확인할 수 없습니다. 관리자 알림을 확인하고 Pod 상태를 점검해주세요." });
+      } else {
+        setAlert({
+          type: "error",
+          message: `마이그레이션에 실패해 기존 컨테이너를 유지합니다.${result.errorCode ? ` (${result.errorCode})` : ""}`,
         });
       }
       setMigrateOpen(false);
@@ -183,10 +208,10 @@ function ContainerDetail({ item, onBack, onRefetch }) {
       console.error("Failed to migrate pod:", error);
       if (error.status === 409) {
         setMigrateFormError("이미 마이그레이션이 진행 중이거나 FULFILLED 상태가 아닙니다.");
+      } else if (error.status === 422) {
+        setMigrateFormError(`인프라 서버가 요청을 거절했습니다. ${error.message ?? ""}`);
       } else if (error.status === 502) {
-        setMigrateFormError("config-server 마이그레이션 API 호출에 실패했습니다.");
-      } else if (error.name === "TimeoutError" || error.name === "AbortError") {
-        setMigrateFormError("응답 시간이 초과되었습니다. 실제 처리 상태는 목록을 새로고침해 확인해주세요.");
+        setMigrateFormError("config-server에 마이그레이션 작업을 등록하지 못했습니다.");
       } else {
         setMigrateFormError(error.message || "마이그레이션 요청에 실패했습니다.");
       }
@@ -199,7 +224,8 @@ function ContainerDetail({ item, onBack, onRefetch }) {
     setDeleteError(null);
     setIsDeleting(true);
     try {
-      await userService.deleteUbuntuAccount(c.name);
+      // 계정 회수는 사용자 번호로 한다(같은 사용자의 살아 있는 컨테이너가 모두 회수된다).
+      await userService.deleteUbuntuAccount(item?.userId ?? c.userId);
       onRefetch?.();
       onBack();
     } catch (error) {

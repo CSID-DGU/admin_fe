@@ -11,40 +11,35 @@ export const requestService = {
   getJobSteps: (requestId) =>
     apiClient.get(`/api/admin/requests/${encodeURIComponent(requestId)}/job-steps`),
 
-  approveRequest: (data) =>
-    apiClient.patch("/api/admin/requests/approve", data, {
-      // 타임아웃 체인: config-server(500s) < admin_be(550s) < nginx/ingress(570s)
-      // < 여기(프론트, 600s=10분 — 사용자에게 보여주는 안내 문구와도 일치시킨다).
-      // 짧게 잡으면 백엔드가 아직 정상 처리 중인데 프론트가 먼저 포기해버린다.
-      signal: AbortSignal.timeout(600_000),
+  // 승인은 생성 작업을 등록하고 바로 202로 돌아온다. 결과는 신청 상태 폴링으로 판정한다.
+  approveRequest: (requestId, { imageId, resourceGroupId, adminComment }) =>
+    apiClient.post(`/api/admin/requests/${encodeURIComponent(requestId)}/approval`, {
+      imageId,
+      resourceGroupId,
+      adminComment,
     }),
-  rejectRequest: (data) => apiClient.patch("/api/admin/requests/reject", data),
+  rejectRequest: (requestId, adminComment) =>
+    apiClient.post(`/api/admin/requests/${encodeURIComponent(requestId)}/rejection`, { adminComment }),
 
   createChangeRequest: (requestId, data) =>
     apiClient.post(`/api/requests/${requestId}/change`, data),
-  getChangeRequests: () => apiClient.get("/api/admin/requests/change/all"),
+  getChangeRequests: () => apiClient.get("/api/admin/change-requests"),
   approveChangeRequest: (changeRequestId, adminComment) =>
-    apiClient.patch("/api/admin/requests/change/approve", {
-      changeRequestId,
-      adminComment,
-    }),
+    apiClient.post(`/api/admin/change-requests/${encodeURIComponent(changeRequestId)}/approval`, { adminComment }),
   rejectChangeRequest: (changeRequestId, adminComment) =>
-    apiClient.patch("/api/admin/requests/change/reject", {
-      changeRequestId,
-      adminComment,
-    }),
+    apiClient.post(`/api/admin/change-requests/${encodeURIComponent(changeRequestId)}/rejection`, { adminComment }),
   getMyChangeRequests: () => apiClient.get("/api/requests/my/changes"),
 
+  // 마이그레이션은 작업을 등록하고 바로 202로 돌아온다. 끝났는지는 신청 상태(MIGRATING → FULFILLED)와
+  // 마지막 마이그레이션 결과로 확인한다.
   migrateRequest: (requestId, nodes, minImprovementRatio, force) =>
-    apiClient.post(`/api/admin/requests/${requestId}/migrate`, {
+    apiClient.post(`/api/admin/requests/${encodeURIComponent(requestId)}/migrations`, {
       nodes,
       ...(minImprovementRatio != null && { minImprovementRatio }),
       ...(force && { force }),
-    }, {
-      // nginx/ingress 프록시 타임아웃(570s)보다 길게 잡아야 백엔드가 정상
-      // 처리 중일 때 프론트가 먼저 타임아웃돼버리는 걸 막을 수 있다.
-      signal: AbortSignal.timeout(600_000),
     }),
+  getLatestMigration: (requestId) =>
+    apiClient.get(`/api/admin/requests/${encodeURIComponent(requestId)}/migrations/latest`),
 
   getGpuTypes: () => apiClient.get("/api/resources/gpu-types"),
   getGroups: () => apiClient.get("/api/groups"),

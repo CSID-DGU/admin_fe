@@ -247,26 +247,20 @@ const RequestManagementPage = () => {
 
       if (newStatus === "FULFILLED") {
         // 승인 API 호출
-        const approvalData = {
-          requestId: request.request_id,
+        response = await requestService.approveRequest(request.request_id, {
           imageId: request.image_id,
           resourceGroupId: request.rsgroup_id,
-          volumeSizeGiB: request.volume_size_GB,
           adminComment: comment,
-        };
-        response = await requestService.approveRequest(approvalData);
+        });
       } else if (newStatus === "DENIED") {
         // 거절 API 호출
-        const rejectData = {
-          requestId: request.request_id,
-          adminComment: comment,
-        };
-        response = await requestService.rejectRequest(rejectData);
+        response = await requestService.rejectRequest(request.request_id, comment);
       } else {
         return;
       }
 
-      if (response.status === 200) {
+      // 승인은 202(작업 등록), 거절은 200
+      if (response.status >= 200 && response.status < 300) {
         const processedAt = new Date().toISOString();
         if (newStatus === "FULFILLED") {
           // 폴링은 승인 API가 응답한 뒤에 시작한다. admin_be는 생성 작업을 등록해 진행 단계를 새로
