@@ -16,6 +16,9 @@ const ACTION_LABELS = {
   DEPLOY_KRB5: "Kerberos 키 배포",
   CREATE_POD_K8S: "컨테이너 생성",
   WAIT_READY: "컨테이너 준비 대기",
+  PULL_IMAGE: "이미지 다운로드",
+  START_CONTAINER: "컨테이너 시작",
+  MOUNT_VOLUME: "볼륨 마운트",
   CREATE_SERVICE: "접속 포트 연결",
   DELETE_SERVICE: "접속 포트 해제",
   RELEASE_NODEPORT: "접속 포트 반환",
@@ -71,8 +74,6 @@ const PHASE_META = {
   RETRY: { type: "warning", label: "다시 시도" },
   UNKNOWN: { type: "warning", label: "결과 불명" },
   START: { type: "in-progress", label: "진행 중" },
-  // 진행 상황 변화 기록(이미지 다운로드 중 → 컨테이너 시작 중 등). 결과가 아니라 흐름을 보여 준다.
-  INFO: { type: "info", label: "진행" },
 };
 
 const ERROR_LABELS = {
@@ -113,7 +114,6 @@ const stepTitle = (s) => {
   if (s.action === "VERIFY_ACCESS") return `접근 확인: ${PROBE_LABELS[s.probe] ?? s.probe}`;
   if (s.action === "VERIFY_REVOKED") return `차단 확인: ${PROBE_LABELS[s.probe] ?? s.probe}`;
   if (s.phase === "RETRY") return `다시 시도: ${STEP_LABELS[s.step] ?? s.step}`;
-  if (s.action === "PROGRESS") return `진행: ${s.summary?.message || s.summary?.stage || "단계 변경"}`;
   if (s.action === "PROVISION" || s.action === "REVOKE" || s.action === "MIGRATE") return "작업 종료";
   return ACTION_LABELS[s.action] ?? s.action;
 };
