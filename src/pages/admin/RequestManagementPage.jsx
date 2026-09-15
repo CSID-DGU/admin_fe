@@ -26,6 +26,7 @@ const PERIOD_OPTIONS = [
 import { requestService } from "../../services/requestService";
 import { podService } from "../../services/podService";
 import { mapRequestDtoToUiModel } from "../../utils/requestMapper";
+import { JobStepsTimeline } from "./JobStepsTimeline";
 
 const STATUS_META = {
   PENDING: { type: "pending", label: "대기중" },
@@ -745,6 +746,9 @@ const RequestManagementPage = () => {
                   </Alert>
                 </div>
               )}
+              {sel.status !== "PENDING" && sel.status !== "DENIED" ? (
+                <JobStepsTimeline requestId={sel.request_id} />
+              ) : null}
             </div>
           </div>
         </Modal>
