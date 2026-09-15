@@ -102,7 +102,9 @@ export function mapAdminContainer(dto) {
     : "—";
 
   return {
-    id: String(dto.ubuntuUsername ?? dto.userId),
+    // 행 식별자이자 상세 화면 주소(/admin/containers/:id). 웹 계정당 우분투 유저네임이 하나라 한 사용자가
+    // 컨테이너를 여러 개 가지면 유저네임으로는 겹쳐, 표 행이 섞이고 상세가 늘 첫 컨테이너를 열었다.
+    id: String(dto.requestId ?? dto.podName ?? dto.ubuntuUsername ?? dto.userId),
     requestId: dto.requestId,
     name: dto.ubuntuUsername ?? dto.userName ?? "—",
     user: dto.ubuntuUsername ?? dto.userName ?? "—",

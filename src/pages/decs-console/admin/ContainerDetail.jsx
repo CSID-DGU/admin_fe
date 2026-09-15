@@ -287,7 +287,7 @@ function ContainerDetail({ item, onBack, onRefetch }) {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "var(--decs-space-m)" }}>
-      <BreadcrumbGroup items={[{ text: "컨테이너", href: "#" }, { text: c.name }]} onFollow={(it) => { if (it.href) onBack(); }} />
+      <BreadcrumbGroup items={[{ text: "컨테이너", href: "#" }, { text: c.requestId != null ? `${c.name} (신청 #${c.requestId})` : c.name }]} onFollow={(it) => { if (it.href) onBack(); }} />
 
       {alert && (
         <Alert type={alert.type} dismissible onDismiss={() => setAlert(null)}>
@@ -297,6 +297,8 @@ function ContainerDetail({ item, onBack, onRefetch }) {
 
       <Header
         variant="h1"
+        // 같은 사용자의 컨테이너끼리는 이름(우분투 유저네임)이 같다 — 어느 컨테이너인지 신청 번호와 Pod 이름으로 보인다.
+        description={[c.requestId != null ? `신청 #${c.requestId}` : null, c.podName].filter(Boolean).join(" · ") || undefined}
         actions={
           <div style={{ display: "flex", gap: "var(--decs-space-s)" }}>
             {c.status !== "stopped" && c.requestId != null && (
