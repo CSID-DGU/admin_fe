@@ -5,7 +5,6 @@ import {
   Button, Modal, Alert, FormField, Input,
 } from "../../../design-system";
 import { requestService } from "../../../services/requestService";
-import userService from "../../../services/userService";
 import { nodeService } from "../../../services/nodeService";
 import { podService } from "../../../services/podService";
 
@@ -234,8 +233,9 @@ function ContainerDetail({ item, onBack, onRefetch }) {
     setDeleteError(null);
     setIsDeleting(true);
     try {
-      // 계정 회수는 사용자 번호로 한다(같은 사용자의 살아 있는 컨테이너가 모두 회수된다).
-      await userService.deleteUbuntuAccount(c.userId);
+      // 이 컨테이너(신청) 하나만 회수한다. 계정 회수 API를 부르면 같은 사용자의 컨테이너가
+      // 전부 사라진다 — 상세 화면의 삭제는 보고 있는 그 컨테이너만 지워야 한다.
+      await requestService.deleteContainer(c.requestId);
       onRefetch?.();
       onBack();
     } catch (error) {
@@ -461,7 +461,7 @@ function ContainerDetail({ item, onBack, onRefetch }) {
         <div style={{ display: "flex", flexDirection: "column", gap: "var(--decs-space-s)" }}>
           {deleteError ? <Alert type="error">{deleteError}</Alert> : null}
           <p>
-            컨테이너 &quot;{c.name}&quot;이(가) 영구적으로 삭제됩니다 (외부 계정/Pod 정리 포함).
+            컨테이너 &quot;{c.name}&quot;하나만 회수됩니다. 우분투 계정과 홈 디렉터리는 남고, 같은 사용자의 다른 컨테이너는 영향받지 않습니다.
             이 작업은 되돌릴 수 없습니다.
           </p>
         </div>
