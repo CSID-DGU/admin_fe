@@ -117,6 +117,7 @@ function buildServerVm(dto) {
     expiresText: formatExpiresText(vm.expiresAt),
     sshCommand: vm.sshCommand || "—",
     jupyterUrl: vm.jupyterUrl || "—",
+    extraPorts: vm.extraPorts ?? [],
   };
 }
 

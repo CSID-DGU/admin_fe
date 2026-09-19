@@ -45,9 +45,11 @@ function formatDate(dateStr) {
 }
 
 function getPodExternalPorts(dto) {
-  // BE가 legacy portMappings를 빈 배열로 함께 내려서, 비어있지 않은 첫 배열을 골라야 한다
-  const ports = [dto.portMappings, dto.port_mappings, dto.podExternalPorts, dto.pod_external_ports]
-    .find((candidate) => Array.isArray(candidate) && candidate.length > 0);
+  // portMappings는 "신청 때 요청한 포트"라 externalPort가 없고, pod_external_ports가 실제 배정된
+  // NodePort다. 추가 포트를 한 개라도 신청하면 portMappings가 비지 않으므로 "비어있지 않은 첫
+  // 배열"로 고르면 접속 정보가 통째로 "—"가 된다 — externalPort를 실제로 가진 배열을 고른다.
+  const ports = [dto.podExternalPorts, dto.pod_external_ports, dto.portMappings, dto.port_mappings]
+    .find((candidate) => Array.isArray(candidate) && candidate.some((port) => getExternalPort(port) != null));
   return ports ?? [];
 }
 
@@ -61,6 +63,29 @@ function getInternalPort(port) {
 
 function getUsagePurpose(port) {
   return port?.usagePurpose ?? port?.usage_purpose ?? "";
+}
+
+// SSH/Jupyter 외의 추가 포트(예: novnc 6080)는 지금까지 어느 화면에도 안 나와서,
+// 사용자가 배정받은 외부 포트를 알 방법이 없었다.
+function toExtraPort(port) {
+  const internalPort = getInternalPort(port);
+  const externalPort = getExternalPort(port);
+  const publicPort = toPublicPort(externalPort);
+  const purpose = String(getUsagePurpose(port) || `포트 ${internalPort}`);
+
+  // noVNC는 컨테이너가 websockify로 웹 페이지를 띄우므로 브라우저 주소로 안내할 수 있다.
+  // 그 밖의 추가 포트는 사용자가 무엇을 띄울지 모르니(HTTP라는 보장이 없다) 주소만 알려준다.
+  const isVnc = /vnc/i.test(purpose) || internalPort === 6080;
+
+  return {
+    internalPort,
+    purpose,
+    isVnc,
+    // NodePort가 DNAT 대역(30000~30097) 밖이면 내부만 열리고 외부는 막힌다 — 주소를 안내하면 안 된다
+    reachable: publicPort != null,
+    address: publicPort != null ? `${PUBLIC_HOST}:${publicPort}` : "—",
+    url: publicPort != null && isVnc ? `http://${PUBLIC_HOST}:${publicPort}` : null,
+  };
 }
 
 function findPort(ports, usagePurpose, internalPort) {
@@ -151,8 +176,10 @@ export function mapUserServer(dto) {
   const status = mapPodStatus(dto.status);
   const resourceGroup = dto.resourceGroup ?? {};
   const ports = getPodExternalPorts(dto);
-  const sshPort = getExternalPort(findPort(ports, "ssh", 22));
-  const jupyterPort = getExternalPort(findPort(ports, "jupyter", 8888));
+  const sshEntry = findPort(ports, "ssh", 22);
+  const jupyterEntry = findPort(ports, "jupyter", 8888);
+  const sshPort = getExternalPort(sshEntry);
+  const jupyterPort = getExternalPort(jupyterEntry);
   const sshPublicPort = toPublicPort(sshPort);
   const jupyterPublicPort = toPublicPort(jupyterPort);
   const sshCommand = sshPort && dto.ubuntuUsername
@@ -161,9 +188,13 @@ export function mapUserServer(dto) {
   const jupyterUrl = jupyterPort
     ? `http://${PUBLIC_HOST}:${jupyterPublicPort ?? jupyterPort}`
     : "—";
+  const extraPorts = ports
+    .filter((port) => port !== sshEntry && port !== jupyterEntry)
+    .map(toExtraPort);
 
   return {
     id: dto.requestId,
+    extraPorts,
     gpuName: resourceGroup.resourceGroupName ?? dto.resourceGroupName ?? (
       dto.resourceGroupId != null ? `리소스 그룹 ${dto.resourceGroupId}` : "—"
     ),
