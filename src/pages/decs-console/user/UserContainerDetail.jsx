@@ -131,6 +131,30 @@ function UserContainerDetail({ onBack, onExtend, servers = [] }) {
             ]} />
           </ExpandableSection>
         </div>
+        {/* 신청 때 추가한 포트(원격 데스크톱 novnc 6080 등)의 외부 주소를 알 방법이 여기밖에 없다 */}
+        {server.extraPorts?.length ? (
+          <div style={{ marginTop: "var(--decs-space-m)" }}>
+            <ExpandableSection headerText="추가 포트로 접속하기">
+              <KeyValuePairs columns={1} items={server.extraPorts.map((port) => ({
+                label: `${port.purpose} (컨테이너 ${port.internalPort})`,
+                // noVNC만 브라우저로 바로 여는 주소를 준다. 나머지는 무엇을 띄웠는지 알 수 없어
+                // http를 붙이면 틀린 안내가 되므로 주소만 알려준다.
+                value: !port.reachable
+                  ? `${port.address} — 외부 공개 대역(9300~9397) 밖이라 외부에서는 접속할 수 없어요`
+                  : port.url
+                  ? port.url
+                  : `${port.address} — 컨테이너에 직접 띄운 서비스의 접속 방법에 맞춰 사용하세요`,
+                copyable: port.reachable,
+              }))} />
+              {server.extraPorts.some((port) => port.isVnc) ? (
+                <div style={{ marginTop: "var(--decs-space-s)", color: "var(--decs-text-secondary)", fontSize: "var(--decs-fs-body-s)" }}>
+                  원격 데스크톱(noVNC)은 위 주소를 브라우저에서 열면 바로 화면이 뜹니다. 접속 비밀번호는
+                  SSH로 들어가 <code>~/vnc_password.txt</code>를 확인하세요.
+                </div>
+              ) : null}
+            </ExpandableSection>
+          </div>
+        ) : null}
       </Container>
 
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "var(--decs-space-m)" }}>
