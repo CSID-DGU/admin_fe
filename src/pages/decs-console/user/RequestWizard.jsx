@@ -1,6 +1,9 @@
 // RequestWizard — 사용 목적 → 서버 선택 → GPU → 기간 → 개발 환경 → 확인
 import React from "react";
 import { Wizard, Cards, FormField, Select, Input, KeyValuePairs, Alert, Container, Header, StatusIndicator, Button, Badge, Table } from "../../../design-system";
+import { requestService } from "../../../services/requestService";
+
+const GROUP_NAME_PATTERN = /^[a-z_][a-z0-9_-]*$/;
 
 function toLocalDateInput(date) {
   const offset = date.getTimezoneOffset() * 60_000;
@@ -26,6 +29,10 @@ function RequestWizard({ onCancel, onDone, gpuOptions: gpuOptionsProp, envOption
   const [envErrors, setEnvErrors] = React.useState({});
   const [selectedGroupId, setSelectedGroupId] = React.useState("");
   const [selectedGroups, setSelectedGroups] = React.useState([]);
+  const [createdGroups, setCreatedGroups] = React.useState([]);
+  const [newGroupName, setNewGroupName] = React.useState("");
+  const [groupCreateError, setGroupCreateError] = React.useState(null);
+  const [creatingGroup, setCreatingGroup] = React.useState(false);
   const [portNumber, setPortNumber] = React.useState("");
   const [portPurpose, setPortPurpose] = React.useState("");
   const [portRequests, setPortRequests] = React.useState([]);
@@ -33,7 +40,7 @@ function RequestWizard({ onCancel, onDone, gpuOptions: gpuOptionsProp, envOption
 
   const gpuOptions = React.useMemo(() => gpuOptionsProp ?? [], [gpuOptionsProp]);
   const envOptions = React.useMemo(() => envOptionsProp ?? [], [envOptionsProp]);
-  const groupOptions = React.useMemo(() => groupOptionsProp ?? [], [groupOptionsProp]);
+  const groupOptions = React.useMemo(() => [...(groupOptionsProp ?? []), ...createdGroups], [groupOptionsProp, createdGroups]);
   const serverOptions = React.useMemo(() => {
     const seen = new Set();
     return gpuOptions.reduce((acc, g) => {
@@ -120,6 +127,34 @@ function RequestWizard({ onCancel, onDone, gpuOptions: gpuOptionsProp, envOption
 
   function removeGroup(value) {
     setSelectedGroups((prev) => prev.filter((g) => g.value !== value));
+  }
+
+  async function createNewGroup() {
+    const groupName = newGroupName.trim();
+    if (!groupName) return;
+    if (!GROUP_NAME_PATTERN.test(groupName) || groupName.length > 32) {
+      setGroupCreateError("그룹명은 소문자나 밑줄로 시작하고 소문자·숫자·밑줄·하이픈만 32자 이내로 쓸 수 있어요.");
+      return;
+    }
+    setCreatingGroup(true);
+    setGroupCreateError(null);
+    try {
+      const res = await requestService.createGroup(groupName);
+      const dto = res.data?.data ?? res.data;
+      const group = {
+        value: String(dto.ubuntuGid),
+        label: `${dto.groupName} (${dto.ubuntuGid})`,
+        groupName: dto.groupName,
+        ubuntuGid: dto.ubuntuGid,
+      };
+      setCreatedGroups((prev) => [...prev, group]);
+      setSelectedGroups((prev) => [...prev, group]);
+      setNewGroupName("");
+    } catch (e) {
+      setGroupCreateError(e.message || "그룹 생성에 실패했습니다.");
+    } finally {
+      setCreatingGroup(false);
+    }
   }
 
   function addPort() {
@@ -269,13 +304,25 @@ function RequestWizard({ onCancel, onDone, gpuOptions: gpuOptionsProp, envOption
             {selectedGroups.length > 0 ? (
               <div style={{ display: "flex", flexWrap: "wrap", gap: "var(--decs-space-xs)", marginTop: "var(--decs-space-xs)" }}>
                 {selectedGroups.map((group) => (
-                  <span key={group.value} style={{ display: "inline-flex", alignItems: "center", gap: 2 }}>
+                  <span key={group.value} style={{ display: "inline-flex", alignItems: "center", gap: "var(--decs-space-xxxs)" }}>
                     <Badge color="blue">{group.label}</Badge>
                     <Button variant="icon" iconName="x-mark" onClick={() => removeGroup(group.value)} ariaLabel={`공유 그룹 ${group.label} 제거`} />
                   </span>
                 ))}
               </div>
             ) : null}
+          </FormField>
+          <FormField label="새 공유 그룹 만들기" errorText={groupCreateError} constraintText="목록에 없는 그룹은 여기서 새로 만들 수 있어요. (소문자로 시작, 소문자·숫자·밑줄·하이픈, 32자 이내)">
+            <div style={{ display: "flex", gap: "var(--decs-space-xs)" }}>
+              <Input
+                value={newGroupName}
+                onChange={(value) => { setNewGroupName(value); setGroupCreateError(null); }}
+                placeholder="예: my-team"
+                invalid={!!groupCreateError}
+                style={{ flex: 1 }}
+              />
+              <Button onClick={createNewGroup} disabled={!newGroupName.trim() || creatingGroup} loading={creatingGroup} ariaLabel="새 공유 그룹 만들기">새로 만들기</Button>
+            </div>
           </FormField>
           <FormField label="추가 포트" errorText={portError}>
             <div style={{ display: "grid", gridTemplateColumns: "150px minmax(0, 1fr) auto", gap: "var(--decs-space-xs)" }}>
