@@ -8,10 +8,18 @@ controller:
 
   ingressClass: nginx-ailab
 
+  # IP로 접속하면 브라우저가 SNI를 보내지 않아 Ingress별 인증서 매칭이 되지 않는다.
+  # SNI 없이 들어오는 TLS 연결을 전부 이 인증서로 종료한다(없으면 컨트롤러 기본 가짜 인증서가 나간다).
+  extraArgs:
+    default-ssl-certificate: "ailab-frontend/ailab-tls"
+
   service:
     type: NodePort
     nodePorts:
-      http: 30081
+      # 사용자가 쓰던 30081을 https로 돌렸다. 한 포트가 http와 https를 겸할 수 없어
+      # http는 30794로 밀어냈고, 구 http://...:30081 접속은 nginx가 400을 돌려준다.
+      http: 30794
+      https: 30081
 
   # Use a different election ID to avoid conflicts
   electionID: ingress-controller-leader-ailab
