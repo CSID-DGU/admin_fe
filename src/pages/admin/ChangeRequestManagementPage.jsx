@@ -13,6 +13,7 @@ import {
   KeyValuePairs,
 } from "../../design-system";
 import { requestService } from "../../services/requestService";
+import RequestDecisionModal from "../../components/RequestDecisionModal";
 
 const STATUS_META = {
   PENDING: { type: "pending", label: "대기중" },
@@ -41,6 +42,8 @@ const ChangeRequestManagementPage = () => {
   const [filter, setFilter] = useState("ALL"); // ALL, PENDING, FULFILLED, DENIED
   const [alert, setAlert] = useState(null);
   const [processingChangeRequestId, setProcessingChangeRequestId] = useState(null);
+  // 승인·거절 사유 입력 모달: { kind, request, title, defaultComment }
+  const [decision, setDecision] = useState(null);
 
   const fetchData = async () => {
       setIsLoading(true);
@@ -279,25 +282,28 @@ const ChangeRequestManagementPage = () => {
     }
   };
 
-  const promptApprove = (changeRequest) => {
-    const comment = prompt(
-      "승인 사유를 입력하세요:",
-      "변경 요청이 승인되었습니다."
-    );
-    if (comment !== null) {
-      handleStatusUpdate(
-        changeRequest,
-        "FULFILLED",
-        comment || "변경 요청이 승인되었습니다."
-      );
-    }
+  const askApprove = (changeRequest) => {
+    setDecision({
+      kind: "approve",
+      request: changeRequest,
+      title: `변경 요청 #${changeRequest.changeRequestId}`,
+      defaultComment: "변경 요청이 승인되었습니다.",
+    });
   };
 
-  const promptDeny = (changeRequest) => {
-    const comment = prompt("거절 사유를 입력하세요:", "거절되었습니다.");
-    if (comment !== null) {
-      handleStatusUpdate(changeRequest, "DENIED", comment || "거절되었습니다.");
-    }
+  const askDeny = (changeRequest) => {
+    setDecision({
+      kind: "deny",
+      request: changeRequest,
+      title: `변경 요청 #${changeRequest.changeRequestId}`,
+      defaultComment: "거절되었습니다.",
+    });
+  };
+
+  const confirmDecision = (comment) => {
+    const { kind, request } = decision;
+    setDecision(null);
+    handleStatusUpdate(request, kind === "approve" ? "FULFILLED" : "DENIED", comment);
   };
 
   const formatDate = (dateString) => {
@@ -388,7 +394,7 @@ const ChangeRequestManagementPage = () => {
                 variant="inline-link"
                 disabled={processingChangeRequestId !== null || !!APPROVAL_BLOCK_REASON[r.changeType]}
                 loading={processingChangeRequestId === r.changeRequestId}
-                onClick={() => promptApprove(r)}
+                onClick={() => askApprove(r)}
               >
                 승인
               </Button>
@@ -396,7 +402,7 @@ const ChangeRequestManagementPage = () => {
                 variant="inline-link"
                 disabled={processingChangeRequestId !== null}
                 style={{ color: "var(--decs-status-error)" }}
-                onClick={() => promptDeny(r)}
+                onClick={() => askDeny(r)}
               >
                 거절
               </Button>
@@ -504,7 +510,7 @@ const ChangeRequestManagementPage = () => {
                       color: "var(--decs-status-error)",
                       borderColor: "var(--decs-status-error)",
                     }}
-                    onClick={() => promptDeny(sel)}
+                    onClick={() => askDeny(sel)}
                     disabled={processingChangeRequestId !== null}
                   >
                     거절
@@ -513,7 +519,7 @@ const ChangeRequestManagementPage = () => {
                     variant="primary"
                     disabled={processingChangeRequestId !== null || !!APPROVAL_BLOCK_REASON[sel.changeType]}
                     loading={processingChangeRequestId === sel.changeRequestId}
-                    onClick={() => promptApprove(sel)}
+                    onClick={() => askApprove(sel)}
                   >
                     승인
                   </Button>
@@ -659,6 +665,13 @@ const ChangeRequestManagementPage = () => {
           </div>
         </Modal>
       )}
+
+      <RequestDecisionModal
+        decision={decision}
+        submitting={processingChangeRequestId !== null}
+        onCancel={() => setDecision(null)}
+        onConfirm={confirmDecision}
+      />
     </div>
   );
 };

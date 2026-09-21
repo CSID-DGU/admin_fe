@@ -13,6 +13,7 @@ import {
   Tabs,
 } from "../design-system";
 import { useAuth } from "../hooks/useAuth";
+import { PHONE_PATTERN, PHONE_FORMAT_ERROR } from "../utils/validators";
 
 const AccountPage = ({ user }) => {
   const { updateUser } = useAuth();
@@ -73,8 +74,8 @@ const AccountPage = ({ user }) => {
 
     if (!formData.phone.trim()) {
       newErrors.phone = "전화번호를 입력해주세요.";
-    } else if (!/^[0-9-]+$/.test(formData.phone)) {
-      newErrors.phone = "올바른 전화번호 형식을 입력해주세요.";
+    } else if (!PHONE_PATTERN.test(formData.phone)) {
+      newErrors.phone = PHONE_FORMAT_ERROR;
     }
 
     setErrors(newErrors);
