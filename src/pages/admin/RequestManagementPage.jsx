@@ -27,6 +27,7 @@ import { requestService } from "../../services/requestService";
 import { podService } from "../../services/podService";
 import { mapRequestDtoToUiModel } from "../../utils/requestMapper";
 import { JobStepsTimeline } from "./JobStepsTimeline";
+import RequestDecisionModal from "../../components/RequestDecisionModal";
 
 const STATUS_META = {
   PENDING: { type: "pending", label: "대기중" },
@@ -64,6 +65,8 @@ const RequestManagementPage = () => {
   const sentinelRef = useRef(null);
   const [alert, setAlert] = useState(null);
   const [processingRequestId, setProcessingRequestId] = useState(null);
+  // 승인·거절 사유 입력 모달: { kind, request, title, defaultComment, warning }
+  const [decision, setDecision] = useState(null);
   // 승인 처리 중인 신청의 진행 상황 폴링 키. 한 사용자가 신청을 여러 개 동시에 가질 수
   // 있어(계정은 하나로 통합됐지만 Pod는 여러 개 발급 가능) username이 아니라 requestId로
   // 구분한다 — processingRequestId는 버튼 중복 클릭 방지용이라 응답이 오면 바로 풀리는데,
@@ -341,26 +344,28 @@ const RequestManagementPage = () => {
     }
   };
 
-  const promptApprove = (request) => {
-    const comment = prompt("승인 사유를 입력하세요:", "승인되었습니다.");
-    if (comment !== null) {
-      handleStatusUpdate(request, "FULFILLED", comment || "승인되었습니다.");
-    }
+  const askApprove = (request) => {
+    setDecision({ kind: "approve", request, title: `신청 #${request.request_id}`, defaultComment: "승인되었습니다." });
   };
 
-  const promptDeny = (request) => {
-    // PROCESSING 상태는 Pod 생성이 이미 진행 중일 수 있다 — 진행 단계가 멈춘 것처럼
-    // 보인다고 오인해 실수로 취소하는 것을 막기 위해 별도로 확인한다.
-    if (request.status === "PROCESSING") {
-      const proceed = confirm(
-        "이 신청서는 현재 Pod 생성 처리 중입니다. 거절하면 진행 중인 계정/Pod가 정리됩니다. 계속하시겠습니까?"
-      );
-      if (!proceed) return;
-    }
-    const comment = prompt("거절 사유를 입력하세요:", "거절되었습니다.");
-    if (comment !== null) {
-      handleStatusUpdate(request, "DENIED", comment || "거절되었습니다.");
-    }
+  const askDeny = (request) => {
+    setDecision({
+      kind: "deny",
+      request,
+      title: `신청 #${request.request_id}`,
+      defaultComment: "거절되었습니다.",
+      // PROCESSING 상태는 Pod 생성이 이미 진행 중일 수 있다 — 진행 단계가 멈춘 것처럼
+      // 보인다고 오인해 실수로 취소하는 것을 막기 위해 따로 경고한다.
+      warning: request.status === "PROCESSING"
+        ? "이 신청서는 현재 Pod 생성 처리 중입니다. 거절하면 진행 중인 계정·Pod가 정리됩니다."
+        : null,
+    });
+  };
+
+  const confirmDecision = (comment) => {
+    const { kind, request } = decision;
+    setDecision(null);
+    handleStatusUpdate(request, kind === "approve" ? "FULFILLED" : "DENIED", comment);
   };
 
   const formatDate = (dateString) => {
@@ -435,7 +440,7 @@ const RequestManagementPage = () => {
             상세
           </Button>
           {r.status === "PENDING" && (
-            <Button variant="inline-link" disabled={processingRequestId !== null} loading={processingRequestId === r.request_id} onClick={() => promptApprove(r)}>
+            <Button variant="inline-link" disabled={processingRequestId !== null} loading={processingRequestId === r.request_id} onClick={() => askApprove(r)}>
               승인
             </Button>
           )}
@@ -444,7 +449,7 @@ const RequestManagementPage = () => {
               variant="inline-link"
               disabled={processingRequestId !== null}
               style={{ color: "var(--decs-status-error)" }}
-              onClick={() => promptDeny(r)}
+              onClick={() => askDeny(r)}
             >
               거절
             </Button>
@@ -574,13 +579,13 @@ const RequestManagementPage = () => {
                     color: "var(--decs-status-error)",
                     borderColor: "var(--decs-status-error)",
                   }}
-                  onClick={() => promptDeny(sel)}
+                  onClick={() => askDeny(sel)}
                 >
                   거절
                 </Button>
               )}
               {sel.status === "PENDING" && (
-                <Button variant="primary" disabled={processingRequestId !== null} loading={processingRequestId === sel.request_id} onClick={() => promptApprove(sel)}>
+                <Button variant="primary" disabled={processingRequestId !== null} loading={processingRequestId === sel.request_id} onClick={() => askApprove(sel)}>
                   승인
                 </Button>
               )}
@@ -748,6 +753,12 @@ const RequestManagementPage = () => {
         </Modal>
       )}
 
+      <RequestDecisionModal
+        decision={decision}
+        submitting={processingRequestId !== null}
+        onCancel={() => setDecision(null)}
+        onConfirm={confirmDecision}
+      />
     </div>
   );
 };
