@@ -2,7 +2,8 @@ import { useEffect, useState } from "react";
 import { requestService } from "../services/requestService";
 import { mapUserServer, mapPodStatus, daysLeft } from "../utils/decsMapper";
 
-const ERROR_MESSAGE = "실데이터를 불러오지 못해 예시 데이터를 표시합니다.";
+// 예시 데이터로 대체하는 코드는 없다 — 못 불러온 영역은 그냥 빈 채로 남는다.
+const ERROR_MESSAGE = "일부 정보를 불러오지 못했습니다. 새로고침해도 같으면 관리자에게 문의해주세요.";
 
 function getArrayData(res) {
   if (Array.isArray(res?.data)) return res.data;
