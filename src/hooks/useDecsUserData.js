@@ -94,7 +94,7 @@ function buildGpuOptions(gpuTypes) {
   }));
 }
 
-function buildServerVm(dto) {
+function buildServerVm(dto, groupNameByGid = {}) {
   const vm = mapUserServer(dto);
   const serverName = dto.resourceGroup?.serverName ?? "";
   // 웹 계정 하나당 우분투 유저네임이 하나로 고정되면서, 한 사용자가 컨테이너를 여러 개
@@ -119,6 +119,13 @@ function buildServerVm(dto) {
     sshCommand: vm.sshCommand || "—",
     jupyterUrl: vm.jupyterUrl || "—",
     extraPorts: vm.extraPorts ?? [],
+    // SaveRequestResponseDTO.ubuntuGids는 gid만 준다 — 이름은 /api/groups 조회 결과(groupOptions와
+    // 같은 소스)에서 찾아 붙인다. 그룹 목록 API에 없는 gid는 관리자가 DB에서 그룹을 지운 경우라
+    // 이름 대신 "GID <n>"으로 표시한다.
+    groups: (dto.ubuntuGids ?? []).map((gid) => ({
+      ubuntuGid: gid,
+      groupName: groupNameByGid[String(gid)] ?? `GID ${gid}`,
+    })),
   };
 }
 
@@ -144,11 +151,37 @@ export function useDecsUserData() {
 
       let hasError = false;
 
+      // 그룹명 조회를 서버 목록보다 먼저 풀어서, 신청 응답의 gid 목록(ubuntuGids)을
+      // 그룹명과 짝지어 "내 컨테이너"의 소속 그룹 표시에 쓴다.
+      let groupNameByGid = {};
+      if (groupsResult.status === "fulfilled" && groupsResult.value?.status === 200) {
+        const groups = getArrayData(groupsResult.value);
+        if (groups) {
+          groupNameByGid = Object.fromEntries(
+            groups.map((g) => [String(g.ubuntuGid ?? g.ubuntu_gid), g.groupName ?? g.group_name])
+          );
+          setGroupOptions(groups.map((g) => ({
+            value: String(g.ubuntuGid ?? g.ubuntu_gid),
+            label: `${g.groupName ?? g.group_name} (${g.ubuntuGid ?? g.ubuntu_gid})`,
+            groupName: g.groupName ?? g.group_name,
+            ubuntuGid: g.ubuntuGid ?? g.ubuntu_gid,
+          })).filter((g) => g.value !== "undefined"));
+        } else {
+          hasError = true;
+        }
+      } else {
+        hasError = true;
+      }
+
       if (serversResult.status === "fulfilled" && serversResult.value?.status === 200) {
         const serverDtos = getArrayData(serversResult.value);
         if (serverDtos) {
           // 만료 임박 순 — 대시보드 단일 카드와 만료 경고는 가장 급한 컨테이너 기준
-          setServers(serverDtos.map(buildServerVm).sort((a, b) => a.daysLeft - b.daysLeft));
+          setServers(
+            serverDtos
+              .map((dto) => buildServerVm(dto, groupNameByGid))
+              .sort((a, b) => a.daysLeft - b.daysLeft)
+          );
         } else {
           hasError = true;
         }
@@ -203,22 +236,6 @@ export function useDecsUserData() {
           if (options.length > 0) {
             setEnvOptions(options);
           }
-        } else {
-          hasError = true;
-        }
-      } else {
-        hasError = true;
-      }
-
-      if (groupsResult.status === "fulfilled" && groupsResult.value?.status === 200) {
-        const groups = getArrayData(groupsResult.value);
-        if (groups) {
-          setGroupOptions(groups.map((g) => ({
-            value: String(g.ubuntuGid ?? g.ubuntu_gid),
-            label: `${g.groupName ?? g.group_name} (${g.ubuntuGid ?? g.ubuntu_gid})`,
-            groupName: g.groupName ?? g.group_name,
-            ubuntuGid: g.ubuntuGid ?? g.ubuntu_gid,
-          })).filter((g) => g.value !== "undefined"));
         } else {
           hasError = true;
         }
