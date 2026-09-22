@@ -21,10 +21,18 @@ const STATUS_META = {
   DENIED: { type: "error", label: "거절됨" },
 };
 const APPROVAL_BLOCK_REASON = {
-  GROUP: "DB 그룹만 변경되고 Ubuntu 계정 그룹에는 반영되지 않습니다.",
   RESOURCE_GROUP: "DB 리소스 그룹만 변경되고 실행 중인 Pod에는 반영되지 않습니다.",
   CONTAINER_IMAGE: "DB 이미지 정보만 변경되고 실행 중인 Pod 이미지는 변경되지 않습니다.",
   PORT: "백엔드 승인 서비스가 포트 변경을 아직 처리하지 않습니다.",
+};
+
+// 승인은 되지만 즉시 반영되지는 않는 변경 유형. 차단이 아니라 정보로 보여준다.
+// GROUP: 그룹 변경은 Ubuntu 계정까지 반영된다(admin_be applyGroupChange → config-server →
+// AD). 다만 NAS가 그룹 목록을 GSS 컨텍스트 수립 시점에 고정해 두기 때문에, 이미 떠 있는
+// 컨테이너는 재조정 잡이 NAS 캐시를 비울 때까지 기다려야 한다(admin_infra-proposed#153).
+// 컨테이너를 새로 만드는 경우는 새 컨텍스트라 즉시 반영된다.
+const APPROVAL_DELAY_NOTE = {
+  GROUP: "그룹 변경은 이미 실행 중인 컨테이너에 최대 약 30분 뒤에 반영됩니다. 새로 만드는 컨테이너는 즉시 반영됩니다.",
 };
 
 const renderStatus = (status) => {
@@ -235,11 +243,13 @@ const ChangeRequestManagementPage = () => {
           )
         );
 
+        const delayNote =
+          newStatus === "FULFILLED" ? APPROVAL_DELAY_NOTE[changeRequest.changeType] : null;
         setAlert({
           type: "success",
           message: `${changeRequest.requestedBy.name}님의 변경 요청이 성공적으로 ${
             newStatus === "FULFILLED" ? "승인" : "거절"
-          }되었습니다. ${comment ? `사유: ${comment}` : ""}`,
+          }되었습니다. ${comment ? `사유: ${comment}` : ""}${delayNote ? ` ${delayNote}` : ""}`,
         });
 
         setSelectedChangeRequest(null);
@@ -533,6 +543,11 @@ const ChangeRequestManagementPage = () => {
             {sel.status === "PENDING" && APPROVAL_BLOCK_REASON[sel.changeType] && (
               <Alert type="warning" header="현재 승인할 수 없는 변경 유형입니다">
                 {APPROVAL_BLOCK_REASON[sel.changeType]}
+              </Alert>
+            )}
+            {sel.status === "PENDING" && APPROVAL_DELAY_NOTE[sel.changeType] && (
+              <Alert type="info" header="승인 후 반영까지 시간이 걸립니다">
+                {APPROVAL_DELAY_NOTE[sel.changeType]}
               </Alert>
             )}
 
