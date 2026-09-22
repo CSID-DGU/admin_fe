@@ -1,9 +1,9 @@
 // UserContainerDetail — 접속·상태 이해 (친절한 문구 + 복사 가능한 접속 정보)
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Container, Header, KeyValuePairs, StatusIndicator, Button, Alert, ExpandableSection, Badge, FormField, Input, Modal } from "../../../design-system";
+import { Container, Header, KeyValuePairs, StatusIndicator, Button, Alert, ExpandableSection, Badge, FormField, Input, Select, Modal } from "../../../design-system";
 
-function UserContainerDetail({ onBack, onExtend, servers = [] }) {
+function UserContainerDetail({ onBack, onExtend, onGroupChange, groupOptions = [], servers = [] }) {
   const location = useLocation();
   const navigate = useNavigate();
   const [selectedId, setSelectedId] = useState(null);
@@ -13,8 +13,19 @@ function UserContainerDetail({ onBack, onExtend, servers = [] }) {
   const [extendError, setExtendError] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [autoExtended, setAutoExtended] = useState(false);
+  const [groupModalOpen, setGroupModalOpen] = useState(false);
+  const [selectedGroupId, setSelectedGroupId] = useState("");
+  const [addedGroups, setAddedGroups] = useState([]);
+  const [groupReason, setGroupReason] = useState("");
+  const [groupError, setGroupError] = useState(null);
+  const [groupSubmitting, setGroupSubmitting] = useState(false);
 
   const server = servers.find((s) => s.requestId === selectedId) ?? servers[0];
+  const currentGroupIds = new Set((server?.groups ?? []).map((g) => String(g.ubuntuGid)));
+  const addedGroupIds = new Set(addedGroups.map((g) => g.value));
+  const groupSelectOptions = groupOptions
+    .filter((g) => !currentGroupIds.has(g.value))
+    .map((g) => ({ ...g, disabled: addedGroupIds.has(g.value) }));
 
   // 대시보드 연장 버튼 경유(location.state.extend) 시 서버 로드 후 모달 자동 오픈
   // eslint-disable-next-line react-hooks/exhaustive-deps -- openExtension은 매 렌더 새로 생성, autoExtended 가드로 1회만 실행
@@ -55,6 +66,50 @@ function UserContainerDetail({ onBack, onExtend, servers = [] }) {
       setExtendError(error.message || "기간 연장 요청에 실패했어요. 잠시 후 다시 시도해주세요.");
     } finally {
       setSubmitting(false);
+    }
+  }
+
+  function openGroupRequest() {
+    setSelectedGroupId("");
+    setAddedGroups([]);
+    setGroupReason("");
+    setGroupError(null);
+    setGroupModalOpen(true);
+  }
+
+  function addGroupToRequest() {
+    const group = groupOptions.find((g) => g.value === selectedGroupId);
+    if (!group || currentGroupIds.has(group.value) || addedGroupIds.has(group.value)) return;
+    setAddedGroups((prev) => [...prev, group]);
+    setSelectedGroupId("");
+  }
+
+  function removeGroupFromRequest(value) {
+    setAddedGroups((prev) => prev.filter((g) => g.value !== value));
+  }
+
+  async function submitGroupRequest() {
+    if (addedGroups.length === 0) {
+      setGroupError("추가할 그룹을 하나 이상 선택해주세요.");
+      return;
+    }
+    if (!groupReason.trim()) {
+      setGroupError("그룹 추가 사유를 입력해주세요.");
+      return;
+    }
+    setGroupSubmitting(true);
+    setGroupError(null);
+    try {
+      const groupIds = [
+        ...(server.groups ?? []).map((g) => g.ubuntuGid),
+        ...addedGroups.map((g) => Number(g.value)),
+      ];
+      await onGroupChange({ requestId: server.requestId, groupIds, reason: groupReason.trim() });
+      setGroupModalOpen(false);
+    } catch (error) {
+      setGroupError(error.message || "그룹 추가 요청에 실패했어요. 잠시 후 다시 시도해주세요.");
+    } finally {
+      setGroupSubmitting(false);
     }
   }
 
@@ -170,6 +225,26 @@ function UserContainerDetail({ onBack, onExtend, servers = [] }) {
         </Container>
       </div>
 
+      <Container header={<Header variant="h2" description="이 컨테이너가 소속된 공유 그룹이에요">그룹</Header>}>
+        {(server.groups ?? []).length > 0 ? (
+          <div style={{ display: "flex", flexWrap: "wrap", gap: "var(--decs-space-xs)" }}>
+            {server.groups.map((group) => (
+              <Badge key={group.ubuntuGid} color="grey">{group.groupName}</Badge>
+            ))}
+          </div>
+        ) : (
+          <div style={{ color: "var(--decs-text-secondary)", fontSize: "var(--decs-fs-body-s)" }}>
+            소속된 공유 그룹이 없어요.
+          </div>
+        )}
+        <div style={{ color: "var(--decs-text-secondary)", fontSize: "var(--decs-fs-body-s)", marginTop: "var(--decs-space-xs)" }}>
+          그룹을 빼려면 관리자에게 별도로 문의해주세요. 여기서는 추가만 신청할 수 있어요.
+        </div>
+        <div style={{ marginTop: "var(--decs-space-m)" }}>
+          <Button iconName="plus" onClick={openGroupRequest}>그룹 추가 신청</Button>
+        </div>
+      </Container>
+
       <Alert type="info" header="문제가 있나요?">
         접속이 안 되면 컨테이너를 재시작해 보세요. 그래도 안 되면 대시보드의 도움말에서 관리자에게 문의할 수 있어요.
       </Alert>
@@ -197,6 +272,67 @@ function UserContainerDetail({ onBack, onExtend, servers = [] }) {
               onChange={(event) => setReason(event.target.value)}
               rows={4}
               placeholder="예: 실험 일정 연장으로 GPU 사용 기간이 더 필요합니다."
+              style={{
+                width: "100%", boxSizing: "border-box", resize: "vertical",
+                padding: "var(--decs-space-s) var(--decs-space-m)",
+                font: "inherit", color: "var(--decs-text-body)",
+                background: "var(--decs-surface-input)",
+                border: "thin solid var(--decs-border-input)",
+                borderRadius: "var(--decs-radius-input)",
+              }}
+            />
+          </FormField>
+        </div>
+      </Modal>
+
+      <Modal
+        visible={groupModalOpen}
+        onDismiss={() => !groupSubmitting && setGroupModalOpen(false)}
+        header="그룹 추가 신청"
+        footer={<>
+          <Button variant="normal" disabled={groupSubmitting} onClick={() => setGroupModalOpen(false)}>취소</Button>
+          <Button variant="primary" loading={groupSubmitting} onClick={submitGroupRequest}>추가 요청</Button>
+        </>}
+      >
+        <div style={{ display: "flex", flexDirection: "column", gap: "var(--decs-space-l)" }}>
+          {groupError ? <Alert type="error">{groupError}</Alert> : null}
+          <Alert type="info" header="승인 후 반영까지 시간이 걸려요">
+            관리자가 승인하면 그룹이 실제로 반영돼요. 다만 이미 켜져 있는 컨테이너는 접속을 다시 맺을
+            때까지 최대 약 30분이 걸리고, 새로 만드는 컨테이너는 바로 반영돼요.
+          </Alert>
+          <FormField label="현재 소속 그룹">
+            {(server.groups ?? []).length > 0 ? (
+              <div style={{ display: "flex", flexWrap: "wrap", gap: "var(--decs-space-xs)" }}>
+                {server.groups.map((group) => (
+                  <Badge key={group.ubuntuGid} color="grey">{group.groupName}</Badge>
+                ))}
+              </div>
+            ) : (
+              <span style={{ color: "var(--decs-text-secondary)", fontSize: "var(--decs-fs-body-m)" }}>없음</span>
+            )}
+          </FormField>
+          <FormField label="추가할 그룹">
+            <div style={{ display: "flex", gap: "var(--decs-space-xs)" }}>
+              <Select selectedValue={selectedGroupId} onChange={setSelectedGroupId} options={groupSelectOptions} placeholder="공유 그룹 선택" style={{ flex: 1 }} />
+              <Button iconName="plus" onClick={addGroupToRequest} disabled={!selectedGroupId || addedGroupIds.has(selectedGroupId)} ariaLabel="그룹 추가">추가</Button>
+            </div>
+            {addedGroups.length > 0 ? (
+              <div style={{ display: "flex", flexWrap: "wrap", gap: "var(--decs-space-xs)", marginTop: "var(--decs-space-xs)" }}>
+                {addedGroups.map((group) => (
+                  <span key={group.value} style={{ display: "inline-flex", alignItems: "center", gap: "var(--decs-space-xxxs)" }}>
+                    <Badge color="blue">{group.label}</Badge>
+                    <Button variant="icon" iconName="x-mark" onClick={() => removeGroupFromRequest(group.value)} ariaLabel={`그룹 ${group.label} 제거`} />
+                  </span>
+                ))}
+              </div>
+            ) : null}
+          </FormField>
+          <FormField label="추가 사유">
+            <textarea
+              value={groupReason}
+              onChange={(event) => setGroupReason(event.target.value)}
+              rows={4}
+              placeholder="예: 팀 공유 데이터셋 접근을 위해 team-a 그룹이 필요합니다."
               style={{
                 width: "100%", boxSizing: "border-box", resize: "vertical",
                 padding: "var(--decs-space-s) var(--decs-space-m)",
