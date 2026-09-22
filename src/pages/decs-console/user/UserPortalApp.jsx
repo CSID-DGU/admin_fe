@@ -78,6 +78,23 @@ function UserPortalApp() {
     navigate("/user/change-requests");
   }
 
+  async function submitGroupChange({ requestId, groupIds, reason }) {
+    if (!requestId) throw new Error("변경할 신청 정보를 찾을 수 없어요.");
+    const changes = await requestService.getMyChangeRequests();
+    const alreadyPending = (changes.data?.data ?? []).some(
+      (change) => change.originalRequestId === requestId
+        && change.changeType === "GROUP"
+        && change.status === "PENDING"
+    );
+    if (alreadyPending) throw new Error("이미 검토 중인 그룹 변경 요청이 있어요.");
+    await requestService.createChangeRequest(requestId, {
+      changeType: "GROUP",
+      newValue: JSON.stringify([...new Set(groupIds)]),
+      reason,
+    });
+    navigate("/user/change-requests");
+  }
+
   return (
     <div style={{ height: "100vh" }}>
       <AppLayout
@@ -90,7 +107,7 @@ function UserPortalApp() {
         <Routes>
           <Route index element={<UserDashboard userName={userName} server={server} expiryDays={expiryDays} activities={activities ?? []} onRequest={() => navigate("/user/request")} onConnect={() => navigate("/user/container")} onExtend={() => navigate("/user/container", { state: { extend: true } })} onDetail={() => navigate("/user/container")} />} />
           <Route path="request" element={<RequestWizard onCancel={() => navigate("/user")} onDone={() => navigate("/user/requests")} gpuOptions={gpuOptions ?? []} envOptions={envOptions ?? []} groupOptions={groupOptions ?? []} onSubmit={submitRequest} accountUsername={user?.ubuntuUsername} />} />
-          <Route path="container" element={<UserContainerDetail onBack={() => navigate("/user")} onExtend={submitExtension} servers={servers ?? []} />} />
+          <Route path="container" element={<UserContainerDetail onBack={() => navigate("/user")} onExtend={submitExtension} onGroupChange={submitGroupChange} groupOptions={groupOptions ?? []} servers={servers ?? []} />} />
           <Route path="requests" element={<RequestStatusPage />} />
           <Route path="change-requests" element={<MyChangeRequestsPage />} />
           <Route path="account" element={<AccountPage user={user} />} />
