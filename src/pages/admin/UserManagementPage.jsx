@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import userService from "../../services/userService";
+import UserGroupsModal from "./UserGroupsModal";
 import {
   Alert,
   Badge,
@@ -23,6 +24,7 @@ const UserManagementPage = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterRole, setFilterRole] = useState("ALL");
   const [filterStatus, setFilterStatus] = useState("ALL");
+  const [groupsUser, setGroupsUser] = useState(null);
 
   // 사용자 목록 로드
   const loadUsers = async () => {
@@ -168,6 +170,11 @@ const UserManagementPage = () => {
                 text: user.role === "ADMIN" ? "사용자로 변경" : "관리자로 변경",
                 onClick: () => handleToggleRole(user),
               },
+              {
+                id: "manage-groups",
+                text: "그룹 관리",
+                onClick: () => setGroupsUser(user),
+              },
             ]}
           />
         </div>
@@ -297,6 +304,8 @@ const UserManagementPage = () => {
           }
         />
       </Container>
+
+      {groupsUser && <UserGroupsModal user={groupsUser} onDismiss={() => setGroupsUser(null)} />}
 
       {/* 통계 정보 */}
       <Container header={<Header variant="h2">사용자 통계</Header>}>

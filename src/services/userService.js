@@ -45,6 +45,34 @@ class UserService {
     }
   }
 
+  // 사용자가 속한 공용 그룹 목록
+  async getUserGroups(userId) {
+    try {
+      const response = await apiClient.request(`/api/admin/users/${userId}/groups`, {
+        method: "GET",
+      });
+
+      return response;
+    } catch (error) {
+      console.error("사용자 그룹 조회 실패:", error);
+      throw error;
+    }
+  }
+
+  // 사용자를 공용 그룹에서 제거(팀 폴더와 파일은 그대로 남는다)
+  async removeUserFromGroup(userId, groupId) {
+    try {
+      const response = await apiClient.request(`/api/admin/users/${userId}/groups/${groupId}`, {
+        method: "DELETE",
+      });
+
+      return response;
+    } catch (error) {
+      console.error("사용자 그룹 제거 실패:", error);
+      throw error;
+    }
+  }
+
   // 사용자 임시 비활성화 (계정/컨테이너는 유지, 로그인만 차단)
   async deactivateUser(userId) {
     try {
