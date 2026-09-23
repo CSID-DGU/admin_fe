@@ -237,6 +237,14 @@ function UserContainerDetail({ onBack, onExtend, onGroupChange, groupOptions = [
             소속된 공유 그룹이 없어요.
           </div>
         )}
+        {/* 팀 공유 폴더는 /home/_g_<그룹>에 있고, 컨테이너가 로그인 때마다 ~/shared/<그룹> 링크를 맞춘다
+            (admin_infra-proposed#174). 경로를 모르면 홈에서 작업하는 사용자는 찾아갈 방법이 없다. */}
+        {(server.groups ?? []).length > 0 ? (
+          <div style={{ color: "var(--decs-text-secondary)", fontSize: "var(--decs-fs-body-s)", marginTop: "var(--decs-space-xs)" }}>
+            팀원과 파일을 나누려면 컨테이너 안의 <code>~/shared/&lt;그룹 이름&gt;</code> 폴더를 쓰세요
+            (실제 위치 <code>/home/_g_&lt;그룹 이름&gt;</code>). 새로 추가된 그룹은 다음 SSH 접속부터 보여요.
+          </div>
+        ) : null}
         <div style={{ color: "var(--decs-text-secondary)", fontSize: "var(--decs-fs-body-s)", marginTop: "var(--decs-space-xs)" }}>
           그룹을 빼려면 관리자에게 별도로 문의해주세요. 여기서는 추가만 신청할 수 있어요.
         </div>
