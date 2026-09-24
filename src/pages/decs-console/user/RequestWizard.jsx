@@ -22,6 +22,7 @@ function RequestWizard({ onCancel, onDone, gpuOptions: gpuOptionsProp, envOption
   });
   const [env, setEnv] = React.useState("");
   const [ubuntuPassword, setUbuntuPassword] = React.useState("");
+  const [ubuntuPasswordConfirm, setUbuntuPasswordConfirm] = React.useState("");
   const [submitting, setSubmitting] = React.useState(false);
   const [done, setDone] = React.useState(false);
   const [error, setError] = React.useState(null);
@@ -57,10 +58,14 @@ function RequestWizard({ onCancel, onDone, gpuOptions: gpuOptionsProp, envOption
   );
   const selectedGroupIds = React.useMemo(() => new Set(selectedGroups.map((g) => g.value)), [selectedGroups]);
   const groupSelectOptions = groupOptions.map((g) => ({ ...g, disabled: selectedGroupIds.has(g.value) }));
-  const ubuntuPasswordLengthError = ubuntuPassword && ubuntuPassword.length < 8
-    ? "비밀번호는 8자 이상 입력해주세요."
+  const ubuntuPasswordLengthError = ubuntuPassword && (ubuntuPassword.length < 8 || ubuntuPassword.length > 128)
+    ? "비밀번호는 8~128자로 입력해주세요."
     : null;
   const ubuntuPasswordError = envErrors.ubuntuPassword || ubuntuPasswordLengthError;
+  const ubuntuPasswordConfirmMismatch = ubuntuPasswordConfirm && ubuntuPasswordConfirm !== ubuntuPassword
+    ? "비밀번호가 일치하지 않아요."
+    : null;
+  const ubuntuPasswordConfirmError = envErrors.ubuntuPasswordConfirm || ubuntuPasswordConfirmMismatch;
 
   React.useEffect(() => {
     if (!env && envOptions.length > 0) setEnv(String(envOptions[0].value));
@@ -70,8 +75,14 @@ function RequestWizard({ onCancel, onDone, gpuOptions: gpuOptionsProp, envOption
     const nextErrors = {};
     if (!ubuntuPassword) {
       nextErrors.ubuntuPassword = "Ubuntu 비밀번호를 입력해주세요.";
-    } else if (ubuntuPassword.length < 8) {
-      nextErrors.ubuntuPassword = "비밀번호는 8자 이상 입력해주세요.";
+    } else if (ubuntuPassword.length < 8 || ubuntuPassword.length > 128) {
+      nextErrors.ubuntuPassword = "비밀번호는 8~128자로 입력해주세요.";
+    }
+    // 비밀번호는 해시로만 저장되어 나중에 다시 알려줄 수 없으므로, 오타를 신청 전에 잡는다.
+    if (!ubuntuPasswordConfirm) {
+      nextErrors.ubuntuPasswordConfirm = "비밀번호를 한 번 더 입력해주세요.";
+    } else if (ubuntuPasswordConfirm !== ubuntuPassword) {
+      nextErrors.ubuntuPasswordConfirm = "비밀번호가 일치하지 않아요.";
     }
     setEnvErrors(nextErrors);
     return Object.keys(nextErrors).length === 0;
@@ -190,6 +201,7 @@ function RequestWizard({ onCancel, onDone, gpuOptions: gpuOptionsProp, envOption
           </div>
           <p style={{ color: "var(--decs-text-secondary)", fontSize: "var(--decs-fs-body-m)", maxWidth: 420, margin: "0 auto 20px" }}>
             관리자 승인 후 컨테이너를 준비할게요. 준비가 끝나면 대시보드에서 바로 접속할 수 있어요.
+            SSH 접속에는 방금 입력한 Ubuntu 비밀번호를 쓰세요.
           </p>
           <Button variant="primary" onClick={onDone}>신청 현황으로 가기</Button>
         </div>
@@ -287,13 +299,26 @@ function RequestWizard({ onCancel, onDone, gpuOptions: gpuOptionsProp, envOption
                 : <span style={{ color: "var(--decs-text-secondary)", fontSize: "var(--decs-fs-body-m)" }}>—</span>}
             </div>
           </FormField>
-          <FormField label="Ubuntu 비밀번호" errorText={ubuntuPasswordError}>
+          <Alert type="warning" header="Ubuntu 비밀번호는 꼭 따로 기억해 두세요">
+            입력한 비밀번호는 암호화된 형태로만 저장돼요. 관리자도 원래 비밀번호를 볼 수 없고,
+            배정 안내 메일에도 적히지 않아요. SSH로 서버에 접속할 때 이 비밀번호가 필요해요.
+          </Alert>
+          <FormField label="Ubuntu 비밀번호" errorText={ubuntuPasswordError} constraintText="SSH·Ubuntu 로그인에 쓰여요. 8~128자로 입력해 주세요.">
             <Input
               value={ubuntuPassword}
               onChange={(value) => { setUbuntuPassword(value); setEnvErrors((prev) => ({ ...prev, ubuntuPassword: null })); }}
               placeholder="SSH 접속에 사용할 비밀번호"
               type="password"
               invalid={!!ubuntuPasswordError}
+            />
+          </FormField>
+          <FormField label="Ubuntu 비밀번호 확인" errorText={ubuntuPasswordConfirmError}>
+            <Input
+              value={ubuntuPasswordConfirm}
+              onChange={(value) => { setUbuntuPasswordConfirm(value); setEnvErrors((prev) => ({ ...prev, ubuntuPasswordConfirm: null })); }}
+              placeholder="비밀번호를 한 번 더 입력해 주세요"
+              type="password"
+              invalid={!!ubuntuPasswordConfirmError}
             />
           </FormField>
           <FormField label="공유 그룹">
@@ -359,6 +384,7 @@ function RequestWizard({ onCancel, onDone, gpuOptions: gpuOptionsProp, envOption
             { label: "사용 만료일", value: expiresDate || "—" },
             { label: "개발 환경", value: envOptions.find((o) => o.value === env)?.label ?? env },
             { label: "Ubuntu 사용자명", value: accountUsername || "—" },
+            { label: "Ubuntu 비밀번호", value: ubuntuPassword ? "입력함 — 안내 메일에 적히지 않으니 꼭 기억해 두세요" : "—" },
             { label: "공유 그룹", value: selectedGroups.length > 0 ? selectedGroups.map((g) => g.label).join(", ") : "—" },
             { label: "추가 포트", value: portRequests.length > 0 ? portRequests.map((p) => `${p.internalPort} (${p.usagePurpose})`).join(", ") : "—" },
           ]} />
