@@ -13,6 +13,7 @@ import {
   Tabs,
 } from "../design-system";
 import { useAuth } from "../hooks/useAuth";
+import { UbuntuPasswordChangeForm } from "../components/Auth/UbuntuPasswordChangeForm";
 import { PHONE_PATTERN, PHONE_FORMAT_ERROR } from "../utils/validators";
 
 const AccountPage = ({ user }) => {
@@ -384,6 +385,11 @@ const AccountPage = ({ user }) => {
               id: "password",
               label: "비밀번호 변경",
               content: passwordTabContent,
+            },
+            {
+              id: "ubuntu-password",
+              label: "Ubuntu 비밀번호",
+              content: <UbuntuPasswordChangeForm user={user} />,
             },
           ]}
         />

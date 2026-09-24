@@ -158,6 +158,30 @@ export const authService = {
     }
   },
 
+  // Ubuntu 비밀번호 변경 — 떠 있는 컨테이너까지 함께 바뀐다(본인 확인은 현재 웹 비밀번호)
+  changeUbuntuPassword: async (currentPassword, newPassword) => {
+    try {
+      const accessToken = authService.getAccessToken();
+      if (!accessToken) {
+        throw new Error("인증 토큰이 없습니다.");
+      }
+
+      const response = await apiClient.request("/api/users/me/ubuntu-password", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json;charset=UTF-8",
+          accept: "application/json;charset=UTF-8",
+          Authorization: `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify({ currentPassword, newPassword }),
+      });
+      return response;
+    } catch (error) {
+      if (error.status) throw error; // API 에러는 status 보존 위해 원본 유지
+      throw new Error(error.message || "Ubuntu 비밀번호 변경에 실패했습니다.");
+    }
+  },
+
   // 비밀번호 변경
   changePassword: async (currentPassword, newPassword) => {
     try {
