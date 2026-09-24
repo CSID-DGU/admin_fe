@@ -176,7 +176,7 @@ function UserContainerDetail({ onBack, onExtend, onGroupChange, groupOptions = [
       <Container header={<Header variant="h2" description="터미널에 아래 명령을 붙여넣어 접속하세요">접속 정보</Header>}>
         <KeyValuePairs columns={1} items={[
           { label: "접속 명령", value: server.sshCommand, copyable: true },
-          { label: "비밀번호", value: "최초 발급된 비밀번호를 사용하세요" },
+          { label: "비밀번호", value: "서버 신청 때 직접 입력한 Ubuntu 비밀번호를 사용하세요" },
         ]} />
         <div style={{ marginTop: "var(--decs-space-m)" }}>
           <ExpandableSection headerText="Jupyter로 접속하기">
