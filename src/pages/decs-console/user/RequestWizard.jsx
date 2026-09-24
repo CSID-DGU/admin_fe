@@ -10,7 +10,7 @@ function toLocalDateInput(date) {
   return new Date(date.getTime() - offset).toISOString().slice(0, 10);
 }
 
-function RequestWizard({ onCancel, onDone, gpuOptions: gpuOptionsProp, envOptions: envOptionsProp, groupOptions: groupOptionsProp, onSubmit: onSubmitProp, accountUsername }) {
+function RequestWizard({ onCancel, onDone, gpuOptions: gpuOptionsProp, envOptions: envOptionsProp, groupOptions: groupOptionsProp, onSubmit: onSubmitProp, accountUsername, hasAccountPassword = false }) {
   const [step, setStep] = React.useState(0);
   const [purpose, setPurpose] = React.useState("");
   const [selectedServer, setSelectedServer] = React.useState("");
@@ -72,6 +72,11 @@ function RequestWizard({ onCancel, onDone, gpuOptions: gpuOptionsProp, envOption
   }, [env, envOptions]);
 
   function validateDevelopmentStep() {
+    // 계정 비밀번호가 이미 있으면 서버가 그 값을 쓰고, 여기서 보낸 값은 무시한다.
+    if (hasAccountPassword) {
+      setEnvErrors({});
+      return true;
+    }
     const nextErrors = {};
     if (!ubuntuPassword) {
       nextErrors.ubuntuPassword = "Ubuntu 비밀번호를 입력해주세요.";
@@ -299,9 +304,15 @@ function RequestWizard({ onCancel, onDone, gpuOptions: gpuOptionsProp, envOption
                 : <span style={{ color: "var(--decs-text-secondary)", fontSize: "var(--decs-fs-body-m)" }}>—</span>}
             </div>
           </FormField>
+          {hasAccountPassword ? (
+            <Alert type="info" header="계정의 Ubuntu 비밀번호를 사용해요">
+              이 컨테이너도 지금 쓰는 Ubuntu 비밀번호로 만들어져요. 바꾸려면 계정 설정의 Ubuntu 비밀번호 탭을 이용해 주세요.
+            </Alert>
+          ) : (<>
           <Alert type="warning" header="Ubuntu 비밀번호는 꼭 따로 기억해 두세요">
             입력한 비밀번호는 암호화된 형태로만 저장돼요. 관리자도 원래 비밀번호를 볼 수 없고,
             배정 안내 메일에도 적히지 않아요. SSH로 서버에 접속할 때 이 비밀번호가 필요해요.
+            이후 신청하는 컨테이너도 모두 이 비밀번호를 써요.
           </Alert>
           <FormField label="Ubuntu 비밀번호" errorText={ubuntuPasswordError} constraintText="SSH·Ubuntu 로그인에 쓰여요. 8~128자로 입력해 주세요.">
             <Input
@@ -321,6 +332,7 @@ function RequestWizard({ onCancel, onDone, gpuOptions: gpuOptionsProp, envOption
               invalid={!!ubuntuPasswordConfirmError}
             />
           </FormField>
+          </>)}
           <FormField label="공유 그룹">
             <div style={{ display: "flex", gap: "var(--decs-space-xs)" }}>
               <Select selectedValue={selectedGroupId} onChange={setSelectedGroupId} options={groupSelectOptions} placeholder="공유 그룹 선택" style={{ flex: 1 }} />
@@ -384,7 +396,7 @@ function RequestWizard({ onCancel, onDone, gpuOptions: gpuOptionsProp, envOption
             { label: "사용 만료일", value: expiresDate || "—" },
             { label: "개발 환경", value: envOptions.find((o) => o.value === env)?.label ?? env },
             { label: "Ubuntu 사용자명", value: accountUsername || "—" },
-            { label: "Ubuntu 비밀번호", value: ubuntuPassword ? "입력함 — 안내 메일에 적히지 않으니 꼭 기억해 두세요" : "—" },
+            { label: "Ubuntu 비밀번호", value: hasAccountPassword ? "계정 비밀번호 사용" : ubuntuPassword ? "입력함 — 안내 메일에 적히지 않으니 꼭 기억해 두세요" : "—" },
             { label: "공유 그룹", value: selectedGroups.length > 0 ? selectedGroups.map((g) => g.label).join(", ") : "—" },
             { label: "추가 포트", value: portRequests.length > 0 ? portRequests.map((p) => `${p.internalPort} (${p.usagePurpose})`).join(", ") : "—" },
           ]} />
@@ -401,7 +413,7 @@ function RequestWizard({ onCancel, onDone, gpuOptions: gpuOptionsProp, envOption
       !selectedServer ? "서버" : null,
       !selectedGpu ? "GPU" : null,
       !env ? "개발 환경" : null,
-      !ubuntuPassword ? "Ubuntu 비밀번호" : null,
+      !hasAccountPassword && !ubuntuPassword ? "Ubuntu 비밀번호" : null,
     ].filter(Boolean);
     const developmentValid = validateDevelopmentStep();
     const periodValid = validatePeriod();
@@ -416,7 +428,7 @@ function RequestWizard({ onCancel, onDone, gpuOptions: gpuOptionsProp, envOption
       gpu: selectedGpu.id,
       expiresAt: `${expiresDate}T23:59:59`,
       env,
-      ubuntuPassword,
+      ...(hasAccountPassword ? {} : { ubuntuPassword }),
       ubuntuGids: selectedGroups.map((g) => g.value),
       portRequests,
     };
