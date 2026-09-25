@@ -1,25 +1,20 @@
 import apiClient from "./api.js";
+import { tokenStorage } from "./tokenStorage";
+
+// 토큰 헤더는 apiClient가 붙인다. 여기서는 토큰이 없을 때 요청 전에 막기만 한다.
+function requireAccessToken() {
+  if (!tokenStorage.getAccessToken()) {
+    throw new Error("인증 토큰이 없습니다.");
+  }
+}
 
 // 인증 관련 API 서비스
 export const authService = {
   // 토큰 관리
-  setTokens: (accessToken, refreshToken) => {
-    localStorage.setItem("accessToken", accessToken);
-    localStorage.setItem("refreshToken", refreshToken);
-  },
-
-  getAccessToken: () => {
-    return localStorage.getItem("accessToken");
-  },
-
-  getRefreshToken: () => {
-    return localStorage.getItem("refreshToken");
-  },
-
-  clearTokens: () => {
-    localStorage.removeItem("accessToken");
-    localStorage.removeItem("refreshToken");
-  },
+  setTokens: tokenStorage.setTokens,
+  getAccessToken: tokenStorage.getAccessToken,
+  getRefreshToken: tokenStorage.getRefreshToken,
+  clearTokens: tokenStorage.clear,
 
   // 이메일 인증번호 발송
   sendEmailVerification: async (email) => {
@@ -91,18 +86,8 @@ export const authService = {
   // 사용자 정보 조회
   getUserInfo: async () => {
     try {
-      const accessToken = authService.getAccessToken();
-      if (!accessToken) {
-        throw new Error("인증 토큰이 없습니다.");
-      }
-
-      const response = await apiClient.request("/api/users/me", {
-        method: "GET",
-        headers: {
-          accept: "application/json;charset=UTF-8",
-          Authorization: `Bearer ${accessToken}`,
-        },
-      });
+      requireAccessToken();
+      const response = await apiClient.get("/api/users/me");
       return response;
     } catch (error) {
       if (error.status) throw error; // API 에러는 status 보존 위해 원본 유지
@@ -113,20 +98,8 @@ export const authService = {
   // 휴대폰 번호 변경
   updatePhone: async (newPhone) => {
     try {
-      const accessToken = authService.getAccessToken();
-      if (!accessToken) {
-        throw new Error("인증 토큰이 없습니다.");
-      }
-
-      const response = await apiClient.request("/api/users/me/phone", {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json;charset=UTF-8",
-          accept: "application/json;charset=UTF-8",
-          Authorization: `Bearer ${accessToken}`,
-        },
-        body: JSON.stringify({ newPhone }),
-      });
+      requireAccessToken();
+      const response = await apiClient.patch("/api/users/me/phone", { newPhone });
       return response;
     } catch (error) {
       if (error.status) throw error; // API 에러는 status 보존 위해 원본 유지
@@ -137,20 +110,8 @@ export const authService = {
   // 우분투 유저네임 등록 (가입 시 못 정한 기존 계정 전용, 1회성 — 이미 등록돼 있으면 실패)
   registerUbuntuUsername: async (ubuntuUsername) => {
     try {
-      const accessToken = authService.getAccessToken();
-      if (!accessToken) {
-        throw new Error("인증 토큰이 없습니다.");
-      }
-
-      const response = await apiClient.request("/api/users/me/ubuntu-username", {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json;charset=UTF-8",
-          accept: "application/json;charset=UTF-8",
-          Authorization: `Bearer ${accessToken}`,
-        },
-        body: JSON.stringify({ ubuntuUsername }),
-      });
+      requireAccessToken();
+      const response = await apiClient.patch("/api/users/me/ubuntu-username", { ubuntuUsername });
       return response;
     } catch (error) {
       if (error.status) throw error; // API 에러는 status 보존 위해 원본 유지
@@ -161,20 +122,8 @@ export const authService = {
   // Ubuntu 비밀번호 변경 — 떠 있는 컨테이너까지 함께 바뀐다(본인 확인은 현재 웹 비밀번호)
   changeUbuntuPassword: async (currentPassword, newPassword) => {
     try {
-      const accessToken = authService.getAccessToken();
-      if (!accessToken) {
-        throw new Error("인증 토큰이 없습니다.");
-      }
-
-      const response = await apiClient.request("/api/users/me/ubuntu-password", {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json;charset=UTF-8",
-          accept: "application/json;charset=UTF-8",
-          Authorization: `Bearer ${accessToken}`,
-        },
-        body: JSON.stringify({ currentPassword, newPassword }),
-      });
+      requireAccessToken();
+      const response = await apiClient.patch("/api/users/me/ubuntu-password", { currentPassword, newPassword });
       return response;
     } catch (error) {
       if (error.status) throw error; // API 에러는 status 보존 위해 원본 유지
@@ -185,23 +134,8 @@ export const authService = {
   // 비밀번호 변경
   changePassword: async (currentPassword, newPassword) => {
     try {
-      const accessToken = authService.getAccessToken();
-      if (!accessToken) {
-        throw new Error("인증 토큰이 없습니다.");
-      }
-
-      const response = await apiClient.request("/api/users/me/password", {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json;charset=UTF-8",
-          accept: "application/json;charset=UTF-8",
-          Authorization: `Bearer ${accessToken}`,
-        },
-        body: JSON.stringify({
-          currentPassword,
-          newPassword,
-        }),
-      });
+      requireAccessToken();
+      const response = await apiClient.patch("/api/users/me/password", { currentPassword, newPassword });
       return response;
     } catch (error) {
       if (error.status) throw error; // API 에러는 status 보존 위해 원본 유지

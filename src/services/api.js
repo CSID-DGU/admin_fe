@@ -4,6 +4,7 @@ const API_BASE_URL =
 
 // 세션 이벤트 매니저 import
 import { sessionEventManager } from "./sessionEventManager";
+import { tokenStorage } from "./tokenStorage";
 
 // 액세스 토큰(JWT)이 만료됐는지 payload의 exp 클레임으로 판단합니다.
 // 파싱에 실패하면(형식이 다른 토큰 등) 만료로 단정하지 않고 서버 응답에 맡깁니다.
@@ -30,7 +31,7 @@ class ApiClient {
       skipSessionExpiredCheck = false,
       ...fetchOptions
     } = options;
-    const token = localStorage.getItem("accessToken");
+    const token = tokenStorage.getAccessToken();
     const requiresAuth = token && !endpoint.startsWith("/api/auth/");
 
     // 요청을 보내기 전에 토큰 만료를 먼저 확인합니다.
