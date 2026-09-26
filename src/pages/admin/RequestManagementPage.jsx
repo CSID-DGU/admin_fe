@@ -315,7 +315,9 @@ const RequestManagementPage = () => {
     } catch (error) {
       console.error("Failed to update request status:", error);
 
-      if (error.status === 409) {
+      if (error.status === 409 && error.code === "PROVISION_JOB_IN_PROGRESS") {
+        setAlert({ type: "warning", message: error.message });
+      } else if (error.status === 409) {
         // 실제 원인은 두 가지다: ① 다른 관리자가 먼저 처리함 ② 본인이 새로고침 후 이미
         // PROCESSING/처리 완료된 자신의 요청에 다시 클릭한 경우. 서버 응답만으로는 구분할
         // 수 없으므로 원인을 단정하지 않고 사실만 안내한다.
@@ -356,8 +358,10 @@ const RequestManagementPage = () => {
       defaultComment: "거절되었습니다.",
       // PROCESSING 상태는 Pod 생성이 이미 진행 중일 수 있다 — 진행 단계가 멈춘 것처럼
       // 보인다고 오인해 실수로 취소하는 것을 막기 위해 따로 경고한다.
+      // 거절은 상태만 바꾸고 자원을 회수하지 않는다. 생성 작업이 도는 중이면 서버가 거절을 막고(409),
+      // 작업이 실패·관리자 이관으로 끝난 뒤의 거절은 남은 자원을 자동으로 정리하지 않는다.
       warning: request.status === "PROCESSING"
-        ? "이 신청서는 현재 Pod 생성 처리 중입니다. 거절하면 진행 중인 계정·Pod가 정리됩니다."
+        ? "이 신청서는 생성 처리 중이거나 처리가 멈춘 상태입니다. 생성 작업이 아직 진행 중이면 거절되지 않습니다. 거절해도 이미 만들어진 계정·컨테이너는 자동으로 정리되지 않습니다."
         : null,
     });
   };
