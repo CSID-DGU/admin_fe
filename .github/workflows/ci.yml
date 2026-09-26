@@ -1,0 +1,28 @@
+name: CI
+
+# PR과 main에 들어온 변경을 빌드·린트한다. 린트는 오류만 실패로 본다(경고는 통과).
+# 공개 저장소라 로그에 인프라 주소·계정·설정값을 출력하는 단계를 두지 않는다.
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+        with:
+          version: 10
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm run lint
+      - run: pnpm run build
