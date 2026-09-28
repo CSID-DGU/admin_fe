@@ -119,18 +119,6 @@ export const authService = {
     }
   },
 
-  // Ubuntu 비밀번호 변경 — 떠 있는 컨테이너까지 함께 바뀐다(본인 확인은 현재 웹 비밀번호)
-  changeUbuntuPassword: async (currentPassword, newPassword) => {
-    try {
-      requireAccessToken();
-      const response = await apiClient.patch("/api/users/me/ubuntu-password", { currentPassword, newPassword });
-      return response;
-    } catch (error) {
-      if (error.status) throw error; // API 에러는 status 보존 위해 원본 유지
-      throw new Error(error.message || "Ubuntu 비밀번호 변경에 실패했습니다.");
-    }
-  },
-
   // 비밀번호 변경
   changePassword: async (currentPassword, newPassword) => {
     try {
