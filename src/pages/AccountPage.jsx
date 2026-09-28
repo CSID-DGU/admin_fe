@@ -14,6 +14,7 @@ import {
 } from "../design-system";
 import { useAuth } from "../hooks/useAuth";
 import { PHONE_PATTERN, PHONE_FORMAT_ERROR } from "../utils/validators";
+import { setLoginNotice } from "../utils/loginNotice";
 
 const EMPTY_PASSWORD_DATA = {
   currentPassword: "",
@@ -33,7 +34,7 @@ const ResultAlert = ({ alert, onDismiss }) =>
   ) : null;
 
 const AccountPage = ({ user }) => {
-  const { updateUser } = useAuth();
+  const { updateUser, logout } = useAuth();
   const [activeTab, setActiveTab] = useState("profile");
   const [formData, setFormData] = useState({
     phone: "",
@@ -173,11 +174,10 @@ const AccountPage = ({ user }) => {
         passwordData.currentPassword,
         passwordData.newPassword
       );
-      setPasswordAlert({
-        type: "success",
-        message: "비밀번호를 바꿨어요. 다음 SSH 접속부터 새 비밀번호를 쓰세요.",
-      });
-      setPasswordData(EMPTY_PASSWORD_DATA);
+      // 비밀번호를 바꾸면 서버가 그 전에 발급된 로그인을 모두 끊는다(이 창 포함).
+      setLoginNotice("비밀번호를 바꿨어요. 새 비밀번호로 다시 로그인해 주세요. SSH 접속에도 새 비밀번호를 쓰세요.");
+      logout();
+      return;
     } catch (error) {
       setPasswordAlert({
         type: "error",
@@ -263,7 +263,7 @@ const AccountPage = ({ user }) => {
     <div className="space-y-6">
       <Header
         variant="h3"
-        description="웹 로그인과 SSH(Ubuntu 계정)에 같은 비밀번호를 써요. 바꾸면 실행 중인 컨테이너에도 바로 적용돼요."
+        description="웹 로그인과 SSH(Ubuntu 계정)에 같은 비밀번호를 써요. 바꾸면 실행 중인 컨테이너에도 바로 적용되고, 새 비밀번호로 다시 로그인해야 해요."
       >
         비밀번호 변경
       </Header>

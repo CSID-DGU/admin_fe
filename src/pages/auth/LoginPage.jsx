@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Alert, Button, FormField, Input } from "../../design-system";
+import { takeLoginNotice } from "../../utils/loginNotice";
 
 export default function LoginPage({ onLogin }) {
   const { t, i18n } = useTranslation();
@@ -9,6 +10,7 @@ export default function LoginPage({ onLogin }) {
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const [alert, setAlert] = useState("");
+  const [notice, setNotice] = useState(takeLoginNotice);
 
   const change = (name, value) => { setForm((current) => ({ ...current, [name]: value })); setErrors((current) => ({ ...current, [name]: "" })); };
   const submit = async (event) => {
@@ -28,6 +30,7 @@ export default function LoginPage({ onLogin }) {
         <div className="mx-auto w-full max-w-sm">
           <div className="flex items-center mb-8"><img src="/dongguk_university_logo.svg" alt="동국대학교 로고" width="153" height="48" fetchPriority="high" className="h-12 w-auto mr-3" /><div><h1 className="text-xl font-bold text-gray-900">DGU AI Lab</h1><p className="text-sm text-gray-600">{t("auth.loginTitle")}</p></div></div>
           <form className="space-y-6" onSubmit={submit}>
+            {notice ? <Alert type="success" dismissible onDismiss={() => setNotice("")}>{notice}</Alert> : null}
             {alert ? <Alert type="error" dismissible onDismiss={() => setAlert("")}>{alert}</Alert> : null}
             <FormField label={t("auth.email")} errorText={errors.email}><Input type="email" value={form.email} onChange={(value) => change("email", value)} placeholder="example@dgu.ac.kr" invalid={!!errors.email} /></FormField>
             <FormField label={t("auth.password")} errorText={errors.password}><Input type="password" value={form.password} onChange={(value) => change("password", value)} placeholder={t("auth.password")} invalid={!!errors.password} /></FormField>
