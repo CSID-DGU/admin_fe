@@ -15,20 +15,35 @@ import {
 import { useAuth } from "../hooks/useAuth";
 import { PHONE_PATTERN, PHONE_FORMAT_ERROR } from "../utils/validators";
 
+const EMPTY_PASSWORD_DATA = {
+  currentPassword: "",
+  newPassword: "",
+  confirmPassword: "",
+};
+
+// 서버가 답한 오류(status 있음)는 원인별 문구를 그대로 쓰고, 연결 실패 등은 기본 문구를 쓴다.
+const serverMessageOr = (error, fallback) =>
+  error?.status && error.message ? error.message : fallback;
+
+const ResultAlert = ({ alert, onDismiss }) =>
+  alert ? (
+    <Alert type={alert.type} dismissible onDismiss={onDismiss}>
+      {alert.message}
+    </Alert>
+  ) : null;
+
 const AccountPage = ({ user }) => {
   const { updateUser } = useAuth();
   const [activeTab, setActiveTab] = useState("profile");
   const [formData, setFormData] = useState({
     phone: "",
   });
-  const [passwordData, setPasswordData] = useState({
-    currentPassword: "",
-    newPassword: "",
-    confirmPassword: "",
-  });
+  const [passwordData, setPasswordData] = useState(EMPTY_PASSWORD_DATA);
   const [errors, setErrors] = useState({});
-  const [isLoading, setIsLoading] = useState(false);
-  const [alert, setAlert] = useState(null);
+  const [profileLoading, setProfileLoading] = useState(false);
+  const [passwordLoading, setPasswordLoading] = useState(false);
+  const [profileAlert, setProfileAlert] = useState(null);
+  const [passwordAlert, setPasswordAlert] = useState(null);
 
   useEffect(() => {
     // 사용자 정보 로드
@@ -38,6 +53,13 @@ const AccountPage = ({ user }) => {
       });
     }
   }, [user]);
+
+  const handleTabChange = (tabId) => {
+    setActiveTab(tabId);
+    setErrors({});
+    setProfileAlert(null);
+    setPasswordAlert(null);
+  };
 
   const handleProfileChange = (e) => {
     const { name, value } = e.target;
@@ -73,7 +95,7 @@ const AccountPage = ({ user }) => {
     const newErrors = {};
 
     if (!formData.phone.trim()) {
-      newErrors.phone = "전화번호를 입력해주세요.";
+      newErrors.phone = "전화번호를 입력해 주세요.";
     } else if (!PHONE_PATTERN.test(formData.phone)) {
       newErrors.phone = PHONE_FORMAT_ERROR;
     }
@@ -86,24 +108,26 @@ const AccountPage = ({ user }) => {
     const newErrors = {};
 
     if (!passwordData.currentPassword) {
-      newErrors.currentPassword = "현재 비밀번호를 입력해주세요.";
+      newErrors.currentPassword = "현재 비밀번호를 입력해 주세요.";
     }
 
     if (!passwordData.newPassword) {
-      newErrors.newPassword = "새 비밀번호를 입력해주세요.";
+      newErrors.newPassword = "새 비밀번호를 입력해 주세요.";
     } else if (passwordData.newPassword.length < 8) {
-      newErrors.newPassword = "비밀번호는 8자 이상이어야 합니다.";
+      newErrors.newPassword = "8자 이상으로 정해 주세요.";
+    } else if (passwordData.newPassword.length > 72) {
+      newErrors.newPassword = "72자 이하로 정해 주세요.";
     } else if (
       passwordData.currentPassword &&
       passwordData.currentPassword === passwordData.newPassword
     ) {
-      newErrors.newPassword = "새 비밀번호는 현재 비밀번호와 달라야 합니다.";
+      newErrors.newPassword = "현재 비밀번호와 다르게 정해 주세요.";
     }
 
     if (!passwordData.confirmPassword) {
-      newErrors.confirmPassword = "비밀번호 확인을 입력해주세요.";
+      newErrors.confirmPassword = "새 비밀번호를 한 번 더 입력해 주세요.";
     } else if (passwordData.newPassword !== passwordData.confirmPassword) {
-      newErrors.confirmPassword = "비밀번호가 일치하지 않습니다.";
+      newErrors.confirmPassword = "새 비밀번호와 달라요.";
     }
 
     setErrors(newErrors);
@@ -117,29 +141,20 @@ const AccountPage = ({ user }) => {
       return;
     }
 
-    setIsLoading(true);
-    setAlert(null);
+    setProfileLoading(true);
+    setProfileAlert(null);
 
     try {
-      const response = await authService.updatePhone(formData.phone);
-
-      if (response.status === 200) {
-        setAlert({
-          type: "success",
-          message: "휴대폰 번호가 성공적으로 업데이트되었습니다.",
-        });
-
-        await updateUser();
-      } else {
-        throw new Error("휴대폰 번호 업데이트에 실패했습니다.");
-      }
-    } catch {
-      setAlert({
+      await authService.updatePhone(formData.phone);
+      setProfileAlert({ type: "success", message: "전화번호를 바꿨어요." });
+      await updateUser();
+    } catch (error) {
+      setProfileAlert({
         type: "error",
-        message: "휴대폰 번호 업데이트에 실패했습니다. 휴대폰 번호 입력 형식에 맞지 않습니다.",
+        message: serverMessageOr(error, "전화번호를 바꾸지 못했어요. 잠시 후 다시 시도해 주세요."),
       });
     } finally {
-      setIsLoading(false);
+      setProfileLoading(false);
     }
   };
 
@@ -150,40 +165,26 @@ const AccountPage = ({ user }) => {
       return;
     }
 
-    setIsLoading(true);
-    setAlert(null);
+    setPasswordLoading(true);
+    setPasswordAlert(null);
 
     try {
-      const response = await authService.changePassword(
+      await authService.changePassword(
         passwordData.currentPassword,
         passwordData.newPassword
       );
-
-      if (response.status === 200) {
-        setAlert({
-          type: "success",
-          message: "비밀번호를 바꿨어요. SSH 비밀번호도 같이 바뀌어 실행 중인 컨테이너에 바로 적용됐어요.",
-        });
-
-        // 폼 초기화
-        setPasswordData({
-          currentPassword: "",
-          newPassword: "",
-          confirmPassword: "",
-        });
-      } else {
-        throw new Error("비밀번호 변경에 실패했습니다.");
-      }
+      setPasswordAlert({
+        type: "success",
+        message: "비밀번호를 바꿨어요. 다음 SSH 접속부터 새 비밀번호를 쓰세요.",
+      });
+      setPasswordData(EMPTY_PASSWORD_DATA);
     } catch (error) {
-      // 웹 비밀번호가 곧 SSH 비밀번호라, 컨테이너에 반영하지 못하면(502) 서버가 아무것도 바꾸지 않는다.
-      const message = error.status === 502
-        ? "컨테이너에 반영하지 못해 비밀번호를 바꾸지 않았어요. 잠시 후 다시 시도해 주세요."
-        : error.status === 409
-        ? "컨테이너를 만드는 중이라 지금은 비밀번호를 바꿀 수 없어요. 생성이 끝난 뒤 다시 시도해 주세요."
-        : "비밀번호 변경에 실패했습니다. 현재 비밀번호를 확인해주세요.";
-      setAlert({ type: "error", message });
+      setPasswordAlert({
+        type: "error",
+        message: serverMessageOr(error, "비밀번호를 바꾸지 못했어요. 잠시 후 다시 시도해 주세요."),
+      });
     } finally {
-      setIsLoading(false);
+      setPasswordLoading(false);
     }
   };
 
@@ -235,6 +236,8 @@ const AccountPage = ({ user }) => {
           </FormField>
         </div>
 
+        <ResultAlert alert={profileAlert} onDismiss={() => setProfileAlert(null)} />
+
         <div className="flex justify-end gap-3 pt-6 border-t border-(--decs-border-divider)">
           <Button
             variant="normal"
@@ -248,7 +251,7 @@ const AccountPage = ({ user }) => {
           >
             취소
           </Button>
-          <Button variant="primary" loading={isLoading} disabled={isLoading}>
+          <Button variant="primary" loading={profileLoading} disabled={profileLoading}>
             저장
           </Button>
         </div>
@@ -260,7 +263,7 @@ const AccountPage = ({ user }) => {
     <div className="space-y-6">
       <Header
         variant="h3"
-        description="이 비밀번호가 SSH(Ubuntu) 비밀번호예요. 바꾸면 실행 중인 컨테이너에도 함께 반영돼요."
+        description="웹 로그인과 SSH(Ubuntu 계정)에 같은 비밀번호를 써요. 바꾸면 실행 중인 컨테이너에도 바로 적용돼요."
       >
         비밀번호 변경
       </Header>
@@ -281,14 +284,13 @@ const AccountPage = ({ user }) => {
               })
             }
             invalid={!!errors.currentPassword}
-            placeholder="현재 비밀번호를 입력해 주세요"
           />
         </FormField>
 
         <FormField
           label="새 비밀번호"
           errorText={errors.newPassword}
-          constraintText="8자 이상, 영문자·숫자·특수문자 조합을 권장해요."
+          constraintText="8~72자, 현재 비밀번호와 다르게 정해 주세요."
           htmlFor="account-new-password"
         >
           <Input
@@ -299,7 +301,6 @@ const AccountPage = ({ user }) => {
               handlePasswordChange({ target: { name: "newPassword", value } })
             }
             invalid={!!errors.newPassword}
-            placeholder="새 비밀번호를 입력해 주세요 (8자 이상)"
           />
         </FormField>
 
@@ -318,35 +319,13 @@ const AccountPage = ({ user }) => {
               })
             }
             invalid={!!errors.confirmPassword}
-            placeholder="새 비밀번호를 다시 입력해 주세요"
           />
         </FormField>
 
-        <Alert type="info" header="비밀번호 요구사항">
-          <ul className="list-disc list-inside space-y-1">
-            <li>최소 8자 이상이어야 해요</li>
-            <li>현재 비밀번호와 달라야 해요</li>
-            <li>영문자, 숫자, 특수문자 조합을 권장해요</li>
-            <li>개인정보와 관련없는 비밀번호를 사용해 주세요</li>
-          </ul>
-        </Alert>
+        <ResultAlert alert={passwordAlert} onDismiss={() => setPasswordAlert(null)} />
 
-        <div className="flex justify-end gap-3 pt-6 border-t border-(--decs-border-divider)">
-          <Button
-            variant="normal"
-            onClick={(e) => {
-              e.preventDefault();
-              setPasswordData({
-                currentPassword: "",
-                newPassword: "",
-                confirmPassword: "",
-              });
-              setErrors({});
-            }}
-          >
-            취소
-          </Button>
-          <Button variant="primary" loading={isLoading} disabled={isLoading}>
+        <div className="flex justify-end pt-6 border-t border-(--decs-border-divider)">
+          <Button variant="primary" loading={passwordLoading} disabled={passwordLoading}>
             비밀번호 변경
           </Button>
         </div>
@@ -364,23 +343,11 @@ const AccountPage = ({ user }) => {
         계정 설정
       </Header>
 
-      {/* Alert */}
-      {alert && (
-        <Alert
-          type={alert.type}
-          header={alert.type === "success" ? "성공" : "오류"}
-          dismissible
-          onDismiss={() => setAlert(null)}
-        >
-          {alert.message}
-        </Alert>
-      )}
-
       {/* Tabs */}
       <Container>
         <Tabs
           activeTabId={activeTab}
-          onChange={setActiveTab}
+          onChange={handleTabChange}
           tabs={[
             { id: "profile", label: "개인정보", content: profileTabContent },
             {
