@@ -1,6 +1,6 @@
 // RequestWizard — 사용 목적 → 서버 선택 → GPU → 기간 → 개발 환경 → 확인
 import React from "react";
-import { Wizard, Cards, FormField, Select, Input, KeyValuePairs, Alert, Container, Header, StatusIndicator, Button, Badge, Table } from "../../../design-system";
+import { Wizard, Modal, Cards, FormField, Select, Input, KeyValuePairs, Alert, Container, Header, StatusIndicator, Button, Badge, Table } from "../../../design-system";
 import { requestService } from "../../../services/requestService";
 
 const GROUP_NAME_PATTERN = /^[a-z_][a-z0-9_-]*$/;
@@ -34,6 +34,7 @@ function RequestWizard({ onCancel, onDone, gpuOptions: gpuOptionsProp, envOption
   const [portPurpose, setPortPurpose] = React.useState("");
   const [portRequests, setPortRequests] = React.useState([]);
   const [portError, setPortError] = React.useState(null);
+  const [clusterNoticeStep, setClusterNoticeStep] = React.useState(null);
 
   const gpuOptions = React.useMemo(() => gpuOptionsProp ?? [], [gpuOptionsProp]);
   const envOptions = React.useMemo(() => envOptionsProp ?? [], [envOptionsProp]);
@@ -96,6 +97,11 @@ function RequestWizard({ onCancel, onDone, gpuOptions: gpuOptionsProp, envOption
   function handleNavigate(nextStep) {
     setError(null);
     if (!validateStep(nextStep)) return;
+    // 서버 선택을 넘어갈 때 다른 클러스터 배정 가능성을 먼저 안내한다
+    if (step === 1 && nextStep > step) {
+      setClusterNoticeStep(nextStep);
+      return;
+    }
     setStep(nextStep);
   }
 
@@ -383,6 +389,14 @@ function RequestWizard({ onCancel, onDone, gpuOptions: gpuOptionsProp, envOption
       <Container>
         <Wizard steps={steps} activeStepIndex={step} onNavigate={handleNavigate} onCancel={onCancel} onSubmit={submit} submitLabel="신청하기" isLoadingNextStep={submitting} />
       </Container>
+      <Modal
+        visible={clusterNoticeStep !== null}
+        onDismiss={() => setClusterNoticeStep(null)}
+        header="클러스터 배정 안내"
+        footer={<Button variant="primary" onClick={() => { setStep(clusterNoticeStep); setClusterNoticeStep(null); }}>확인</Button>}
+      >
+        이미 많은 사용자가 선택한 클러스터를 이용 중이라면, 관리자 승인 과정에서 사용 목적을 검토해 다른 클러스터로 배정될 수 있습니다.
+      </Modal>
     </div>
   );
 }
