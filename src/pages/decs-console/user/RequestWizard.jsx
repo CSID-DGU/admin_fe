@@ -10,7 +10,7 @@ function toLocalDateInput(date) {
   return new Date(date.getTime() - offset).toISOString().slice(0, 10);
 }
 
-function RequestWizard({ onCancel, onDone, gpuOptions: gpuOptionsProp, envOptions: envOptionsProp, groupOptions: groupOptionsProp, onSubmit: onSubmitProp, accountUsername, hasAccountPassword = false }) {
+function RequestWizard({ onCancel, onDone, gpuOptions: gpuOptionsProp, envOptions: envOptionsProp, groupOptions: groupOptionsProp, onSubmit: onSubmitProp, accountUsername }) {
   const [step, setStep] = React.useState(0);
   const [purpose, setPurpose] = React.useState("");
   const [selectedServer, setSelectedServer] = React.useState("");
@@ -21,13 +21,10 @@ function RequestWizard({ onCancel, onDone, gpuOptions: gpuOptionsProp, envOption
     return toLocalDateInput(d);
   });
   const [env, setEnv] = React.useState("");
-  const [ubuntuPassword, setUbuntuPassword] = React.useState("");
-  const [ubuntuPasswordConfirm, setUbuntuPasswordConfirm] = React.useState("");
   const [submitting, setSubmitting] = React.useState(false);
   const [done, setDone] = React.useState(false);
   const [error, setError] = React.useState(null);
   const [stepErrors, setStepErrors] = React.useState({});
-  const [envErrors, setEnvErrors] = React.useState({});
   const [selectedGroupId, setSelectedGroupId] = React.useState("");
   const [selectedGroups, setSelectedGroups] = React.useState([]);
   const [createdGroups, setCreatedGroups] = React.useState([]);
@@ -58,40 +55,10 @@ function RequestWizard({ onCancel, onDone, gpuOptions: gpuOptionsProp, envOption
   );
   const selectedGroupIds = React.useMemo(() => new Set(selectedGroups.map((g) => g.value)), [selectedGroups]);
   const groupSelectOptions = groupOptions.map((g) => ({ ...g, disabled: selectedGroupIds.has(g.value) }));
-  const ubuntuPasswordLengthError = ubuntuPassword && (ubuntuPassword.length < 8 || ubuntuPassword.length > 128)
-    ? "비밀번호는 8~128자로 입력해주세요."
-    : null;
-  const ubuntuPasswordError = envErrors.ubuntuPassword || ubuntuPasswordLengthError;
-  const ubuntuPasswordConfirmMismatch = ubuntuPasswordConfirm && ubuntuPasswordConfirm !== ubuntuPassword
-    ? "비밀번호가 일치하지 않아요."
-    : null;
-  const ubuntuPasswordConfirmError = envErrors.ubuntuPasswordConfirm || ubuntuPasswordConfirmMismatch;
 
   React.useEffect(() => {
     if (!env && envOptions.length > 0) setEnv(String(envOptions[0].value));
   }, [env, envOptions]);
-
-  function validateDevelopmentStep() {
-    // 계정 비밀번호가 이미 있으면 서버가 그 값을 쓰고, 여기서 보낸 값은 무시한다.
-    if (hasAccountPassword) {
-      setEnvErrors({});
-      return true;
-    }
-    const nextErrors = {};
-    if (!ubuntuPassword) {
-      nextErrors.ubuntuPassword = "Ubuntu 비밀번호를 입력해주세요.";
-    } else if (ubuntuPassword.length < 8 || ubuntuPassword.length > 128) {
-      nextErrors.ubuntuPassword = "비밀번호는 8~128자로 입력해주세요.";
-    }
-    // 비밀번호는 해시로만 저장되어 나중에 다시 알려줄 수 없으므로, 오타를 신청 전에 잡는다.
-    if (!ubuntuPasswordConfirm) {
-      nextErrors.ubuntuPasswordConfirm = "비밀번호를 한 번 더 입력해주세요.";
-    } else if (ubuntuPasswordConfirm !== ubuntuPassword) {
-      nextErrors.ubuntuPasswordConfirm = "비밀번호가 일치하지 않아요.";
-    }
-    setEnvErrors(nextErrors);
-    return Object.keys(nextErrors).length === 0;
-  }
 
   function validatePeriod() {
     const picked = new Date(`${expiresDate}T00:00:00`);
@@ -124,7 +91,6 @@ function RequestWizard({ onCancel, onDone, gpuOptions: gpuOptionsProp, envOption
       return false;
     }
     if (step === 3 && nextStep > step && !validatePeriod()) return false;
-    if (step === 4 && nextStep > step && !validateDevelopmentStep()) return false;
     return true;
   }
 
@@ -206,7 +172,7 @@ function RequestWizard({ onCancel, onDone, gpuOptions: gpuOptionsProp, envOption
           </div>
           <p style={{ color: "var(--decs-text-secondary)", fontSize: "var(--decs-fs-body-m)", maxWidth: 420, margin: "0 auto 20px" }}>
             관리자 승인 후 컨테이너를 준비할게요. 준비가 끝나면 대시보드에서 바로 접속할 수 있어요.
-            SSH 접속에는 방금 입력한 Ubuntu 비밀번호를 쓰세요.
+            SSH 접속에는 이 사이트에 로그인할 때 쓰는 비밀번호를 쓰세요.
           </p>
           <Button variant="primary" onClick={onDone}>신청 현황으로 가기</Button>
         </div>
@@ -304,35 +270,9 @@ function RequestWizard({ onCancel, onDone, gpuOptions: gpuOptionsProp, envOption
                 : <span style={{ color: "var(--decs-text-secondary)", fontSize: "var(--decs-fs-body-m)" }}>—</span>}
             </div>
           </FormField>
-          {hasAccountPassword ? (
-            <Alert type="info" header="계정의 Ubuntu 비밀번호를 사용해요">
-              이 컨테이너도 지금 쓰는 Ubuntu 비밀번호로 만들어져요. 바꾸려면 계정 설정의 Ubuntu 비밀번호 탭을 이용해 주세요.
-            </Alert>
-          ) : (<>
-          <Alert type="warning" header="Ubuntu 비밀번호는 꼭 따로 기억해 두세요">
-            입력한 비밀번호는 암호화된 형태로만 저장돼요. 관리자도 원래 비밀번호를 볼 수 없고,
-            배정 안내 메일에도 적히지 않아요. SSH로 서버에 접속할 때 이 비밀번호가 필요해요.
-            이후 신청하는 컨테이너도 모두 이 비밀번호를 써요.
+          <Alert type="info" header="SSH 비밀번호는 이 사이트의 로그인 비밀번호예요">
+            컨테이너의 Ubuntu 계정도 로그인 비밀번호로 만들어져요. 비밀번호를 바꾸면 떠 있는 컨테이너에도 함께 반영돼요.
           </Alert>
-          <FormField label="Ubuntu 비밀번호" errorText={ubuntuPasswordError} constraintText="SSH·Ubuntu 로그인에 쓰여요. 8~128자로 입력해 주세요.">
-            <Input
-              value={ubuntuPassword}
-              onChange={(value) => { setUbuntuPassword(value); setEnvErrors((prev) => ({ ...prev, ubuntuPassword: null })); }}
-              placeholder="SSH 접속에 사용할 비밀번호"
-              type="password"
-              invalid={!!ubuntuPasswordError}
-            />
-          </FormField>
-          <FormField label="Ubuntu 비밀번호 확인" errorText={ubuntuPasswordConfirmError}>
-            <Input
-              value={ubuntuPasswordConfirm}
-              onChange={(value) => { setUbuntuPasswordConfirm(value); setEnvErrors((prev) => ({ ...prev, ubuntuPasswordConfirm: null })); }}
-              placeholder="비밀번호를 한 번 더 입력해 주세요"
-              type="password"
-              invalid={!!ubuntuPasswordConfirmError}
-            />
-          </FormField>
-          </>)}
           <FormField label="공유 그룹">
             <div style={{ display: "flex", gap: "var(--decs-space-xs)" }}>
               <Select selectedValue={selectedGroupId} onChange={setSelectedGroupId} options={groupSelectOptions} placeholder="공유 그룹 선택" style={{ flex: 1 }} />
@@ -396,7 +336,7 @@ function RequestWizard({ onCancel, onDone, gpuOptions: gpuOptionsProp, envOption
             { label: "사용 만료일", value: expiresDate || "—" },
             { label: "개발 환경", value: envOptions.find((o) => o.value === env)?.label ?? env },
             { label: "Ubuntu 사용자명", value: accountUsername || "—" },
-            { label: "Ubuntu 비밀번호", value: hasAccountPassword ? "계정 비밀번호 사용" : ubuntuPassword ? "입력함 — 안내 메일에 적히지 않으니 꼭 기억해 두세요" : "—" },
+            { label: "SSH 비밀번호", value: "로그인 비밀번호와 같음" },
             { label: "공유 그룹", value: selectedGroups.length > 0 ? selectedGroups.map((g) => g.label).join(", ") : "—" },
             { label: "추가 포트", value: portRequests.length > 0 ? portRequests.map((p) => `${p.internalPort} (${p.usagePurpose})`).join(", ") : "—" },
           ]} />
@@ -413,12 +353,10 @@ function RequestWizard({ onCancel, onDone, gpuOptions: gpuOptionsProp, envOption
       !selectedServer ? "서버" : null,
       !selectedGpu ? "GPU" : null,
       !env ? "개발 환경" : null,
-      !hasAccountPassword && !ubuntuPassword ? "Ubuntu 비밀번호" : null,
     ].filter(Boolean);
-    const developmentValid = validateDevelopmentStep();
     const periodValid = validatePeriod();
-    if (missingFields.length > 0 || !developmentValid || !periodValid) {
-      setError(`필수 신청 정보를 확인해주세요: ${missingFields.join(", ") || "Ubuntu 계정 정보"}`);
+    if (missingFields.length > 0 || !periodValid) {
+      setError(`필수 신청 정보를 확인해주세요: ${missingFields.join(", ") || "사용 기간"}`);
       return undefined;
     }
 
@@ -428,7 +366,6 @@ function RequestWizard({ onCancel, onDone, gpuOptions: gpuOptionsProp, envOption
       gpu: selectedGpu.id,
       expiresAt: `${expiresDate}T23:59:59`,
       env,
-      ...(hasAccountPassword ? {} : { ubuntuPassword }),
       ubuntuGids: selectedGroups.map((g) => g.value),
       portRequests,
     };

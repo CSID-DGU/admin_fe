@@ -13,7 +13,6 @@ import {
   Tabs,
 } from "../design-system";
 import { useAuth } from "../hooks/useAuth";
-import { UbuntuPasswordChangeForm } from "../components/Auth/UbuntuPasswordChangeForm";
 import { PHONE_PATTERN, PHONE_FORMAT_ERROR } from "../utils/validators";
 
 const AccountPage = ({ user }) => {
@@ -163,7 +162,7 @@ const AccountPage = ({ user }) => {
       if (response.status === 200) {
         setAlert({
           type: "success",
-          message: "비밀번호가 성공적으로 변경되었습니다.",
+          message: "비밀번호를 바꿨어요. SSH 비밀번호도 같이 바뀌어 실행 중인 컨테이너에 바로 적용됐어요.",
         });
 
         // 폼 초기화
@@ -175,11 +174,14 @@ const AccountPage = ({ user }) => {
       } else {
         throw new Error("비밀번호 변경에 실패했습니다.");
       }
-    } catch {
-      setAlert({
-        type: "error",
-        message: "비밀번호 변경에 실패했습니다. 현재 비밀번호를 확인해주세요.",
-      });
+    } catch (error) {
+      // 웹 비밀번호가 곧 SSH 비밀번호라, 컨테이너에 반영하지 못하면(502) 서버가 아무것도 바꾸지 않는다.
+      const message = error.status === 502
+        ? "컨테이너에 반영하지 못해 비밀번호를 바꾸지 않았어요. 잠시 후 다시 시도해 주세요."
+        : error.status === 409
+        ? "컨테이너를 만드는 중이라 지금은 비밀번호를 바꿀 수 없어요. 생성이 끝난 뒤 다시 시도해 주세요."
+        : "비밀번호 변경에 실패했습니다. 현재 비밀번호를 확인해주세요.";
+      setAlert({ type: "error", message });
     } finally {
       setIsLoading(false);
     }
@@ -258,7 +260,7 @@ const AccountPage = ({ user }) => {
     <div className="space-y-6">
       <Header
         variant="h3"
-        description="비밀번호를 정기적으로 바꾸면 계정을 더 안전하게 지킬 수 있어요."
+        description="이 비밀번호가 SSH(Ubuntu) 비밀번호예요. 바꾸면 실행 중인 컨테이너에도 함께 반영돼요."
       >
         비밀번호 변경
       </Header>
@@ -385,11 +387,6 @@ const AccountPage = ({ user }) => {
               id: "password",
               label: "비밀번호 변경",
               content: passwordTabContent,
-            },
-            {
-              id: "ubuntu-password",
-              label: "Ubuntu 비밀번호",
-              content: <UbuntuPasswordChangeForm user={user} />,
             },
           ]}
         />
