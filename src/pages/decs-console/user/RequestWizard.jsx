@@ -25,7 +25,6 @@ function RequestWizard({ onCancel, onDone, gpuOptions: gpuOptionsProp, envOption
   const [done, setDone] = React.useState(false);
   const [error, setError] = React.useState(null);
   const [stepErrors, setStepErrors] = React.useState({});
-  const [selectedGroupId, setSelectedGroupId] = React.useState("");
   const [selectedGroups, setSelectedGroups] = React.useState([]);
   const [createdGroups, setCreatedGroups] = React.useState([]);
   const [newGroupName, setNewGroupName] = React.useState("");
@@ -100,11 +99,11 @@ function RequestWizard({ onCancel, onDone, gpuOptions: gpuOptionsProp, envOption
     setStep(nextStep);
   }
 
-  function addGroup() {
-    const group = groupOptions.find((g) => g.value === selectedGroupId);
+  // 고르는 즉시 추가한다. 따로 "추가"를 눌러야 하면 고르기만 하고 신청해 그룹이 빠지는 일이 생긴다.
+  function addGroup(value) {
+    const group = groupOptions.find((g) => g.value === value);
     if (!group || selectedGroupIds.has(group.value)) return;
     setSelectedGroups((prev) => [...prev, group]);
-    setSelectedGroupId("");
   }
 
   function removeGroup(value) {
@@ -273,11 +272,8 @@ function RequestWizard({ onCancel, onDone, gpuOptions: gpuOptionsProp, envOption
           <Alert type="info" header="SSH 비밀번호는 이 사이트의 로그인 비밀번호예요">
             컨테이너의 Ubuntu 계정도 로그인 비밀번호로 만들어져요. 비밀번호를 바꾸면 떠 있는 컨테이너에도 함께 반영돼요.
           </Alert>
-          <FormField label="공유 그룹">
-            <div style={{ display: "flex", gap: "var(--decs-space-xs)" }}>
-              <Select selectedValue={selectedGroupId} onChange={setSelectedGroupId} options={groupSelectOptions} placeholder="공유 그룹 선택" style={{ flex: 1 }} />
-              <Button iconName="plus" onClick={addGroup} disabled={!selectedGroupId || selectedGroupIds.has(selectedGroupId)} ariaLabel="공유 그룹 추가">추가</Button>
-            </div>
+          <FormField label="공유 그룹" constraintText="고른 그룹은 승인되면 계정에 추가돼요. 이 계정의 모든 컨테이너에 함께 적용돼요.">
+            <Select selectedValue="" onChange={addGroup} options={groupSelectOptions} placeholder="공유 그룹 선택" />
             {selectedGroups.length > 0 ? (
               <div style={{ display: "flex", flexWrap: "wrap", gap: "var(--decs-space-xs)", marginTop: "var(--decs-space-xs)" }}>
                 {selectedGroups.map((group) => (
