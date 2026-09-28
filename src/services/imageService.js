@@ -39,7 +39,7 @@ export const getImages = async () => {
  */
 export const createImage = async (imageData) => {
   try {
-    const response = await apiClient.post('/api/images', imageData);
+    const response = await apiClient.post('/api/admin/images', imageData);
     
     if (response.status === 200 || response.status === 201) {
       return {
