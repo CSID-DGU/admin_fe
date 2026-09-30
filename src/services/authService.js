@@ -118,16 +118,4 @@ export const authService = {
       throw new Error(error.message || "우분투 유저네임 등록에 실패했습니다.");
     }
   },
-
-  // 비밀번호 변경
-  changePassword: async (currentPassword, newPassword) => {
-    try {
-      requireAccessToken();
-      const response = await apiClient.patch("/api/users/me/password", { currentPassword, newPassword });
-      return response;
-    } catch (error) {
-      if (error.status) throw error; // API 에러는 status 보존 위해 원본 유지
-      throw new Error(error.message || "비밀번호 변경에 실패했습니다.");
-    }
-  },
 };

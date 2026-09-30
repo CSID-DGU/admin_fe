@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import userService from "../../services/userService";
 import UserGroupsModal from "./UserGroupsModal";
+import PasswordResetModal from "./PasswordResetModal";
 import {
   Alert,
   Badge,
@@ -25,6 +26,7 @@ const UserManagementPage = () => {
   const [filterRole, setFilterRole] = useState("ALL");
   const [filterStatus, setFilterStatus] = useState("ALL");
   const [groupsUser, setGroupsUser] = useState(null);
+  const [passwordUser, setPasswordUser] = useState(null);
 
   // 사용자 목록 로드
   const loadUsers = async () => {
@@ -175,6 +177,11 @@ const UserManagementPage = () => {
                 text: "그룹 관리",
                 onClick: () => setGroupsUser(user),
               },
+              {
+                id: "reset-password",
+                text: "비밀번호 초기화",
+                onClick: () => setPasswordUser(user),
+              },
             ]}
           />
         </div>
@@ -306,6 +313,19 @@ const UserManagementPage = () => {
       </Container>
 
       {groupsUser && <UserGroupsModal user={groupsUser} onDismiss={() => setGroupsUser(null)} />}
+      {passwordUser && (
+        <PasswordResetModal
+          user={passwordUser}
+          onDismiss={() => setPasswordUser(null)}
+          onDone={(done) => {
+            setPasswordUser(null);
+            setAlert({
+              type: "success",
+              message: `${done.name} 님의 비밀번호를 초기화했어요. 새 비밀번호를 직접 전달해 주세요.`,
+            });
+          }}
+        />
+      )}
 
       {/* 통계 정보 */}
       <Container header={<Header variant="h2">사용자 통계</Header>}>
