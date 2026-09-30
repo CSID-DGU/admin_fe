@@ -126,6 +126,24 @@ class UserService {
       throw error;
     }
   }
+
+  // 사용자 비밀번호 초기화 (관리자가 새 비밀번호를 지정)
+  async resetUserPassword(userId, newPassword) {
+    try {
+      const response = await apiClient.request(`/api/admin/users/${userId}/password`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ newPassword }),
+      });
+
+      return response;
+    } catch (error) {
+      console.error("사용자 비밀번호 초기화 실패:", error.status);
+      throw error;
+    }
+  }
 }
 
 const userService = new UserService();
