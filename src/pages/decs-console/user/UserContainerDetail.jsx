@@ -51,11 +51,11 @@ function UserContainerDetail({ onBack, onExtend, onGroupChange, groupOptions = [
     const next = new Date(`${expiresDate}T23:59:59`);
     const current = new Date(server.expiresAt);
     if (!expiresDate || Number.isNaN(next.getTime()) || next <= current || next <= new Date()) {
-      setExtendError("현재 만료일보다 뒤인 날짜를 선택해주세요.");
+      setExtendError("지금 끝나는 날보다 뒤의 날짜를 골라 주세요.");
       return;
     }
     if (!reason.trim()) {
-      setExtendError("기간 연장 사유를 입력해주세요.");
+      setExtendError("왜 더 필요한지 적어 주세요.");
       return;
     }
     setSubmitting(true);
@@ -63,7 +63,7 @@ function UserContainerDetail({ onBack, onExtend, onGroupChange, groupOptions = [
     try {
       await onExtend({ requestId: server.requestId, expiresAt: `${expiresDate}T23:59:59`, reason: reason.trim() });
     } catch (error) {
-      setExtendError(error.message || "기간 연장 요청에 실패했어요. 잠시 후 다시 시도해주세요.");
+      setExtendError(error.message || "연장을 요청하지 못했어요. 잠시 뒤에 다시 해 주세요.");
     } finally {
       setSubmitting(false);
     }
@@ -90,11 +90,11 @@ function UserContainerDetail({ onBack, onExtend, onGroupChange, groupOptions = [
 
   async function submitGroupRequest() {
     if (addedGroups.length === 0) {
-      setGroupError("추가할 그룹을 하나 이상 선택해주세요.");
+      setGroupError("추가할 그룹을 하나 이상 골라 주세요.");
       return;
     }
     if (!groupReason.trim()) {
-      setGroupError("그룹 추가 사유를 입력해주세요.");
+      setGroupError("왜 이 그룹이 필요한지 적어 주세요.");
       return;
     }
     setGroupSubmitting(true);
@@ -107,7 +107,7 @@ function UserContainerDetail({ onBack, onExtend, onGroupChange, groupOptions = [
       await onGroupChange({ requestId: server.requestId, groupIds, reason: groupReason.trim() });
       setGroupModalOpen(false);
     } catch (error) {
-      setGroupError(error.message || "그룹 추가 요청에 실패했어요. 잠시 후 다시 시도해주세요.");
+      setGroupError(error.message || "그룹 추가를 요청하지 못했어요. 잠시 뒤에 다시 해 주세요.");
     } finally {
       setGroupSubmitting(false);
     }
@@ -139,7 +139,7 @@ function UserContainerDetail({ onBack, onExtend, onGroupChange, groupOptions = [
       </div>
 
       {servers.length > 1 ? (
-        <Container header={<Header variant="h2" description="컨테이너를 선택하면 아래에 접속 정보가 표시됩니다">내 컨테이너 목록</Header>}>
+        <Container header={<Header variant="h2" description="컨테이너를 고르면 아래에 접속 방법이 나와요">내 컨테이너 목록</Header>}>
           <div style={{ display: "flex", flexDirection: "column", gap: "var(--decs-space-s)" }}>
             {servers.map((item) => (
               <div
@@ -173,16 +173,16 @@ function UserContainerDetail({ onBack, onExtend, onGroupChange, groupOptions = [
         </Container>
       ) : null}
 
-      <Container header={<Header variant="h2" description="터미널에 아래 명령을 붙여넣어 접속하세요">접속 정보</Header>}>
+      <Container header={<Header variant="h2" description="터미널(Windows는 PowerShell)에 아래 명령어를 붙여 넣고 Enter를 누르세요">접속 정보</Header>}>
         <KeyValuePairs columns={1} items={[
-          { label: "접속 명령", value: server.sshCommand, copyable: true },
-          { label: "비밀번호", value: "이 사이트의 로그인 비밀번호를 사용하세요" },
+          { label: "접속 명령어", value: server.sshCommand, copyable: true },
+          { label: "비밀번호", value: "이 사이트의 로그인 비밀번호와 같아요 (입력할 때 글자가 안 보이는 게 정상이에요)" },
         ]} />
         <div style={{ marginTop: "var(--decs-space-m)" }}>
-          <ExpandableSection headerText="Jupyter로 접속하기">
+          <ExpandableSection headerText="웹 브라우저로 접속하기 (JupyterLab)">
             <KeyValuePairs columns={1} items={[
               { label: "주소", value: server.jupyterUrl, copyable: true },
-              { label: "토큰", value: "승인 안내 메일에서 확인할 수 있어요" },
+              { label: "token(처음 한 번만)", value: "서버 준비 메일에 확인 방법이 있어요" },
             ]} />
           </ExpandableSection>
         </div>
@@ -225,7 +225,7 @@ function UserContainerDetail({ onBack, onExtend, onGroupChange, groupOptions = [
         </Container>
       </div>
 
-      <Container header={<Header variant="h2" description="이 컨테이너가 소속된 공유 그룹이에요">그룹</Header>}>
+      <Container header={<Header variant="h2" description="이 컨테이너에서 같이 쓰는 팀 폴더예요">그룹</Header>}>
         {(server.groups ?? []).length > 0 ? (
           <div style={{ display: "flex", flexWrap: "wrap", gap: "var(--decs-space-xs)" }}>
             {server.groups.map((group) => (
@@ -241,12 +241,13 @@ function UserContainerDetail({ onBack, onExtend, onGroupChange, groupOptions = [
             (admin_infra-proposed#174). 경로를 모르면 홈에서 작업하는 사용자는 찾아갈 방법이 없다. */}
         {(server.groups ?? []).length > 0 ? (
           <div style={{ color: "var(--decs-text-secondary)", fontSize: "var(--decs-fs-body-s)", marginTop: "var(--decs-space-xs)" }}>
-            팀원과 파일을 나누려면 컨테이너 안의 <code>~/shared/&lt;그룹 이름&gt;</code> 폴더를 쓰세요
-            (실제 위치 <code>/home/_g_&lt;그룹 이름&gt;</code>). 새로 추가된 그룹은 다음 SSH 접속부터 보여요.
+            팀원과 파일을 같이 쓰려면 <code>~/shared/&lt;그룹 이름&gt;</code> 폴더에 넣으세요
+            (실제 위치 <code>/home/_g_&lt;그룹 이름&gt;</code>). 새로 추가된 그룹은 승인되고 5분쯤 지나야 열려요.
+            그 전에는 Permission denied가 나올 수 있으니, 5분 뒤에 SSH로 다시 접속해 주세요.
           </div>
         ) : null}
         <div style={{ color: "var(--decs-text-secondary)", fontSize: "var(--decs-fs-body-s)", marginTop: "var(--decs-space-xs)" }}>
-          그룹을 빼려면 관리자에게 별도로 문의해주세요. 여기서는 추가만 신청할 수 있어요.
+          여기서는 그룹 추가만 신청할 수 있어요. 그룹에서 빠지려면 <a href="https://forms.gle/nACaxj2UeJF56V2i7" target="_blank" rel="noreferrer">문의 폼</a>으로 알려 주세요.
         </div>
         <div style={{ marginTop: "var(--decs-space-m)" }}>
           <Button iconName="plus" onClick={openGroupRequest}>그룹 추가 신청</Button>
@@ -254,32 +255,33 @@ function UserContainerDetail({ onBack, onExtend, onGroupChange, groupOptions = [
       </Container>
 
       <Alert type="info" header="문제가 있나요?">
-        접속이 안 되면 컨테이너를 재시작해 보세요. 그래도 안 되면 대시보드의 도움말에서 관리자에게 문의할 수 있어요.
+        먼저 서버 준비 메일의 사용 설명서에서 같은 문제를 찾아보세요. 그래도 안 되면{" "}
+        <a href="https://forms.gle/nACaxj2UeJF56V2i7" target="_blank" rel="noreferrer">문의 폼</a>으로 오류 메시지와 시각을 함께 알려 주세요.
       </Alert>
 
       <Modal
         visible={extendOpen}
         onDismiss={() => !submitting && setExtendOpen(false)}
-        header="사용 기간 연장 요청"
+        header="사용 기간 연장하기"
         footer={<>
           <Button variant="normal" disabled={submitting} onClick={() => setExtendOpen(false)}>취소</Button>
-          <Button variant="primary" loading={submitting} onClick={submitExtension}>연장 요청</Button>
+          <Button variant="primary" loading={submitting} onClick={submitExtension}>연장 요청하기</Button>
         </>}
       >
         <div style={{ display: "flex", flexDirection: "column", gap: "var(--decs-space-l)" }}>
           {extendError ? <Alert type="error">{extendError}</Alert> : null}
-          <FormField label="현재 만료일">
+          <FormField label="지금 끝나는 날">
             <Input value={toLocalDateInput(new Date(server.expiresAt))} readOnly />
           </FormField>
-          <FormField label="새 만료일" constraintText="현재 만료일 이후 날짜를 선택해주세요.">
+          <FormField label="새로 끝나는 날" constraintText="지금 끝나는 날보다 뒤의 날짜를 골라 주세요.">
             <Input type="date" value={expiresDate} onChange={setExpiresDate} />
           </FormField>
-          <FormField label="연장 사유" constraintText="무엇을 마저 해야 해서 얼마나 더 필요한지 적어주세요.">
+          <FormField label="연장하는 이유" constraintText="무엇이 남아서 얼마나 더 필요한지 적어 주세요.">
             <textarea
               value={reason}
               onChange={(event) => setReason(event.target.value)}
               rows={4}
-              placeholder="예: 논문 제출 전 추가 실험(모델 3개 비교)이 남아 있어 2주 더 필요합니다."
+              placeholder="예: 논문 제출 전에 모델 3개를 더 비교해야 해서 2주가 더 필요해요."
               style={{
                 width: "100%", boxSizing: "border-box", resize: "vertical",
                 padding: "var(--decs-space-s) var(--decs-space-m)",
@@ -296,19 +298,19 @@ function UserContainerDetail({ onBack, onExtend, onGroupChange, groupOptions = [
       <Modal
         visible={groupModalOpen}
         onDismiss={() => !groupSubmitting && setGroupModalOpen(false)}
-        header="그룹 추가 신청"
+        header="공유 그룹 추가 신청"
         footer={<>
           <Button variant="normal" disabled={groupSubmitting} onClick={() => setGroupModalOpen(false)}>취소</Button>
-          <Button variant="primary" loading={groupSubmitting} onClick={submitGroupRequest}>추가 요청</Button>
+          <Button variant="primary" loading={groupSubmitting} onClick={submitGroupRequest}>추가 요청하기</Button>
         </>}
       >
         <div style={{ display: "flex", flexDirection: "column", gap: "var(--decs-space-l)" }}>
           {groupError ? <Alert type="error">{groupError}</Alert> : null}
-          <Alert type="info" header="승인 후 반영까지 시간이 걸려요">
-            관리자가 승인하면 그룹이 실제로 반영돼요. 다만 이미 켜져 있는 컨테이너는 접속을 다시 맺을
-            때까지 최대 약 30분이 걸리고, 새로 만드는 컨테이너는 바로 반영돼요.
+          <Alert type="info" header="승인되고 조금 기다려야 열려요">
+            관리자가 승인하면 5분쯤 뒤에 팀 폴더가 열려요. 이미 켜져 있는 컨테이너는 30분쯤 걸릴 수 있어요.
+            열리지 않으면 SSH 접속을 끊었다가 다시 접속해 보세요.
           </Alert>
-          <FormField label="현재 소속 그룹">
+          <FormField label="지금 들어가 있는 그룹">
             {(server.groups ?? []).length > 0 ? (
               <div style={{ display: "flex", flexWrap: "wrap", gap: "var(--decs-space-xs)" }}>
                 {server.groups.map((group) => (
@@ -321,7 +323,7 @@ function UserContainerDetail({ onBack, onExtend, onGroupChange, groupOptions = [
           </FormField>
           <FormField label="추가할 그룹">
             <div style={{ display: "flex", gap: "var(--decs-space-xs)" }}>
-              <Select selectedValue={selectedGroupId} onChange={setSelectedGroupId} options={groupSelectOptions} placeholder="공유 그룹 선택" style={{ flex: 1 }} />
+              <Select selectedValue={selectedGroupId} onChange={setSelectedGroupId} options={groupSelectOptions} placeholder="공유 그룹 고르기" style={{ flex: 1 }} />
               <Button iconName="plus" onClick={addGroupToRequest} disabled={!selectedGroupId || addedGroupIds.has(selectedGroupId)} ariaLabel="그룹 추가">추가</Button>
             </div>
             {addedGroups.length > 0 ? (
@@ -335,12 +337,12 @@ function UserContainerDetail({ onBack, onExtend, onGroupChange, groupOptions = [
               </div>
             ) : null}
           </FormField>
-          <FormField label="추가 사유">
+          <FormField label="필요한 이유">
             <textarea
               value={groupReason}
               onChange={(event) => setGroupReason(event.target.value)}
               rows={4}
-              placeholder="예: 팀 공유 데이터셋 접근을 위해 team-a 그룹이 필요합니다."
+              placeholder="예: 연구실 팀원들과 같은 데이터셋을 쓰려고 vision-lab 그룹이 필요해요."
               style={{
                 width: "100%", boxSizing: "border-box", resize: "vertical",
                 padding: "var(--decs-space-s) var(--decs-space-m)",

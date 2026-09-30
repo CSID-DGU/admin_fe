@@ -35,7 +35,8 @@ async function copyToClipboard(text) {
 /**
  * KeyValuePairs — labeled read-only detail pairs (resource spec, uid/gid,
  * volume, SSH access info). Lays out across `columns`. A value may include a
- * copy button via item.copyable + copyText.
+ * copy button via item.copyable + copyText. item.fullWidth spans every column;
+ * item.multiline keeps the value's line breaks (free text a user typed).
  */
 function CopyValue({ text }) {
   const [copied, setCopied] = React.useState(false);
@@ -62,9 +63,10 @@ export function KeyValuePairs({ items = [], columns = 2, style }) {
   return (
     <div style={{ display: "grid", gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))`, gap: "var(--decs-space-m) var(--decs-space-xl)", fontFamily: "var(--decs-font-base)", ...style }}>
       {items.map((it, i) => (
-        <div key={i}>
+        <div key={i} style={{ minWidth: 0, gridColumn: it.fullWidth ? "1 / -1" : undefined }}>
           <div style={{ fontSize: "var(--decs-fs-body-s)", color: "var(--decs-text-inactive)", marginBottom: "2px" }}>{it.label}</div>
-          <div style={{ fontSize: "var(--decs-fs-body-m)", lineHeight: "var(--decs-lh-body-m)", color: "var(--decs-text-body)" }}>
+          {/* 사용자가 적은 긴 글(띄어쓰기 없는 문자열 포함)이 옆 칸을 침범하지 않게 칸 안에서 줄을 바꾼다. */}
+          <div style={{ fontSize: "var(--decs-fs-body-m)", lineHeight: "var(--decs-lh-body-m)", color: "var(--decs-text-body)", overflowWrap: "anywhere", whiteSpace: it.multiline ? "pre-wrap" : undefined }}>
             {it.copyable ? <CopyValue text={it.copyText ?? it.value} /> : it.value}
           </div>
         </div>
