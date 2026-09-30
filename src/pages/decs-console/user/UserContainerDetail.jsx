@@ -274,12 +274,12 @@ function UserContainerDetail({ onBack, onExtend, onGroupChange, groupOptions = [
           <FormField label="새 만료일" constraintText="현재 만료일 이후 날짜를 선택해주세요.">
             <Input type="date" value={expiresDate} onChange={setExpiresDate} />
           </FormField>
-          <FormField label="연장 사유">
+          <FormField label="연장 사유" constraintText="무엇을 마저 해야 해서 얼마나 더 필요한지 적어주세요.">
             <textarea
               value={reason}
               onChange={(event) => setReason(event.target.value)}
               rows={4}
-              placeholder="예: 실험 일정 연장으로 GPU 사용 기간이 더 필요합니다."
+              placeholder="예: 논문 제출 전 추가 실험(모델 3개 비교)이 남아 있어 2주 더 필요합니다."
               style={{
                 width: "100%", boxSizing: "border-box", resize: "vertical",
                 padding: "var(--decs-space-s) var(--decs-space-m)",

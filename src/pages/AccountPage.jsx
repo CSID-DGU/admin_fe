@@ -13,7 +13,7 @@ import {
   Tabs,
 } from "../design-system";
 import { useAuth } from "../hooks/useAuth";
-import { PHONE_PATTERN, PHONE_FORMAT_ERROR } from "../utils/validators";
+import { PHONE_PATTERN, PHONE_FORMAT_ERROR, PHONE_HELP, formatPhoneInput } from "../utils/validators";
 import { setLoginNotice } from "../utils/loginNotice";
 
 const EMPTY_PASSWORD_DATA = {
@@ -221,6 +221,7 @@ const AccountPage = ({ user }) => {
           <FormField
             label="전화번호"
             errorText={errors.phone}
+            constraintText={PHONE_HELP}
             htmlFor="account-phone"
           >
             <Input
@@ -228,7 +229,7 @@ const AccountPage = ({ user }) => {
               type="tel"
               value={formData.phone}
               onChange={(value) =>
-                handleProfileChange({ target: { name: "phone", value } })
+                handleProfileChange({ target: { name: "phone", value: formatPhoneInput(value) } })
               }
               invalid={!!errors.phone}
               placeholder="010-1234-5678"
