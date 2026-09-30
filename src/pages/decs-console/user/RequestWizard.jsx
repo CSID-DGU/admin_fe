@@ -7,13 +7,7 @@ const GROUP_NAME_PATTERN = /^[a-z_][a-z0-9_-]*$/;
 // BE(SaveRequestRequestDTO.usagePurpose)와 같은 한도. 승인자가 이 글만 보고 판단하므로 최소 길이를 둔다.
 const PURPOSE_MIN_LENGTH = 50;
 const PURPOSE_MAX_LENGTH = 1000;
-const PURPOSE_GUIDE = [
-  ["무엇을 하나요?", "졸업 프로젝트, 논문 실험, 수업 과제 등"],
-  ["어떤 프로그램을 쓰나요?", "PyTorch, TensorFlow, Hugging Face 등"],
-  ["데이터는 얼마나 되나요?", "이미지 2만 장, 텍스트 10GB 등"],
-  ["얼마나 오래 돌리나요?", "한 번 학습에 6시간, 일주일에 2~3번 등"],
-];
-const PURPOSE_EXAMPLE = "졸업 프로젝트로 PyTorch를 사용해 흉부 X-ray 사진을 분류하는 모델을 학습하려고 합니다. 사진은 약 2만 장(10GB)이고, 한 번 학습하는 데 GPU 1장으로 6시간 정도 걸릴 것 같습니다. 일주일에 2~3번 학습할 예정입니다.";
+const PURPOSE_EXAMPLE = "예: 졸업 프로젝트로 PyTorch를 사용해 흉부 X-ray 사진을 분류하는 모델을 학습하려고 합니다. 사진은 약 2만 장(10GB)이고, 한 번 학습하는 데 GPU 1장으로 6시간 정도 걸릴 것 같습니다. 일주일에 2~3번 학습할 예정입니다.";
 
 function toLocalDateInput(date) {
   const offset = date.getTimezoneOffset() * 60_000;
@@ -77,11 +71,11 @@ function RequestWizard({ onCancel, onDone, gpuOptions: gpuOptionsProp, envOption
     const maxDate = new Date(today);
     maxDate.setDate(maxDate.getDate() + 365);
     if (!expiresDate || Number.isNaN(picked.getTime()) || picked <= today) {
-      setStepErrors((prev) => ({ ...prev, period: "만료일은 오늘 이후 날짜로 선택해주세요." }));
+      setStepErrors((prev) => ({ ...prev, period: "내일이나 그 뒤의 날짜를 골라 주세요." }));
       return false;
     }
     if (picked > maxDate) {
-      setStepErrors((prev) => ({ ...prev, period: "만료일은 오늘부터 1년 이내로 선택해주세요." }));
+      setStepErrors((prev) => ({ ...prev, period: "오늘부터 1년 안의 날짜를 골라 주세요." }));
       return false;
     }
     return true;
@@ -89,15 +83,15 @@ function RequestWizard({ onCancel, onDone, gpuOptions: gpuOptionsProp, envOption
 
   function validateStep(nextStep) {
     if (step === 0 && nextStep > step && purpose.trim().length < PURPOSE_MIN_LENGTH) {
-      setStepErrors((prev) => ({ ...prev, purpose: `사용 목적을 ${PURPOSE_MIN_LENGTH}자 이상 적어주세요. 지금 ${purpose.trim().length}자예요.` }));
+      setStepErrors((prev) => ({ ...prev, purpose: `${PURPOSE_MIN_LENGTH}자 이상 적어 주세요. 지금 ${purpose.trim().length}자예요.` }));
       return false;
     }
     if (step === 1 && nextStep > step && !selectedServer) {
-      setStepErrors((prev) => ({ ...prev, server: "서버를 선택해주세요." }));
+      setStepErrors((prev) => ({ ...prev, server: "서버를 하나 골라 주세요." }));
       return false;
     }
     if (step === 2 && nextStep > step && gpu.length === 0) {
-      setStepErrors((prev) => ({ ...prev, gpu: "GPU를 선택해주세요." }));
+      setStepErrors((prev) => ({ ...prev, gpu: "GPU를 하나 골라 주세요." }));
       return false;
     }
     if (step === 3 && nextStep > step && !validatePeriod()) return false;
@@ -130,7 +124,7 @@ function RequestWizard({ onCancel, onDone, gpuOptions: gpuOptionsProp, envOption
     const groupName = newGroupName.trim();
     if (!groupName) return;
     if (!GROUP_NAME_PATTERN.test(groupName) || groupName.length > 32) {
-      setGroupCreateError("그룹명은 소문자나 밑줄로 시작하고 소문자·숫자·밑줄·하이픈만 32자 이내로 쓸 수 있어요.");
+      setGroupCreateError("그룹 이름은 영어 소문자로 시작하고, 영어 소문자·숫자·밑줄(_)·하이픈(-)만 써서 32자 안으로 지어 주세요.");
       return;
     }
     setCreatingGroup(true);
@@ -148,7 +142,7 @@ function RequestWizard({ onCancel, onDone, gpuOptions: gpuOptionsProp, envOption
       setSelectedGroups((prev) => [...prev, group]);
       setNewGroupName("");
     } catch (e) {
-      setGroupCreateError(e.message || "그룹 생성에 실패했습니다.");
+      setGroupCreateError(e.message || "그룹을 만들지 못했어요. 잠시 뒤에 다시 해 주세요.");
     } finally {
       setCreatingGroup(false);
     }
@@ -157,15 +151,15 @@ function RequestWizard({ onCancel, onDone, gpuOptions: gpuOptionsProp, envOption
   function addPort() {
     const parsedPort = Number(portNumber);
     if (!Number.isInteger(parsedPort) || parsedPort < 1 || parsedPort > 65535) {
-      setPortError("포트 번호는 1~65535 사이의 숫자로 입력해주세요.");
+      setPortError("포트 번호는 1부터 65535 사이의 숫자로 적어 주세요.");
       return;
     }
     if ([22, 8888].includes(parsedPort)) {
-      setPortError("22(SSH), 8888(Jupyter) 포트는 기본 포트와 충돌합니다.");
+      setPortError("22번(SSH)과 8888번(JupyterLab)은 이미 열려 있어요. 다른 번호를 적어 주세요.");
       return;
     }
     if (portRequests.some((p) => p.internalPort === parsedPort)) {
-      setPortError("이미 추가한 포트입니다.");
+      setPortError("이미 추가한 포트예요.");
       return;
     }
     setPortRequests((prev) => [...prev, { internalPort: parsedPort, usagePurpose: portPurpose.trim() || `포트 ${parsedPort}` }]);
@@ -183,13 +177,13 @@ function RequestWizard({ onCancel, onDone, gpuOptions: gpuOptionsProp, envOption
       <Container>
         <div style={{ textAlign: "center", padding: "var(--decs-space-xxl) var(--decs-space-l)" }}>
           <div style={{ color: "var(--decs-status-success)", display: "flex", justifyContent: "center", marginBottom: 12 }}>
-            <StatusIndicator type="success"><span style={{ fontSize: "var(--decs-fs-body-l)", fontWeight: 700 }}>신청이 접수되었어요</span></StatusIndicator>
+            <StatusIndicator type="success"><span style={{ fontSize: "var(--decs-fs-body-l)", fontWeight: 700 }}>신청했어요</span></StatusIndicator>
           </div>
           <p style={{ color: "var(--decs-text-secondary)", fontSize: "var(--decs-fs-body-m)", maxWidth: 420, margin: "0 auto 20px" }}>
-            관리자 승인 후 컨테이너를 준비할게요. 준비가 끝나면 대시보드에서 바로 접속할 수 있어요.
-            SSH 접속에는 이 사이트에 로그인할 때 쓰는 비밀번호를 쓰세요.
+            관리자가 승인하면 컨테이너를 준비해 드려요. 준비가 끝나면 접속 방법을 메일로 보내 드리고, 대시보드에서도 볼 수 있어요.
+            서버 비밀번호는 이 사이트의 로그인 비밀번호와 같아요.
           </p>
-          <Button variant="primary" onClick={onDone}>신청 현황으로 가기</Button>
+          <Button variant="primary" onClick={onDone}>신청 현황 보기</Button>
         </div>
       </Container>
     );
@@ -198,31 +192,21 @@ function RequestWizard({ onCancel, onDone, gpuOptions: gpuOptionsProp, envOption
   const steps = [
     {
       title: "사용 목적",
-      description: "GPU 서버로 무엇을 하실 건가요? 승인하는 교수님이 이 글만 보고 판단하니 자세히 적어주세요.",
+      description: "교수님이 이 글을 읽고 승인할지 정해요.",
       content: (
-        <div style={{ maxWidth: 560, display: "flex", flexDirection: "column", gap: "var(--decs-space-m)" }}>
-          <Alert type="info" header="아래 네 가지를 넣어 적어주세요">
-            <ol style={{ margin: 0, paddingLeft: "var(--decs-space-l)" }}>
-              {PURPOSE_GUIDE.map(([question, hint]) => (
-                <li key={question}><strong>{question}</strong> <span style={{ color: "var(--decs-text-secondary)" }}>(예: {hint})</span></li>
-              ))}
-            </ol>
-            <p style={{ margin: "var(--decs-space-s) 0 0" }}><strong>이렇게 쓰면 돼요</strong></p>
-            <p style={{ margin: 0, color: "var(--decs-text-secondary)" }}>{PURPOSE_EXAMPLE}</p>
-          </Alert>
+        <div style={{ maxWidth: 560 }}>
           <FormField
             label="사용 목적"
+            description="무엇을 하는지, 어떤 프로그램을 쓰는지, 데이터가 얼마나 되는지, 얼마나 오래 돌리는지 넣어 주세요."
             errorText={stepErrors.purpose}
-            constraintText={purpose.trim().length < PURPOSE_MIN_LENGTH
-              ? `${purpose.trim().length}자 / 최소 ${PURPOSE_MIN_LENGTH}자 — ${PURPOSE_MIN_LENGTH - purpose.trim().length}자 더 적어주세요.`
-              : `${purpose.trim().length}자 / 최대 ${PURPOSE_MAX_LENGTH}자 — 좋아요!`}
+            constraintText={`${purpose.trim().length} / ${PURPOSE_MIN_LENGTH}자 이상`}
           >
             <textarea
               value={purpose}
               onChange={(e) => { setPurpose(e.target.value); setStepErrors((prev) => ({ ...prev, purpose: null })); }}
               rows={6}
               maxLength={PURPOSE_MAX_LENGTH}
-              placeholder="위 네 가지를 넣어 두세 문장으로 적어주세요."
+              placeholder={PURPOSE_EXAMPLE}
               style={{
                 width: "100%", padding: "8px 12px", fontSize: "var(--decs-fs-body-m)",
                 background: "var(--decs-surface-input)", color: "var(--decs-text-body)",
@@ -237,7 +221,7 @@ function RequestWizard({ onCancel, onDone, gpuOptions: gpuOptionsProp, envOption
     },
     {
       title: "서버 선택",
-      description: "사용할 GPU 클러스터를 선택해주세요.",
+      description: "쓰고 싶은 서버를 골라 주세요.",
       content: serverOptions.length > 0 ? (
         <FormField errorText={stepErrors.server}>
           <Cards
@@ -255,25 +239,25 @@ function RequestWizard({ onCancel, onDone, gpuOptions: gpuOptionsProp, envOption
             cardDefinition={{ header: (o) => o.title }}
           />
         </FormField>
-      ) : <Alert type="info">신청 가능한 서버 정보가 없습니다.</Alert>,
+      ) : <Alert type="info">지금 신청할 수 있는 서버가 없어요.</Alert>,
     },
     {
       title: "GPU 선택",
-      description: "필요한 성능을 골라 주세요.",
+      description: "필요한 GPU를 골라 주세요.",
       content: filteredGpuOptions.length > 0 ? (
         <FormField errorText={stepErrors.gpu}>
           <Cards columns={2} selectionType="single" trackBy="id" selectedItems={gpu}
             onSelectionChange={(items) => { setGpu(items); setStepErrors((prev) => ({ ...prev, gpu: null })); }}
             items={filteredGpuOptions} cardDefinition={{ header: (o) => o.title, sections: [{ id: "d", content: (o) => o.desc }, { id: "m", header: "메모리", content: (o) => o.memory }] }} />
         </FormField>
-      ) : <Alert type="info">선택한 서버에 신청 가능한 GPU가 없습니다.</Alert>,
+      ) : <Alert type="info">고른 서버에서 지금 신청할 수 있는 GPU가 없어요. 다른 서버를 골라 주세요.</Alert>,
     },
     {
       title: "사용 기간",
-      description: "언제까지 사용하실 계획인가요? 만료 전에 언제든 연장할 수 있어요.",
+      description: "언제까지 쓸지 골라 주세요. 끝나기 전에 언제든 연장할 수 있어요.",
       content: (
         <div style={{ maxWidth: 420, display: "flex", flexDirection: "column", gap: "var(--decs-space-m)" }}>
-          <FormField label="사용 만료일" errorText={stepErrors.period} constraintText="서버 사용을 마칠 날짜예요. (오늘부터 1년 이내)">
+          <FormField label="끝나는 날" errorText={stepErrors.period} constraintText="이 날이 지나면 컨테이너가 정리돼요. 오늘부터 1년 안으로 고를 수 있어요.">
             <Input
               value={expiresDate}
               onChange={(value) => { setExpiresDate(value); setStepErrors((prev) => ({ ...prev, period: null })); }}
@@ -281,19 +265,19 @@ function RequestWizard({ onCancel, onDone, gpuOptions: gpuOptionsProp, envOption
               invalid={!!stepErrors.period}
             />
           </FormField>
-          <Alert type="info">기본 실험은 2주면 충분한 경우가 많아요. 길게 잡을수록 승인이 늦어질 수 있어요.</Alert>
+          <Alert type="info">보통 2주면 충분해요. 길게 잡을수록 승인이 늦어질 수 있어요.</Alert>
         </div>
       ),
     },
     {
       title: "개발 환경",
-      description: "컨테이너 환경과 접속 계정을 설정해 주세요.",
+      description: "개발 환경을 고르고, 필요하면 공유 그룹과 포트를 추가해 주세요.",
       content: (
         <div style={{ maxWidth: 520, display: "flex", flexDirection: "column", gap: "var(--decs-space-m)" }}>
-          <FormField label="기본 환경">
+          <FormField label="개발 환경" constraintText="잘 모르면 처음 골라져 있는 것을 그대로 쓰세요.">
             <Select selectedValue={env} onChange={setEnv} options={envOptions} />
           </FormField>
-          <FormField label="Ubuntu 사용자명" constraintText="가입할 때 정한 계정 이름이라 신청마다 바꿀 수 없어요.">
+          <FormField label="서버 아이디" constraintText="가입할 때 정한 이름이에요. 바꿀 수 없어요.">
             <div style={{ display: "flex", alignItems: "center", gap: "var(--decs-space-xs)", minHeight: 32 }}>
               <span style={{ color: "var(--decs-text-secondary)", fontSize: "var(--decs-fs-body-m)" }}>본인 계정</span>
               {accountUsername
@@ -301,11 +285,11 @@ function RequestWizard({ onCancel, onDone, gpuOptions: gpuOptionsProp, envOption
                 : <span style={{ color: "var(--decs-text-secondary)", fontSize: "var(--decs-fs-body-m)" }}>—</span>}
             </div>
           </FormField>
-          <Alert type="info" header="SSH 비밀번호는 이 사이트의 로그인 비밀번호예요">
-            컨테이너의 Ubuntu 계정도 로그인 비밀번호로 만들어져요. 비밀번호를 바꾸면 떠 있는 컨테이너에도 함께 반영돼요.
+          <Alert type="info" header="서버 비밀번호는 이 사이트의 로그인 비밀번호와 같아요">
+            이 사이트에서 비밀번호를 바꾸면 서버 비밀번호도 같이 바뀌어요.
           </Alert>
-          <FormField label="공유 그룹 (선택)" constraintText="같은 연구실·팀 사람들과 파일을 함께 쓰고 싶을 때만 골라요. 잘 모르면 비워 두세요. 고른 그룹은 승인되면 이 계정의 모든 컨테이너에 함께 적용돼요.">
-            <Select selectedValue="" onChange={addGroup} options={groupSelectOptions} placeholder="공유 그룹 선택" />
+          <FormField label="공유 그룹 (선택)" constraintText="같은 연구실이나 팀 사람들과 파일을 같이 쓰고 싶을 때만 골라요. 잘 모르면 비워 두세요. 팀 폴더(~/shared/그룹 이름)는 승인되고 5분쯤 지나야 열려요.">
+            <Select selectedValue="" onChange={addGroup} options={groupSelectOptions} placeholder="공유 그룹 고르기" />
             {selectedGroups.length > 0 ? (
               <div style={{ display: "flex", flexWrap: "wrap", gap: "var(--decs-space-xs)", marginTop: "var(--decs-space-xs)" }}>
                 {selectedGroups.map((group) => (
@@ -317,7 +301,7 @@ function RequestWizard({ onCancel, onDone, gpuOptions: gpuOptionsProp, envOption
               </div>
             ) : null}
           </FormField>
-          <FormField label="새 공유 그룹 만들기 (선택)" errorText={groupCreateError} constraintText="목록에 우리 팀 그룹이 없을 때만 만들어요. 영어 소문자로 시작하고 소문자·숫자·밑줄(_)·하이픈(-)만, 32자 이내로 적어요. 예: vision-lab, nlp_team">
+          <FormField label="새 공유 그룹 만들기 (선택)" errorText={groupCreateError} constraintText="목록에 우리 팀 그룹이 없을 때만 만들어요. 영어 소문자로 시작하고, 영어 소문자·숫자·밑줄(_)·하이픈(-)만 써서 32자 안으로 지어요. 예: vision-lab">
             <div style={{ display: "flex", gap: "var(--decs-space-xs)" }}>
               <Input
                 value={newGroupName}
@@ -329,7 +313,7 @@ function RequestWizard({ onCancel, onDone, gpuOptions: gpuOptionsProp, envOption
               <Button onClick={createNewGroup} disabled={!newGroupName.trim() || creatingGroup} loading={creatingGroup} ariaLabel="새 공유 그룹 만들기">새로 만들기</Button>
             </div>
           </FormField>
-          <FormField label="추가 포트 (선택)" errorText={portError} constraintText="SSH(22)와 JupyterLab(8888)은 자동으로 열려요. 그 밖에 웹으로 볼 프로그램이 있을 때만 추가하세요. 잘 모르면 비워 두세요. 예: 6006 + TensorBoard">
+          <FormField label="추가 포트 (선택)" errorText={portError} constraintText="SSH(22번)와 JupyterLab(8888번)은 자동으로 열려요. 그 밖에 웹 브라우저로 볼 프로그램이 있을 때만 추가해요. 잘 모르면 비워 두세요. 예: 6006번, TensorBoard">
             <div style={{ display: "grid", gridTemplateColumns: "150px minmax(0, 1fr) auto", gap: "var(--decs-space-xs)" }}>
               <Input value={portNumber} onChange={(value) => { setPortNumber(value); setPortError(null); }} type="number" placeholder="예: 6006" invalid={!!portError} />
               <Input value={portPurpose} onChange={setPortPurpose} placeholder="어디에 쓰나요? 예: TensorBoard" />
@@ -354,17 +338,17 @@ function RequestWizard({ onCancel, onDone, gpuOptions: gpuOptionsProp, envOption
     },
     {
       title: "확인",
-      description: "아래 내용으로 신청할게요.",
+      description: "내용을 한 번 더 확인하고 [신청하기]를 눌러 주세요.",
       content: (
         <Container header={<Header variant="h2">신청 내용</Header>}>
           <KeyValuePairs columns={2} items={[
-            { label: "사용 목적", value: purpose.trim() || "—" },
+            { label: "사용 목적", value: purpose.trim() || "—", fullWidth: true, multiline: true },
             { label: "서버", value: selectedServer || "—" },
             { label: "GPU", value: (filteredGpuOptions.find((o) => o.id === gpu[0]?.id) || {}).title || "—" },
-            { label: "사용 만료일", value: expiresDate || "—" },
+            { label: "끝나는 날", value: expiresDate || "—" },
             { label: "개발 환경", value: envOptions.find((o) => o.value === env)?.label ?? env },
-            { label: "Ubuntu 사용자명", value: accountUsername || "—" },
-            { label: "SSH 비밀번호", value: "로그인 비밀번호와 같음" },
+            { label: "서버 아이디", value: accountUsername || "—" },
+            { label: "서버 비밀번호", value: "로그인 비밀번호와 같아요" },
             { label: "공유 그룹", value: selectedGroups.length > 0 ? selectedGroups.map((g) => g.label).join(", ") : "—" },
             { label: "추가 포트", value: portRequests.length > 0 ? portRequests.map((p) => `${p.internalPort} (${p.usagePurpose})`).join(", ") : "—" },
           ]} />
@@ -384,7 +368,7 @@ function RequestWizard({ onCancel, onDone, gpuOptions: gpuOptionsProp, envOption
     ].filter(Boolean);
     const periodValid = validatePeriod();
     if (missingFields.length > 0 || !periodValid) {
-      setError(`필수 신청 정보를 확인해주세요: ${missingFields.join(", ") || "사용 기간"}`);
+      setError(`아직 채우지 않은 칸이 있어요: ${missingFields.join(", ") || "끝나는 날"}`);
       return undefined;
     }
 
@@ -402,7 +386,7 @@ function RequestWizard({ onCancel, onDone, gpuOptions: gpuOptionsProp, envOption
       setSubmitting(true);
       return Promise.resolve(onSubmitProp(payload))
         .then((success) => { if (success !== false) setDone(true); })
-        .catch((submitError) => setError(submitError.message || "신청에 실패했습니다."))
+        .catch((submitError) => setError(submitError.message || "신청하지 못했어요. 잠시 뒤에 다시 해 주세요."))
         .finally(() => setSubmitting(false));
     }
     setDone(true);
@@ -418,10 +402,10 @@ function RequestWizard({ onCancel, onDone, gpuOptions: gpuOptionsProp, envOption
       <Modal
         visible={clusterNoticeStep !== null}
         onDismiss={() => setClusterNoticeStep(null)}
-        header="클러스터 배정 안내"
+        header="다른 서버로 배정될 수 있어요"
         footer={<Button variant="primary" onClick={() => { setStep(clusterNoticeStep); setClusterNoticeStep(null); }}>확인</Button>}
       >
-        이미 많은 사용자가 선택한 클러스터를 이용 중이라면, 관리자 승인 과정에서 사용 목적을 검토해 다른 클러스터로 배정될 수 있습니다.
+        고른 서버에 사람이 많으면, 관리자가 사용 목적을 보고 다른 서버로 배정할 수 있어요.
       </Modal>
     </div>
   );
