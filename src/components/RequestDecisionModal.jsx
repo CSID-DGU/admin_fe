@@ -53,6 +53,10 @@ function RequestDecisionModal({ decision, submitting = false, onCancel, onConfir
             />
           </FormField>
         ) : null}
+        {/* 이미지·클러스터 짝은 서버가 검사하지 않는다(resource_group_images 미사용) */}
+        {decision.clusterOptions && clusterId !== decision.defaultClusterId ? (
+          <Alert type="warning">신청자가 고른 클러스터와 다릅니다. 신청한 이미지가 이 클러스터의 GPU에서 도는지 확인해 주세요. 시스템은 이미지와 클러스터의 짝을 검사하지 않습니다.</Alert>
+        ) : null}
         <FormField label={copy.label} constraintText="입력한 내용이 신청자에게 그대로 전달됩니다. 비우면 기본 문구로 보냅니다.">
           <textarea
             value={comment}
