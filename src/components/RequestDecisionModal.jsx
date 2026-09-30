@@ -1,7 +1,7 @@
 // 승인·거절 사유를 받는 모달. 브라우저 prompt()/confirm()을 대체한다 — 네이티브 대화상자는
 // 콘솔 스타일과 따로 놀고, 사유를 여러 줄로 적을 수도 없다.
 import { useEffect, useState } from "react";
-import { Modal, Button, FormField, Alert } from "../design-system";
+import { Modal, Button, FormField, Alert, Select } from "../design-system";
 
 const DECISION_COPY = {
   approve: { header: "승인 처리", label: "승인 사유", confirm: "승인" },
@@ -10,10 +10,12 @@ const DECISION_COPY = {
 
 function RequestDecisionModal({ decision, submitting = false, onCancel, onConfirm }) {
   const [comment, setComment] = useState("");
+  const [clusterId, setClusterId] = useState("");
 
   // 모달이 새로 열릴 때마다 기본 사유로 되돌린다
   useEffect(() => {
     setComment(decision?.defaultComment ?? "");
+    setClusterId(decision?.defaultClusterId ?? "");
   }, [decision]);
 
   if (!decision) return null;
@@ -31,7 +33,7 @@ function RequestDecisionModal({ decision, submitting = false, onCancel, onConfir
           variant={decision.kind === "approve" ? "primary" : "normal"}
           loading={submitting}
           style={decision.kind === "deny" ? { color: "var(--decs-status-error)", borderColor: "var(--decs-status-error)" } : undefined}
-          onClick={() => onConfirm(comment.trim() || decision.defaultComment)}
+          onClick={() => onConfirm(comment.trim() || decision.defaultComment, clusterId)}
         >
           {copy.confirm}
         </Button>
@@ -39,6 +41,18 @@ function RequestDecisionModal({ decision, submitting = false, onCancel, onConfir
     >
       <div style={{ display: "flex", flexDirection: "column", gap: "var(--decs-space-l)" }}>
         {decision.warning ? <Alert type="warning">{decision.warning}</Alert> : null}
+        {decision.clusterOptions ? (
+          <FormField label="배정할 클러스터" constraintText="기본값은 신청자가 고른 클러스터입니다. 노드는 고른 클러스터 안에서 자동으로 정해집니다.">
+            <Select
+              selectedValue={clusterId}
+              onChange={setClusterId}
+              options={decision.clusterOptions}
+              placeholder={decision.clusterOptions.length > 0 ? "클러스터를 선택하세요" : "선택할 클러스터 없음"}
+              disabled={submitting || decision.clusterOptions.length === 0}
+              ariaLabel="배정할 클러스터"
+            />
+          </FormField>
+        ) : null}
         <FormField label={copy.label} constraintText="입력한 내용이 신청자에게 그대로 전달됩니다. 비우면 기본 문구로 보냅니다.">
           <textarea
             value={comment}

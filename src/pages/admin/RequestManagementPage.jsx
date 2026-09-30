@@ -65,8 +65,9 @@ const RequestManagementPage = () => {
   const sentinelRef = useRef(null);
   const [alert, setAlert] = useState(null);
   const [processingRequestId, setProcessingRequestId] = useState(null);
-  // 승인·거절 사유 입력 모달: { kind, request, title, defaultComment, warning }
+  // 승인·거절 사유 입력 모달: { kind, request, title, defaultComment, warning, clusterOptions, defaultClusterId }
   const [decision, setDecision] = useState(null);
+  const [clusterOptions, setClusterOptions] = useState([]);
   // 승인 처리 중인 신청의 진행 상황 폴링 키. 한 사용자가 신청을 여러 개 동시에 가질 수
   // 있어(계정은 하나로 통합됐지만 Pod는 여러 개 발급 가능) username이 아니라 requestId로
   // 구분한다 — processingRequestId는 버튼 중복 클릭 방지용이라 응답이 오면 바로 풀리는데,
@@ -202,6 +203,17 @@ const RequestManagementPage = () => {
     fetchRequests();
   }, []);
 
+  // 승인 창의 "배정할 클러스터" 선택란. 번호는 DB 값이라 고정하지 않고 항상 받아 온다.
+  // 이름이 겹치는 클러스터(LAB·FARM의 RTX 3090 등)가 있어 서버 구분을 앞에 붙인다.
+  useEffect(() => {
+    requestService.getResourceGroups()
+      .then((response) => {
+        const groups = response.data?.data ?? [];
+        setClusterOptions(groups.map((g) => ({ value: String(g.rsgroupId), label: `${g.serverName} · ${g.description}` })));
+      })
+      .catch(() => setClusterOptions([]));
+  }, []);
+
   const periodCutoff = (() => {
     const months = PERIOD_OPTIONS.find((p) => p.value === period)?.months;
     if (!months) return null;
@@ -242,7 +254,7 @@ const RequestManagementPage = () => {
     return () => observer.disconnect();
   }, [hasMore, filteredRequests.length]);
 
-  const handleStatusUpdate = async (request, newStatus, comment = "") => {
+  const handleStatusUpdate = async (request, newStatus, comment = "", resourceGroupId = request.rsgroup_id) => {
     if (processingRequestId !== null) return;
     setProcessingRequestId(request.request_id);
     try {
@@ -252,7 +264,7 @@ const RequestManagementPage = () => {
         // 승인 API 호출
         response = await requestService.approveRequest(request.request_id, {
           imageId: request.image_id,
-          resourceGroupId: request.rsgroup_id,
+          resourceGroupId,
           adminComment: comment,
         });
       } else if (newStatus === "DENIED") {
@@ -279,11 +291,19 @@ const RequestManagementPage = () => {
           ? (response.data?.data?.status ?? response.data?.status ?? "PROCESSING")
           : newStatus;
 
+        // 관리자가 다른 클러스터로 배정했으면 응답의 클러스터로 목록 표시도 바꾼다
+        const assignedGroup = newStatus === "FULFILLED" ? response.data?.data?.resourceGroup : null;
+
         setRequests((prev) =>
           prev.map((req) =>
             req.request_id === request.request_id
               ? {
                   ...req,
+                  ...(assignedGroup ? {
+                    rsgroup_id: assignedGroup.rsgroupId,
+                    rsgroup_name: assignedGroup.resourceGroupName,
+                    rsgroup_description: assignedGroup.description,
+                  } : {}),
                   status: actualStatus,
                   admin_comment: comment,
                   updated_at: processedAt,
@@ -347,7 +367,14 @@ const RequestManagementPage = () => {
   };
 
   const askApprove = (request) => {
-    setDecision({ kind: "approve", request, title: `신청 #${request.request_id}`, defaultComment: "승인되었습니다." });
+    setDecision({
+      kind: "approve",
+      request,
+      title: `신청 #${request.request_id}`,
+      defaultComment: "승인되었습니다.",
+      clusterOptions,
+      defaultClusterId: String(request.rsgroup_id),
+    });
   };
 
   const askDeny = (request) => {
@@ -366,10 +393,10 @@ const RequestManagementPage = () => {
     });
   };
 
-  const confirmDecision = (comment) => {
+  const confirmDecision = (comment, clusterId) => {
     const { kind, request } = decision;
     setDecision(null);
-    handleStatusUpdate(request, kind === "approve" ? "FULFILLED" : "DENIED", comment);
+    handleStatusUpdate(request, kind === "approve" ? "FULFILLED" : "DENIED", comment, clusterId ? Number(clusterId) : request.rsgroup_id);
   };
 
   const formatDate = (dateString) => {
