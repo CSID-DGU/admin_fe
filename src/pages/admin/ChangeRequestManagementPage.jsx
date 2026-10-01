@@ -62,9 +62,13 @@ const ChangeRequestManagementPage = () => {
 
   // 반영 중인 변경 요청(번호 → 신청자 이름). 다시 불러왔을 때 끝난 것을 알아보는 데 쓴다.
   const processingRef = useRef(new Map());
+  const fetchSeqRef = useRef(0);
 
   // quiet: 반영 중인 요청의 결과를 보려고 주기적으로 다시 부를 때 — 로딩 표시와 알림을 건드리지 않는다.
   const fetchData = async ({ quiet = false } = {}) => {
+      // 승인·거절보다 먼저 떠난 조회가 늦게 돌아오면 방금 바꾼 상태를 옛 목록으로 덮는다. 떠날 때 번호를 받아 두고,
+      // 돌아왔을 때 그 뒤로 새 조회나 승인·거절이 있었으면 버린다.
+      const seq = ++fetchSeqRef.current;
       if (!quiet) {
         setIsLoading(true);
         setAlert(null);
@@ -76,6 +80,8 @@ const ChangeRequestManagementPage = () => {
           requestService.getChangeRequests(),
           requestService.getAllRequests(),
         ]);
+
+        if (seq !== fetchSeqRef.current) return;
 
         if (changeResponse.status === 200 && allResponse.status === 200) {
           const changeRequestsArray = changeResponse.data?.data ?? [];
@@ -152,7 +158,7 @@ const ChangeRequestManagementPage = () => {
             "변경 요청 목록 로딩 중 네트워크 오류가 발생했습니다. 인터넷 연결을 확인하시고 페이지를 새로고침해주세요.",
         });
       } finally {
-        setIsLoading(false);
+        if (!quiet) setIsLoading(false);
       }
   };
 
@@ -278,6 +284,7 @@ const ChangeRequestManagementPage = () => {
         // 작업으로 반영하는 변경은 승인해도 바로 끝나지 않는다 — 반영 중으로 두고 목록을 다시 불러와 결과를 본다.
         const applied =
           newStatus === "FULFILLED" && APPLIED_BY_JOB.has(changeRequest.changeType) ? "PROCESSING" : newStatus;
+        fetchSeqRef.current += 1;
         if (applied === "PROCESSING") {
           processingRef.current.set(changeRequest.changeRequestId, changeRequest.requestedBy.name);
         }
