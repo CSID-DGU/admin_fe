@@ -43,6 +43,26 @@ export const authService = {
     }
   },
 
+  // 비밀번호 재설정 인증번호 발송. 가입되지 않은 주소에도 성공으로 답한다(가입 여부를 알려 주지 않는다).
+  sendPasswordResetCode: async (email) => {
+    try {
+      return await apiClient.post("/api/auth/password-reset-codes", { email });
+    } catch (error) {
+      if (error.status) throw error; // API 에러는 status 보존 위해 원본 유지
+      throw new Error(error.message || "인증번호 전송에 실패했습니다.");
+    }
+  },
+
+  // 비밀번호 재설정 신청. 접수만 되고(202), 관리자가 승인해야 적용된다.
+  requestPasswordReset: async (email, code, newPassword) => {
+    try {
+      return await apiClient.post("/api/auth/password-resets", { email, code, newPassword });
+    } catch (error) {
+      if (error.status) throw error; // API 에러는 status 보존 위해 원본 유지
+      throw new Error(error.message || "비밀번호 재설정 신청에 실패했습니다.");
+    }
+  },
+
   // 회원가입
   register: async (userData) => {
     try {

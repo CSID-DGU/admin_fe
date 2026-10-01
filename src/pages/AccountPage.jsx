@@ -123,7 +123,7 @@ const AccountPage = ({ user }) => {
       </p>
       <p className="text-sm text-(--decs-text-secondary)">
         비밀번호는 웹 로그인과 SSH(Ubuntu 계정)에 함께 쓰여요. 바꾸거나 잊었을 때는
-        관리자에게 초기화를 요청해 주세요.
+        로그아웃한 뒤 로그인 화면의 &quot;비밀번호 재설정&quot;으로 신청해 주세요. 관리자가 승인하면 적용돼요.
       </p>
 
       {/* Editable form */}

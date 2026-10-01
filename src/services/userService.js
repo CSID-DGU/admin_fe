@@ -127,7 +127,43 @@ class UserService {
     }
   }
 
-  // 사용자 비밀번호 초기화 (관리자가 새 비밀번호를 지정)
+  // 처리할 비밀번호 재설정 신청(승인 대기·컨테이너 반영 중)
+  async getPasswordResets() {
+    try {
+      return await apiClient.request("/api/admin/password-resets", { method: "GET" });
+    } catch (error) {
+      console.error("비밀번호 재설정 신청 조회 실패:", error.status);
+      throw error;
+    }
+  }
+
+  // 재설정 신청 승인. 컨테이너 반영 작업만 등록하고 돌아온다(202) — 결과는 목록을 다시 읽어 확인한다.
+  async approvePasswordReset(passwordResetRequestId) {
+    try {
+      return await apiClient.request(
+        `/api/admin/password-resets/${encodeURIComponent(passwordResetRequestId)}/approval`,
+        { method: "POST" }
+      );
+    } catch (error) {
+      console.error("비밀번호 재설정 승인 실패:", error.status);
+      throw error;
+    }
+  }
+
+  // 재설정 신청 거절
+  async rejectPasswordReset(passwordResetRequestId) {
+    try {
+      return await apiClient.request(
+        `/api/admin/password-resets/${encodeURIComponent(passwordResetRequestId)}/rejection`,
+        { method: "POST" }
+      );
+    } catch (error) {
+      console.error("비밀번호 재설정 거절 실패:", error.status);
+      throw error;
+    }
+  }
+
+  // 사용자 비밀번호 초기화 (관리자가 새 비밀번호를 지정). 재설정 신청을 대신 내고 바로 승인하는 것과 같다.
   async resetUserPassword(userId, newPassword) {
     try {
       const response = await apiClient.request(`/api/admin/users/${userId}/password`, {
