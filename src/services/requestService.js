@@ -52,11 +52,14 @@ export const requestService = {
   getGroups: () => apiClient.get("/api/groups"),
   checkUbuntuUsername: (username) =>
     apiClient.get("/api/requests/config/check-username", { username }),
+  // 그룹은 작업이 끝나야 생긴다 — 응답은 작업 번호이고, 완료는 waitForGroupOperation으로 기다린다.
   createGroup: (groupName, ubuntuUsername) =>
     apiClient.post("/api/groups", {
       groupName,
       ...(ubuntuUsername && { ubuntuUsername }),
     }),
+  getGroupOperation: (operationId) =>
+    apiClient.get(`/api/groups/operations/${encodeURIComponent(operationId)}`),
   getDashboardServers: (status = "ALL") =>
     apiClient.get("/api/dashboard/me/servers", { status }),
   getApprovedRequests: () => apiClient.get("/api/requests/my/approved"),

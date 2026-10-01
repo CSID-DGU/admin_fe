@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   Container,
   Header,
@@ -17,6 +17,8 @@ import RequestDecisionModal from "../../components/RequestDecisionModal";
 
 const STATUS_META = {
   PENDING: { type: "pending", label: "대기중" },
+  // 승인은 했고 계정·컨테이너에 반영하는 작업이 도는 중이다(공유 그룹 추가). 끝나면 승인됨, 실패하면 대기중으로 돌아온다.
+  PROCESSING: { type: "in-progress", label: "반영 중" },
   FULFILLED: { type: "success", label: "승인됨" },
   DENIED: { type: "error", label: "거절됨" },
 };
@@ -34,6 +36,11 @@ const APPROVAL_BLOCK_REASON = {
 const APPROVAL_DELAY_NOTE = {
   GROUP: "그룹 변경은 이미 실행 중인 컨테이너에 최대 약 30분 뒤에 반영됩니다. 새로 만드는 컨테이너는 즉시 반영됩니다.",
 };
+
+// 승인하면 작업으로 등록돼 반영되는 변경 유형.
+const APPLIED_BY_JOB = new Set(["GROUP"]);
+const POLL_MS = 3000;
+const OPEN_STATUSES = new Set(["PENDING", "PROCESSING"]);
 
 const renderStatus = (status) => {
   const meta = STATUS_META[status];
@@ -53,9 +60,15 @@ const ChangeRequestManagementPage = () => {
   // 승인·거절 사유 입력 모달: { kind, request, title, defaultComment }
   const [decision, setDecision] = useState(null);
 
-  const fetchData = async () => {
-      setIsLoading(true);
-      setAlert(null);
+  // 반영 중인 변경 요청(번호 → 신청자 이름). 다시 불러왔을 때 끝난 것을 알아보는 데 쓴다.
+  const processingRef = useRef(new Map());
+
+  // quiet: 반영 중인 요청의 결과를 보려고 주기적으로 다시 부를 때 — 로딩 표시와 알림을 건드리지 않는다.
+  const fetchData = async ({ quiet = false } = {}) => {
+      if (!quiet) {
+        setIsLoading(true);
+        setAlert(null);
+      }
 
       try {
         // 변경 요청 목록과 모든 요청 목록을 병렬로 가져오기
@@ -102,10 +115,28 @@ const ChangeRequestManagementPage = () => {
               };
             });
 
+          // 반영 중이던 요청이 끝났으면 결과를 알린다 — 실패하면 대기중으로 돌아와 다시 승인할 수 있다.
+          transformedChangeRequests.forEach((changeReq) => {
+            const name = processingRef.current.get(changeReq.changeRequestId);
+            if (name === undefined) return;
+            if (changeReq.status === "FULFILLED") {
+              setAlert({ type: "success", message: `${name}님의 변경 요청이 반영되어 승인이 끝났습니다.` });
+            } else if (changeReq.status === "PENDING") {
+              setAlert({
+                type: "error",
+                message: `${name}님의 변경 요청을 반영하지 못해 대기중으로 되돌렸습니다. 다시 승인하면 이어서 반영합니다.`,
+              });
+            }
+          });
+          processingRef.current = new Map(
+            transformedChangeRequests
+              .filter((changeReq) => changeReq.status === "PROCESSING")
+              .map((changeReq) => [changeReq.changeRequestId, changeReq.requestedBy?.name ?? ""])
+          );
           setChangeRequests(transformedChangeRequests);
           setAllRequests(allRequestsArray);
           setLastUpdated(new Date());
-        } else {
+        } else if (!quiet) {
           setAlert({
             type: "error",
             message:
@@ -114,7 +145,8 @@ const ChangeRequestManagementPage = () => {
         }
       } catch (error) {
         console.error("Failed to fetch change requests:", error);
-        setAlert({
+        // 주기적으로 다시 부르다 한 번 실패한 것은 다음 바퀴에 다시 본다.
+        if (!quiet) setAlert({
           type: "error",
           message:
             "변경 요청 목록 로딩 중 네트워크 오류가 발생했습니다. 인터넷 연결을 확인하시고 페이지를 새로고침해주세요.",
@@ -128,14 +160,23 @@ const ChangeRequestManagementPage = () => {
     fetchData();
   }, []);
 
+  const hasProcessing = changeRequests.some((r) => r.status === "PROCESSING");
+  useEffect(() => {
+    if (!hasProcessing) return undefined;
+    const timer = setInterval(() => fetchData({ quiet: true }), POLL_MS);
+    return () => clearInterval(timer);
+  }, [hasProcessing]);
+
   const filteredChangeRequests = changeRequests
     .filter((changeReq) => {
       if (filter === "ALL") return true;
+      // 반영 중인 요청은 아직 끝나지 않았으므로 대기중 탭에 함께 보인다.
+      if (filter === "PENDING") return OPEN_STATUSES.has(changeReq.status);
       return changeReq.status === filter;
     })
     .sort((a, b) => {
       // Sort by priority: PENDING > FULFILLED > DENIED
-      const statusPriority = { PENDING: 1, FULFILLED: 2, DENIED: 3 };
+      const statusPriority = { PENDING: 1, PROCESSING: 1, FULFILLED: 2, DENIED: 3 };
       if (statusPriority[a.status] !== statusPriority[b.status]) {
         return statusPriority[a.status] - statusPriority[b.status];
       }
@@ -145,7 +186,7 @@ const ChangeRequestManagementPage = () => {
 
   const statusCounts = {
     ALL: changeRequests.length,
-    PENDING: changeRequests.filter((r) => r.status === "PENDING").length,
+    PENDING: changeRequests.filter((r) => OPEN_STATUSES.has(r.status)).length,
     FULFILLED: changeRequests.filter((r) => r.status === "FULFILLED").length,
     DENIED: changeRequests.filter((r) => r.status === "DENIED").length,
   };
@@ -234,22 +275,29 @@ const ChangeRequestManagementPage = () => {
       }
 
       if (response.status === 200) {
-        // 성공 시 상태 업데이트
+        // 작업으로 반영하는 변경은 승인해도 바로 끝나지 않는다 — 반영 중으로 두고 목록을 다시 불러와 결과를 본다.
+        const applied =
+          newStatus === "FULFILLED" && APPLIED_BY_JOB.has(changeRequest.changeType) ? "PROCESSING" : newStatus;
+        if (applied === "PROCESSING") {
+          processingRef.current.set(changeRequest.changeRequestId, changeRequest.requestedBy.name);
+        }
         setChangeRequests((prev) =>
           prev.map((req) =>
             req.changeRequestId === changeRequest.changeRequestId
-              ? { ...req, status: newStatus, adminComment: comment }
+              ? { ...req, status: applied, adminComment: comment }
               : req
           )
         );
 
         const delayNote =
           newStatus === "FULFILLED" ? APPROVAL_DELAY_NOTE[changeRequest.changeType] : null;
+        const outcome =
+          applied === "PROCESSING" ? "승인되어 반영 중입니다" : `성공적으로 ${newStatus === "FULFILLED" ? "승인" : "거절"}되었습니다`;
         setAlert({
           type: "success",
-          message: `${changeRequest.requestedBy.name}님의 변경 요청이 성공적으로 ${
-            newStatus === "FULFILLED" ? "승인" : "거절"
-          }되었습니다. ${comment ? `사유: ${comment}` : ""}${delayNote ? ` ${delayNote}` : ""}`,
+          message: `${changeRequest.requestedBy.name}님의 변경 요청이 ${outcome}. ${
+            comment ? `사유: ${comment}` : ""
+          }${delayNote ? ` ${delayNote}` : ""}`,
         });
 
         setSelectedChangeRequest(null);
