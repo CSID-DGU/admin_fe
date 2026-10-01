@@ -15,3 +15,26 @@ export function formatPhoneInput(value) {
   const middle = rest.length - 4 > 4 ? 4 : Math.max(rest.length - 4, 3);
   return `${digits.slice(0, area)}-${rest.slice(0, middle)}-${rest.slice(middle, middle + 4)}`;
 }
+
+// 새 비밀번호 규칙. 서버와 같다: 8자 이상, BCrypt가 받는 72바이트까지.
+const PASSWORD_MIN_LENGTH = 8;
+const PASSWORD_MAX_BYTES = 72;
+export const NEW_PASSWORD_HELP = "8~72자";
+
+// 새 비밀번호와 확인 칸을 검사해 { password, confirm } 중 틀린 칸의 안내만 담아 돌려준다.
+export function validateNewPassword(password, confirm) {
+  const errors = {};
+  if (!password) {
+    errors.password = "새 비밀번호를 입력해 주세요.";
+  } else if (password.length < PASSWORD_MIN_LENGTH) {
+    errors.password = `${PASSWORD_MIN_LENGTH}자 이상으로 정해 주세요.`;
+  } else if (new TextEncoder().encode(password).length > PASSWORD_MAX_BYTES) {
+    errors.password = "너무 깁니다. 영문 72자(한글 24자)까지 쓸 수 있어요.";
+  }
+  if (!confirm) {
+    errors.confirm = "새 비밀번호를 한 번 더 입력해 주세요.";
+  } else if (password !== confirm) {
+    errors.confirm = "새 비밀번호와 달라요.";
+  }
+  return errors;
+}

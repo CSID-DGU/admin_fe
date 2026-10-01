@@ -31,7 +31,7 @@ export default function LoginPage({ onLogin }) {
             {alert ? <Alert type="error" dismissible onDismiss={() => setAlert("")}>{alert}</Alert> : null}
             <FormField label={t("auth.email")} errorText={errors.email}><Input type="email" value={form.email} onChange={(value) => change("email", value)} placeholder="example@dgu.ac.kr" invalid={!!errors.email} /></FormField>
             <FormField label={t("auth.password")} errorText={errors.password}><Input type="password" value={form.password} onChange={(value) => change("password", value)} placeholder={t("auth.password")} invalid={!!errors.password} /></FormField>
-            <p className="text-sm text-gray-600">{t("auth.forgot")}</p>
+            <p className="text-sm text-gray-600">{t("auth.forgot")} <Link to="/password-reset" className="font-medium text-brand-500 hover:text-brand-600">{t("auth.forgotLink")}</Link></p>
             <Button type="submit" variant="primary" fullWidth loading={loading} disabled={loading}>{t("auth.login")}</Button>
           </form>
           <div className="mt-6 text-center text-sm text-gray-600">{t("auth.noAccount")} <Link to="/signup" className="font-medium text-brand-500 hover:text-brand-600">{t("auth.signup")}</Link></div>

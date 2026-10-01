@@ -16,6 +16,7 @@ const UserPortalApp = lazy(() => import("./pages/decs-console/user/UserPortalApp
 // Auth Pages
 import LoginPage from "./pages/auth/LoginPage";
 import SignupPage from "./pages/auth/SignupPage";
+import PasswordResetPage from "./pages/auth/PasswordResetPage";
 
 const AppContent = () => {
   const { isAuthenticated, user, login } = useAuth();
@@ -40,6 +41,16 @@ const AppContent = () => {
             <Navigate to={homePath} replace />
           ) : (
             <SignupPage />
+          )
+        }
+      />
+      <Route
+        path="/password-reset"
+        element={
+          isAuthenticated ? (
+            <Navigate to={homePath} replace />
+          ) : (
+            <PasswordResetPage />
           )
         }
       />
