@@ -2,6 +2,7 @@
 import React from "react";
 import { Wizard, Modal, Cards, FormField, Select, Input, KeyValuePairs, Alert, Container, Header, StatusIndicator, Button, Badge, Table } from "../../../design-system";
 import { requestService } from "../../../services/requestService";
+import { waitForGroupOperation } from "../../../services/groupOperation";
 
 const GROUP_NAME_PATTERN = /^[a-z_][a-z0-9_-]*$/;
 // BE(SaveRequestRequestDTO.usagePurpose)와 같은 한도. 승인자가 이 글만 보고 판단하므로 최소 길이를 둔다.
@@ -131,7 +132,16 @@ function RequestWizard({ onCancel, onDone, gpuOptions: gpuOptionsProp, envOption
     setGroupCreateError(null);
     try {
       const res = await requestService.createGroup(groupName);
-      const dto = res.data?.data ?? res.data;
+      const operation = await waitForGroupOperation(res.data?.data ?? res.data);
+      if (operation.status !== "APPLIED" || !operation.group) {
+        setGroupCreateError(
+          operation.status === "PROCESSING"
+            ? "그룹을 만드는 데 시간이 걸리고 있어요. 잠시 뒤에 그룹 목록에서 확인해 주세요."
+            : "그룹을 만들지 못했어요. 같은 이름으로 다시 만들면 이어서 만들어져요."
+        );
+        return;
+      }
+      const dto = operation.group;
       const group = {
         value: String(dto.ubuntuGid),
         label: `${dto.groupName} (${dto.ubuntuGid})`,

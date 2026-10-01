@@ -58,7 +58,7 @@ const MyChangeRequestsPage = () => {
     })
     .sort((a, b) => {
       // Sort by priority: PENDING > FULFILLED > DENIED
-      const statusPriority = { PENDING: 1, FULFILLED: 2, DENIED: 3 };
+      const statusPriority = { PENDING: 1, PROCESSING: 1, FULFILLED: 2, DENIED: 3 };
       if (statusPriority[a.status] !== statusPriority[b.status]) {
         return statusPriority[a.status] - statusPriority[b.status];
       }
@@ -77,6 +77,8 @@ const MyChangeRequestsPage = () => {
     switch (status) {
       case "PENDING":
         return <StatusIndicator type="pending">대기중</StatusIndicator>;
+      case "PROCESSING":
+        return <StatusIndicator type="in-progress">반영 중</StatusIndicator>;
       case "FULFILLED":
         return <StatusIndicator type="success">승인됨</StatusIndicator>;
       case "DENIED":

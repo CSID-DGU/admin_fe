@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import userService from "../../services/userService";
+import { waitForGroupOperation } from "../../services/groupOperation";
 import { Alert, Button, Modal, Table } from "../../design-system";
 
 /**
@@ -35,9 +36,17 @@ const UserGroupsModal = ({ user, onDismiss }) => {
     try {
       setRemoving(true);
       setError(null);
-      await userService.removeUserFromGroup(user.userId, confirming.groupId);
+      const response = await userService.removeUserFromGroup(user.userId, confirming.groupId);
+      // 제거는 작업으로 등록된다 — 끝난 뒤에야 목록에서 빠진다.
+      const operation = await waitForGroupOperation(response.data?.data ?? response.data);
       setConfirming(null);
+      // 목록을 다시 불러오면 알림이 지워지므로, 불러온 뒤에 결과를 알린다.
       await loadGroups();
+      if (operation?.status === "FAILED") {
+        setError("그룹에서 빼지 못했습니다. 다시 누르면 이어서 처리합니다.");
+      } else if (operation?.status === "PROCESSING") {
+        setError("반영에 시간이 걸리고 있습니다. 잠시 뒤에 다시 열어 확인해 주세요.");
+      }
     } catch (e) {
       setError(`그룹에서 빼지 못했습니다: ${e.message}`);
     } finally {
