@@ -280,7 +280,6 @@ function UserContainerDetail({ onBack, onExtend, onGroupChange, onRestarted, gro
 
       <RestartContainerModal
         visible={restartOpen}
-        title={server.jobTitle}
         start={(keepChanges) => requestService.restartMyContainer(server.requestId, keepChanges)}
         fetchLatest={() => requestService.getMyLatestRestart(server.requestId)}
         onDismiss={() => setRestartOpen(false)}
