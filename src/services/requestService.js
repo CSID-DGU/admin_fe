@@ -41,6 +41,15 @@ export const requestService = {
   getLatestMigration: (requestId) =>
     apiClient.get(`/api/admin/requests/${encodeURIComponent(requestId)}/migrations/latest`),
 
+  // 재시작은 현재 노드에서 컨테이너를 다시 만드는 작업이다. 마이그레이션처럼 작업만 등록하고 202로 돌아온다.
+  // keepChanges가 false면 설치한 내용을 버리고 기본 이미지로 초기화한다.
+  restartContainer: (requestId, keepChanges) =>
+    apiClient.post(`/api/admin/requests/${encodeURIComponent(requestId)}/restarts`, { keepChanges }),
+  restartMyContainer: (requestId, keepChanges) =>
+    apiClient.post(`/api/requests/${encodeURIComponent(requestId)}/restarts`, { keepChanges }),
+  getMyLatestRestart: (requestId) =>
+    apiClient.get(`/api/requests/${encodeURIComponent(requestId)}/restarts/latest`),
+
   // 컨테이너 하나만 회수한다. 우분투 계정·홈 디렉터리와 같은 사용자의 다른 컨테이너는 그대로 둔다.
   // 계정까지 회수하려면 userService.deleteUbuntuAccount를 쓴다 — 그쪽은 컨테이너를 전부 정리한다.
   deleteContainer: (requestId) =>

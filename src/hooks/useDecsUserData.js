@@ -136,6 +136,8 @@ export function useDecsUserData() {
   const [envOptions, setEnvOptions] = useState(undefined);
   const [groupOptions, setGroupOptions] = useState(undefined);
   const [error, setError] = useState(null);
+  // 재시작처럼 접속 정보가 바뀌는 작업 뒤에 다시 불러온다.
+  const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
@@ -243,15 +245,14 @@ export function useDecsUserData() {
         hasError = true;
       }
 
-      if (hasError) {
-        setError(ERROR_MESSAGE);
-      }
+      // 다시 불러와 모두 성공했으면 이전 오류 안내를 지운다.
+      setError(hasError ? ERROR_MESSAGE : null);
     });
 
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [reloadKey]);
 
   const server = servers?.[0];
   const expiryDays =
@@ -259,5 +260,7 @@ export function useDecsUserData() {
       ? server.daysLeft
       : null;
 
-  return { server, servers, expiryDays, activities, gpuOptions, envOptions, groupOptions, error };
+  const refetch = () => setReloadKey((key) => key + 1);
+
+  return { server, servers, expiryDays, activities, gpuOptions, envOptions, groupOptions, error, refetch };
 }
