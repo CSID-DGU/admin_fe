@@ -123,7 +123,13 @@ function ContainerDetail({ item, onBack, onRefetch }) {
       const allNodes = response.data?.data ?? response.data ?? [];
       // 다른 클러스터의 노드로는 옮길 수 없다(config-server가 UNKNOWN_NODE로 작업 전체를 거절). 현재 노드를 모르면 전부 보인다.
       const cluster = clusterOf(c.node === "—" ? "" : c.node);
-      const candidates = cluster ? allNodes.filter((node) => clusterOf(node.nodeId) === cluster) : allNodes;
+      const inCluster = cluster ? allNodes.filter((node) => clusterOf(node.nodeId) === cluster) : allNodes;
+      // 신청의 리소스 그룹 밖 노드는 admin_be가 400(MIGRATION_NODE_OUTSIDE_RESOURCE_GROUP)으로 거절한다.
+      // 현재 노드는 늘 신청의 리소스 그룹 안에 있으므로, 그 노드와 같은 그룹만 후보로 보인다.
+      const current = inCluster.find((node) => sameNode(node.nodeId, c.node));
+      const candidates = current
+        ? inCluster.filter((node) => node.resourceGroupName === current.resourceGroupName)
+        : inCluster;
       setAvailableNodes(candidates);
       setSelectedNodes(candidates.filter((node) => sameNode(node.nodeId, c.node)).map((node) => node.nodeId));
     } catch (error) {
