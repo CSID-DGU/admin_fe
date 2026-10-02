@@ -7,6 +7,8 @@ import {
 import { requestService } from "../../../services/requestService";
 import { nodeService } from "../../../services/nodeService";
 import { podService } from "../../../services/podService";
+import RestartContainerModal from "../../../components/RestartContainerModal";
+import { waitForMigrationResult } from "../../../utils/migrationResult";
 
 // 노드 이름의 클러스터 접두어(farm2 → farm, LAB10 → lab). 노드 표에는 FARM·LAB 두 클러스터가 함께 있고
 // 대소문자도 k8s 노드 이름과 다르다.
@@ -26,6 +28,7 @@ function ContainerDetail({ item, onBack, onRefetch }) {
   const [migrateFormError, setMigrateFormError] = useState(null);
   const [isMigrating, setIsMigrating] = useState(false);
   const [migrationStatus, setMigrationStatus] = useState(null);
+  const [restartOpen, setRestartOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState(null);
@@ -176,24 +179,8 @@ function ContainerDetail({ item, onBack, onRefetch }) {
       no_significant_improvement: "후보 노드의 GPU 여유가 기준만큼 좋지 않습니다.",
     };
     try {
-      // 작업만 등록하고 202로 돌아온다. 끝날 때까지 마지막 마이그레이션 결과를 3초마다 확인한다
-      // (새 노드에서 이미지를 처음 받으면 수 분 걸린다).
       await requestService.migrateRequest(c.requestId, nodes, minImprovementRatio, migrateForce);
-      const deadline = Date.now() + 15 * 60 * 1000;
-      let result = null;
-      while (Date.now() < deadline) {
-        await new Promise((resolve) => setTimeout(resolve, 3000));
-        try {
-          const res = await requestService.getLatestMigration(c.requestId);
-          const latest = res.data?.data ?? res.data;
-          if (latest && ["SUCCESS", "FAIL", "UNKNOWN"].includes(latest.phase)) {
-            result = latest;
-            break;
-          }
-        } catch {
-          // 조회 한 번 실패는 다음 바퀴에 다시 본다
-        }
-      }
+      const result = await waitForMigrationResult(() => requestService.getLatestMigration(c.requestId));
 
       if (!result) {
         setAlert({ type: "warning", message: "마이그레이션이 아직 끝나지 않았습니다. 잠시 뒤 목록을 새로고침해 확인해주세요." });
@@ -346,6 +333,9 @@ function ContainerDetail({ item, onBack, onRefetch }) {
             {c.status !== "stopped" && c.requestId != null && (
               <Button variant="normal" onClick={openMigrate}>마이그레이션</Button>
             )}
+            {c.requestId != null && (
+              <Button variant="normal" onClick={() => setRestartOpen(true)}>재시작</Button>
+            )}
             <Button
               variant="normal"
               style={{ color: "var(--decs-status-error)", borderColor: "var(--decs-status-error)" }}
@@ -363,6 +353,20 @@ function ContainerDetail({ item, onBack, onRefetch }) {
         { id: "logs", label: "로그", content: logs },
         { id: "events", label: "이벤트", content: events },
       ]} />
+
+      <RestartContainerModal
+        visible={restartOpen}
+        title={`${c.userName ?? c.name} (${c.name})`}
+        start={(keepChanges) => requestService.restartContainer(c.requestId, keepChanges)}
+        // 재시작은 현재 노드에서 다시 만드는 마이그레이션 작업이라 결과도 마지막 마이그레이션 결과로 읽는다
+        fetchLatest={() => requestService.getLatestMigration(c.requestId)}
+        onDismiss={() => setRestartOpen(false)}
+        onDone={(notice) => {
+          setAlert(notice);
+          setRestartOpen(false);
+          onRefetch?.();
+        }}
+      />
 
       <Modal
         visible={migrateOpen}

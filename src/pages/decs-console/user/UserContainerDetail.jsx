@@ -2,8 +2,10 @@
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Container, Header, KeyValuePairs, StatusIndicator, Button, Alert, ExpandableSection, Badge, FormField, Input, Select, Modal } from "../../../design-system";
+import RestartContainerModal from "../../../components/RestartContainerModal";
+import { requestService } from "../../../services/requestService";
 
-function UserContainerDetail({ onBack, onExtend, onGroupChange, groupOptions = [], servers = [] }) {
+function UserContainerDetail({ onBack, onExtend, onGroupChange, onRestarted, groupOptions = [], servers = [] }) {
   const location = useLocation();
   const navigate = useNavigate();
   const [selectedId, setSelectedId] = useState(null);
@@ -19,6 +21,8 @@ function UserContainerDetail({ onBack, onExtend, onGroupChange, groupOptions = [
   const [groupReason, setGroupReason] = useState("");
   const [groupError, setGroupError] = useState(null);
   const [groupSubmitting, setGroupSubmitting] = useState(false);
+  const [restartOpen, setRestartOpen] = useState(false);
+  const [restartNotice, setRestartNotice] = useState(null);
 
   const server = servers.find((s) => s.requestId === selectedId) ?? servers[0];
   const currentGroupIds = new Set((server?.groups ?? []).map((g) => String(g.ubuntuGid)));
@@ -254,10 +258,37 @@ function UserContainerDetail({ onBack, onExtend, onGroupChange, groupOptions = [
         </div>
       </Container>
 
+      <Container header={<Header variant="h2" description="접속이 안 되거나 GPU가 안 보일 때 컨테이너를 새로 띄워요">컨테이너 재시작</Header>}>
+        {/* 컨테이너가 여러 개면 다른 컨테이너를 골랐을 때 이 결과가 따라가지 않게 한다 */}
+        {restartNotice?.requestId === server.requestId ? (
+          <div style={{ marginBottom: "var(--decs-space-m)" }}>
+            <Alert type={restartNotice.type}>{restartNotice.message}</Alert>
+          </div>
+        ) : null}
+        <div style={{ color: "var(--decs-text-secondary)", fontSize: "var(--decs-fs-body-s)" }}>
+          홈 폴더의 파일은 그대로 남고, 지금 돌고 있는 프로그램은 끝나요. 1시간에 5번까지 할 수 있어요.
+        </div>
+        <div style={{ marginTop: "var(--decs-space-m)" }}>
+          <Button iconName="arrow-path" onClick={() => setRestartOpen(true)}>재시작</Button>
+        </div>
+      </Container>
+
       <Alert type="info" header="문제가 있나요?">
         먼저 서버 준비 메일의 사용 설명서에서 같은 문제를 찾아보세요. 그래도 안 되면{" "}
         <a href="https://forms.gle/nACaxj2UeJF56V2i7" target="_blank" rel="noreferrer">문의 폼</a>으로 오류 메시지와 시각을 함께 알려 주세요.
       </Alert>
+
+      <RestartContainerModal
+        visible={restartOpen}
+        start={(keepChanges) => requestService.restartMyContainer(server.requestId, keepChanges)}
+        fetchLatest={() => requestService.getMyLatestRestart(server.requestId)}
+        onDismiss={() => setRestartOpen(false)}
+        onDone={(notice) => {
+          setRestartNotice({ ...notice, requestId: server.requestId });
+          setRestartOpen(false);
+          onRestarted?.();
+        }}
+      />
 
       <Modal
         visible={extendOpen}
