@@ -25,10 +25,11 @@ function UserContainerDetail({ onBack, onExtend, onGroupChange, onRestarted, gro
   const [restartNotice, setRestartNotice] = useState(null);
 
   const server = servers.find((s) => s.requestId === selectedId) ?? servers[0];
-  const currentGroupIds = new Set((server?.groups ?? []).map((g) => String(g.ubuntuGid)));
+  // 그룹 추가 변경 요청은 gid로 보낸다. 아직 만들어지지 않은 새 그룹(gid 없음)은 새 신청으로만 쓸 수 있어 뺀다.
+  const currentGids = new Set((server?.groups ?? []).map((g) => String(g.ubuntuGid)));
   const addedGroupIds = new Set(addedGroups.map((g) => g.value));
   const groupSelectOptions = groupOptions
-    .filter((g) => !currentGroupIds.has(g.value))
+    .filter((g) => g.ubuntuGid != null && !currentGids.has(String(g.ubuntuGid)))
     .map((g) => ({ ...g, disabled: addedGroupIds.has(g.value) }));
 
   // 대시보드 연장 버튼 경유(location.state.extend) 시 서버 로드 후 모달 자동 오픈
@@ -83,7 +84,7 @@ function UserContainerDetail({ onBack, onExtend, onGroupChange, onRestarted, gro
 
   function addGroupToRequest() {
     const group = groupOptions.find((g) => g.value === selectedGroupId);
-    if (!group || currentGroupIds.has(group.value) || addedGroupIds.has(group.value)) return;
+    if (!group || group.ubuntuGid == null || currentGids.has(String(group.ubuntuGid)) || addedGroupIds.has(group.value)) return;
     setAddedGroups((prev) => [...prev, group]);
     setSelectedGroupId("");
   }
@@ -104,11 +105,11 @@ function UserContainerDetail({ onBack, onExtend, onGroupChange, onRestarted, gro
     setGroupSubmitting(true);
     setGroupError(null);
     try {
-      const groupIds = [
+      const gids = [
         ...(server.groups ?? []).map((g) => g.ubuntuGid),
-        ...addedGroups.map((g) => Number(g.value)),
+        ...addedGroups.map((g) => Number(g.ubuntuGid)),
       ];
-      await onGroupChange({ requestId: server.requestId, groupIds, reason: groupReason.trim() });
+      await onGroupChange({ requestId: server.requestId, gids, reason: groupReason.trim() });
       setGroupModalOpen(false);
     } catch (error) {
       setGroupError(error.message || "그룹 추가를 요청하지 못했어요. 잠시 뒤에 다시 해 주세요.");

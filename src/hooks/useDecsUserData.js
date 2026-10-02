@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { requestService } from "../services/requestService";
 import { mapUserServer, mapPodStatus, daysLeft } from "../utils/decsMapper";
+import { toGroupOption } from "../utils/groupOption";
 
 // 예시 데이터로 대체하는 코드는 없다 — 못 불러온 영역은 그냥 빈 채로 남는다.
 const ERROR_MESSAGE = "일부 정보를 불러오지 못했습니다. 새로고침해도 같으면 관리자에게 문의해주세요.";
@@ -160,14 +161,11 @@ export function useDecsUserData() {
         const groups = getArrayData(groupsResult.value);
         if (groups) {
           groupNameByGid = Object.fromEntries(
-            groups.map((g) => [String(g.ubuntuGid ?? g.ubuntu_gid), g.groupName ?? g.group_name])
+            groups
+              .filter((g) => (g.ubuntuGid ?? g.ubuntu_gid) != null)
+              .map((g) => [String(g.ubuntuGid ?? g.ubuntu_gid), g.groupName ?? g.group_name])
           );
-          setGroupOptions(groups.map((g) => ({
-            value: String(g.ubuntuGid ?? g.ubuntu_gid),
-            label: `${g.groupName ?? g.group_name} (${g.ubuntuGid ?? g.ubuntu_gid})`,
-            groupName: g.groupName ?? g.group_name,
-            ubuntuGid: g.ubuntuGid ?? g.ubuntu_gid,
-          })).filter((g) => g.value !== "undefined"));
+          setGroupOptions(groups.map(toGroupOption).filter((g) => g.value !== "undefined"));
         } else {
           hasError = true;
         }
