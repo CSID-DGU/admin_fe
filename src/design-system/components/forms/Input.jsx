@@ -4,8 +4,9 @@ import { Icon } from "../icons/Icon.jsx";
 /**
  * Input — single-line text/number input matching Cloudscape. Set `invalid` to
  * show the error border (pair with FormField errorText). Optional leading icon.
+ * For type="number", `min`/`max`/`step` bound the spinner arrows (typed values still need validation).
  */
-export function Input({ value, onChange, placeholder, type = "text", disabled, invalid, readOnly, iconName, id, ariaLabel, onKeyDown, autoFocus, style }) {
+export function Input({ value, onChange, placeholder, type = "text", disabled, invalid, readOnly, iconName, id, ariaLabel, onKeyDown, autoFocus, style, min, max, step }) {
   const [focus, setFocus] = React.useState(false);
   const borderColor = invalid
     ? "var(--decs-status-error)"
@@ -22,6 +23,9 @@ export function Input({ value, onChange, placeholder, type = "text", disabled, i
       <input
         id={id}
         type={type}
+        min={min}
+        max={max}
+        step={step}
         value={value}
         placeholder={placeholder}
         disabled={disabled}
