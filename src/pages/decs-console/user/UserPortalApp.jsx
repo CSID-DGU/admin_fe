@@ -136,7 +136,7 @@ function toRequestPayload(form) {
     // 30083 신청 DTO의 레거시 필수 필드. PVC UI에서는 노출하지 않는다.
     volumeSizeGiB: 20,
     usagePurpose: form.usagePurpose,
-    formAnswers: { purpose: form.purpose },
+    formAnswers: { purpose: form.purpose, ...(form.teamInfo ? { teamInfo: form.teamInfo } : {}) },
     expiresAt: form.expiresAt,
     ubuntuGids: (form.ubuntuGids ?? []).map((gid) => parseInt(gid, 10)),
     portRequests: form.portRequests ?? [],

@@ -8,6 +8,9 @@ const GROUP_NAME_PATTERN = /^[a-z_][a-z0-9_-]*$/;
 // BE(SaveRequestRequestDTO.usagePurpose)와 같은 한도. 승인자가 이 글만 보고 판단하므로 최소 길이를 둔다.
 const PURPOSE_MIN_LENGTH = 50;
 const PURPOSE_MAX_LENGTH = 1000;
+// 신청서 폼 응답(formAnswers) 전체가 10,000자로 묶여 있어 한 칸은 짧게 받는다.
+const TEAM_INFO_MAX_LENGTH = 300;
+const TEAM_NOTICE = "팀 프로젝트를 위해 그룹으로 컨테이너를 신청하는 경우 반드시 모든 팀원이 컨테이너를 신청해야 해요. (예: 캡스톤 디자인, 종합 설계, 공동 연구 등)";
 const PURPOSE_EXAMPLE = "예: 졸업 프로젝트로 PyTorch를 사용해 흉부 X-ray 사진을 분류하는 모델을 학습하려고 합니다. 사진은 약 2만 장(10GB)이고, 한 번 학습하는 데 GPU 1장으로 6시간 정도 걸릴 것 같습니다. 일주일에 2~3번 학습할 예정입니다.";
 
 function toLocalDateInput(date) {
@@ -35,6 +38,7 @@ function RequestWizard({ onCancel, onDone, gpuOptions: gpuOptionsProp, envOption
   const [newGroupName, setNewGroupName] = React.useState("");
   const [groupCreateError, setGroupCreateError] = React.useState(null);
   const [creatingGroup, setCreatingGroup] = React.useState(false);
+  const [teamInfo, setTeamInfo] = React.useState("");
   const [portNumber, setPortNumber] = React.useState("");
   const [portPurpose, setPortPurpose] = React.useState("");
   const [portRequests, setPortRequests] = React.useState([]);
@@ -202,7 +206,6 @@ function RequestWizard({ onCancel, onDone, gpuOptions: gpuOptionsProp, envOption
   const steps = [
     {
       title: "사용 목적",
-      description: "교수님이 이 글을 읽고 승인할지 정해요.",
       content: (
         <div style={{ maxWidth: 560 }}>
           <FormField
@@ -323,6 +326,14 @@ function RequestWizard({ onCancel, onDone, gpuOptions: gpuOptionsProp, envOption
               <Button onClick={createNewGroup} disabled={!newGroupName.trim() || creatingGroup} loading={creatingGroup} ariaLabel="새 공유 그룹 만들기">새로 만들기</Button>
             </div>
           </FormField>
+          <FormField label="팀 프로젝트 정보 (팀으로 신청할 때)" description={TEAM_NOTICE} constraintText="그룹 이름과 팀원 이름을 모두 적어 주세요. 관리자가 팀원이 모두 신청했는지 확인하고 승인해요. 혼자 쓰면 비워 두세요.">
+            <Input
+              value={teamInfo}
+              onChange={(value) => setTeamInfo(value.slice(0, TEAM_INFO_MAX_LENGTH))}
+              placeholder="예: vision-lab / 홍길동, 김철수, 이영희"
+              ariaLabel="팀 프로젝트 정보"
+            />
+          </FormField>
           <FormField label="추가 포트 (선택)" errorText={portError} constraintText="SSH(22번)와 JupyterLab(8888번)은 자동으로 열려요. 그 밖에 웹 브라우저로 볼 프로그램이 있을 때만 추가해요. 잘 모르면 비워 두세요. 예: 6006번, TensorBoard">
             <div style={{ display: "grid", gridTemplateColumns: "150px minmax(0, 1fr) auto", gap: "var(--decs-space-xs)" }}>
               <Input value={portNumber} onChange={(value) => { setPortNumber(value); setPortError(null); }} type="number" placeholder="예: 6006" invalid={!!portError} />
@@ -360,6 +371,7 @@ function RequestWizard({ onCancel, onDone, gpuOptions: gpuOptionsProp, envOption
             { label: "서버 아이디", value: accountUsername || "—" },
             { label: "서버 비밀번호", value: "로그인 비밀번호와 같아요" },
             { label: "공유 그룹", value: selectedGroups.length > 0 ? selectedGroups.map((g) => g.label).join(", ") : "—" },
+            { label: "팀 프로젝트 정보", value: teamInfo.trim() || "—" },
             { label: "추가 포트", value: portRequests.length > 0 ? portRequests.map((p) => `${p.internalPort} (${p.usagePurpose})`).join(", ") : "—" },
           ]} />
         </Container>
@@ -385,6 +397,7 @@ function RequestWizard({ onCancel, onDone, gpuOptions: gpuOptionsProp, envOption
     const payload = {
       purpose: purposeText,
       usagePurpose: purposeText,
+      teamInfo: teamInfo.trim(),
       gpu: selectedGpu.id,
       expiresAt: `${expiresDate}T23:59:59`,
       env,

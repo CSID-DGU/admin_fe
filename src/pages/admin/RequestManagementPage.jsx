@@ -26,6 +26,7 @@ const PERIOD_OPTIONS = [
 import { requestService } from "../../services/requestService";
 import { podService } from "../../services/podService";
 import { mapRequestDtoToUiModel } from "../../utils/requestMapper";
+import { formAnswerLabel } from "../../utils/formAnswers";
 import { JobStepsTimeline } from "./JobStepsTimeline";
 import RequestDecisionModal from "../../components/RequestDecisionModal";
 
@@ -712,7 +713,7 @@ const RequestManagementPage = () => {
                       columns={2}
                       items={Object.entries(sel.form_answers).map(
                         ([key, value]) => ({
-                          label: key.replace("_", " "),
+                          label: formAnswerLabel(key),
                           value,
                         })
                       )}

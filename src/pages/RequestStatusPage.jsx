@@ -14,6 +14,7 @@ import {
 import { useAuth } from "../hooks/useAuth";
 import { requestService } from "../services/requestService";
 import { mapRequestDtoToUiModel } from "../utils/requestMapper";
+import { formAnswerLabel } from "../utils/formAnswers";
 import { PUBLIC_HOST, toPublicPort } from "../utils/publicEndpoint";
 
 const RequestStatusPage = () => {
@@ -392,7 +393,7 @@ const RequestStatusPage = () => {
                     columns={2}
                     items={Object.entries(selectedRequest.form_answers).map(
                       ([key, value]) => ({
-                        label: key.replace("_", " "),
+                        label: formAnswerLabel(key),
                         value,
                       })
                     )}
