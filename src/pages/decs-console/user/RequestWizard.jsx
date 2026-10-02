@@ -10,7 +10,12 @@ const PURPOSE_MIN_LENGTH = 50;
 const PURPOSE_MAX_LENGTH = 1000;
 // 신청서 폼 응답(formAnswers) 전체가 10,000자로 묶여 있어 한 칸은 짧게 받는다.
 const TEAM_INFO_MAX_LENGTH = 300;
-const TEAM_NOTICE = "팀 프로젝트를 위해 그룹으로 컨테이너를 신청하는 경우 반드시 모든 팀원이 컨테이너를 신청해야 해요. (예: 캡스톤 디자인, 종합 설계, 공동 연구 등)";
+// 팀 신청은 순서가 중요하다 — 팀원이 팀장보다 먼저 신청하면 고를 그룹이 없다.
+const TEAM_STEPS = [
+  { role: "팀장", text: "아래 '새 공유 그룹 만들기'로 그룹을 만들고, 이 신청서를 끝까지 제출해요." },
+  { role: "팀장", text: "만든 그룹 이름을 팀원에게 알려 줘요." },
+  { role: "팀원", text: "'공유 그룹'에서 그 그룹을 골라 각자 신청해요. 그룹을 새로 만들지 마세요." },
+];
 const PURPOSE_EXAMPLE = "예: 졸업 프로젝트로 PyTorch를 사용해 흉부 X-ray 사진을 분류하는 모델을 학습하려고 합니다. 사진은 약 2만 장(10GB)이고, 한 번 학습하는 데 GPU 1장으로 6시간 정도 걸릴 것 같습니다. 일주일에 2~3번 학습할 예정입니다.";
 
 function toLocalDateInput(date) {
@@ -296,7 +301,19 @@ function RequestWizard({ onCancel, onDone, gpuOptions: gpuOptionsProp, envOption
           <Alert type="info" header="서버 비밀번호는 이 사이트의 로그인 비밀번호와 같아요">
             이 사이트에서 비밀번호를 바꾸면 서버 비밀번호도 같이 바뀌어요.
           </Alert>
-          <FormField label="공유 그룹 (선택)" constraintText="같은 연구실이나 팀 사람들과 파일을 같이 쓰고 싶을 때만 골라요. 잘 모르면 비워 두세요. 팀 폴더(~/shared/그룹 이름)는 승인되고 5분쯤 지나야 열려요.">
+          <Alert type="info" header="팀으로 신청하나요? 이 순서대로 해 주세요">
+            <ol style={{ listStyle: "none", margin: "var(--decs-space-xs) 0", padding: 0, display: "flex", flexDirection: "column", gap: "var(--decs-space-xs)" }}>
+              {TEAM_STEPS.map((step, i) => (
+                <li key={step.text} style={{ display: "flex", alignItems: "baseline", gap: "var(--decs-space-xs)" }}>
+                  <span style={{ fontWeight: "var(--decs-fw-bold)", minWidth: "1.2em" }}>{i + 1}.</span>
+                  <Badge color={step.role === "팀장" ? "blue" : "green"} style={{ flexShrink: 0 }}>{step.role}</Badge>
+                  <span>{step.text}</span>
+                </li>
+              ))}
+            </ol>
+            팀 프로젝트(캡스톤 디자인, 종합 설계, 공동 연구 등)는 <b>모든 팀원이 각자 신청</b>해야 승인돼요. 혼자 쓰면 아래 그룹·팀 칸은 비워 두세요.
+          </Alert>
+          <FormField label="공유 그룹 (선택)" constraintText="'(승인 시 생성)'이 붙은 그룹은 승인될 때 만들어지는 새 그룹이에요. 골라도 돼요. 팀 폴더(~/shared/그룹 이름)는 승인되고 5분쯤 지나 열려요.">
             <Select selectedValue="" onChange={addGroup} options={groupSelectOptions} placeholder="공유 그룹 고르기" />
             {selectedGroups.length > 0 ? (
               <div style={{ display: "flex", flexWrap: "wrap", gap: "var(--decs-space-xs)", marginTop: "var(--decs-space-xs)" }}>
@@ -309,7 +326,7 @@ function RequestWizard({ onCancel, onDone, gpuOptions: gpuOptionsProp, envOption
               </div>
             ) : null}
           </FormField>
-          <FormField label="새 공유 그룹 만들기 (선택)" errorText={groupCreateError} constraintText="목록에 우리 팀 그룹이 없을 때만 만들어요. 영어 소문자로 시작하고, 영어 소문자·숫자·밑줄(_)·하이픈(-)만 써서 32자 안으로 지어요. 예: vision-lab. 만든 그룹은 목록에 바로 보여 팀원도 고를 수 있고, 실제 그룹은 신청이 승인될 때 만들어져요.">
+          <FormField label="새 공유 그룹 만들기 (팀장만)" errorText={groupCreateError} constraintText="영어 소문자로 시작하고 영어 소문자·숫자·밑줄(_)·하이픈(-)만, 32자 안으로 지어요. 만들면 이 신청서에 바로 선택되고, 팀원도 목록에서 고를 수 있어요.">
             <div style={{ display: "flex", gap: "var(--decs-space-xs)" }}>
               <Input
                 value={newGroupName}
@@ -321,7 +338,7 @@ function RequestWizard({ onCancel, onDone, gpuOptions: gpuOptionsProp, envOption
               <Button onClick={createNewGroup} disabled={!newGroupName.trim() || creatingGroup} loading={creatingGroup} ariaLabel="새 공유 그룹 만들기">새로 만들기</Button>
             </div>
           </FormField>
-          <FormField label="팀 프로젝트 정보 (팀으로 신청할 때)" description={TEAM_NOTICE} constraintText="그룹 이름과 팀원 이름을 모두 적어 주세요. 관리자가 팀원이 모두 신청했는지 확인하고 승인해요. 혼자 쓰면 비워 두세요.">
+          <FormField label="팀 프로젝트 정보 (팀으로 신청할 때)" constraintText="'그룹 이름 / 팀원 전원 실명(본인 포함)'으로 적어요. 팀원 모두 같은 내용을 적고, 관리자가 모두 신청했는지 확인해 승인해요.">
             <Input
               value={teamInfo}
               onChange={(value) => setTeamInfo(value.slice(0, TEAM_INFO_MAX_LENGTH))}
