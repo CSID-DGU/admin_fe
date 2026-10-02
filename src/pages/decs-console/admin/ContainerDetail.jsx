@@ -442,6 +442,9 @@ function ContainerDetail({ item, onBack, onRefetch }) {
                 onChange={setMigrateRatioInput}
                 placeholder="0.2"
                 type="number"
+                min={0}
+                max={1}
+                step={0.05}
                 disabled={isMigrating}
               />
             </FormField>

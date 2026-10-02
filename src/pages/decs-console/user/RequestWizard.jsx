@@ -336,7 +336,7 @@ function RequestWizard({ onCancel, onDone, gpuOptions: gpuOptionsProp, envOption
           </FormField>
           <FormField label="추가 포트 (선택)" errorText={portError} constraintText="SSH(22번)와 JupyterLab(8888번)은 자동으로 열려요. 그 밖에 웹 브라우저로 볼 프로그램이 있을 때만 추가해요. 잘 모르면 비워 두세요. 예: 6006번, TensorBoard">
             <div style={{ display: "grid", gridTemplateColumns: "150px minmax(0, 1fr) auto", gap: "var(--decs-space-xs)" }}>
-              <Input value={portNumber} onChange={(value) => { setPortNumber(value); setPortError(null); }} type="number" placeholder="예: 6006" invalid={!!portError} />
+              <Input value={portNumber} onChange={(value) => { setPortNumber(value); setPortError(null); }} type="number" min={1} max={65535} step={1} placeholder="예: 6006" invalid={!!portError} />
               <Input value={portPurpose} onChange={setPortPurpose} placeholder="어디에 쓰나요? 예: TensorBoard" />
               <Button iconName="plus" onClick={addPort} ariaLabel="추가 포트 추가">추가</Button>
             </div>
