@@ -2,7 +2,7 @@
 import React from "react";
 import { Wizard, Modal, Cards, FormField, Select, Input, KeyValuePairs, Alert, Container, Header, StatusIndicator, Button, Badge, Table } from "../../../design-system";
 import { requestService } from "../../../services/requestService";
-import { waitForGroupOperation } from "../../../services/groupOperation";
+import { toGroupOption } from "../../../utils/groupOption";
 
 const GROUP_NAME_PATTERN = /^[a-z_][a-z0-9_-]*$/;
 // BE(SaveRequestRequestDTO.usagePurpose)와 같은 한도. 승인자가 이 글만 보고 판단하므로 최소 길이를 둔다.
@@ -47,7 +47,11 @@ function RequestWizard({ onCancel, onDone, gpuOptions: gpuOptionsProp, envOption
 
   const gpuOptions = React.useMemo(() => gpuOptionsProp ?? [], [gpuOptionsProp]);
   const envOptions = React.useMemo(() => envOptionsProp ?? [], [envOptionsProp]);
-  const groupOptions = React.useMemo(() => [...(groupOptionsProp ?? []), ...createdGroups], [groupOptionsProp, createdGroups]);
+  // 방금 만든 그룹이 서버 목록에도 들어오면(다시 불러온 경우) 한 번만 보이게 그룹 id로 거른다.
+  const groupOptions = React.useMemo(() => {
+    const seen = new Set();
+    return [...(groupOptionsProp ?? []), ...createdGroups].filter((g) => !seen.has(g.value) && seen.add(g.value));
+  }, [groupOptionsProp, createdGroups]);
   const serverOptions = React.useMemo(() => {
     const seen = new Set();
     return gpuOptions.reduce((acc, g) => {
@@ -135,23 +139,14 @@ function RequestWizard({ onCancel, onDone, gpuOptions: gpuOptionsProp, envOption
     setCreatingGroup(true);
     setGroupCreateError(null);
     try {
+      // 그룹은 바로 생긴다(gid 없음). 인프라 그룹은 이 그룹을 고른 신청이 승인될 때 만들어진다.
       const res = await requestService.createGroup(groupName);
-      const operation = await waitForGroupOperation(res.data?.data ?? res.data);
-      if (operation.status !== "APPLIED" || !operation.group) {
-        setGroupCreateError(
-          operation.status === "PROCESSING"
-            ? "그룹을 만드는 데 시간이 걸리고 있어요. 잠시 뒤에 그룹 목록에서 확인해 주세요."
-            : "그룹을 만들지 못했어요. 같은 이름으로 다시 만들면 이어서 만들어져요."
-        );
+      const dto = res.data?.data ?? res.data;
+      if (dto?.groupId == null) {
+        setGroupCreateError("그룹을 만들지 못했어요. 잠시 뒤에 다시 해 주세요.");
         return;
       }
-      const dto = operation.group;
-      const group = {
-        value: String(dto.ubuntuGid),
-        label: `${dto.groupName} (${dto.ubuntuGid})`,
-        groupName: dto.groupName,
-        ubuntuGid: dto.ubuntuGid,
-      };
+      const group = toGroupOption(dto);
       setCreatedGroups((prev) => [...prev, group]);
       setSelectedGroups((prev) => [...prev, group]);
       setNewGroupName("");
@@ -314,7 +309,7 @@ function RequestWizard({ onCancel, onDone, gpuOptions: gpuOptionsProp, envOption
               </div>
             ) : null}
           </FormField>
-          <FormField label="새 공유 그룹 만들기 (선택)" errorText={groupCreateError} constraintText="목록에 우리 팀 그룹이 없을 때만 만들어요. 영어 소문자로 시작하고, 영어 소문자·숫자·밑줄(_)·하이픈(-)만 써서 32자 안으로 지어요. 예: vision-lab">
+          <FormField label="새 공유 그룹 만들기 (선택)" errorText={groupCreateError} constraintText="목록에 우리 팀 그룹이 없을 때만 만들어요. 영어 소문자로 시작하고, 영어 소문자·숫자·밑줄(_)·하이픈(-)만 써서 32자 안으로 지어요. 예: vision-lab. 만든 그룹은 목록에 바로 보여 팀원도 고를 수 있고, 실제 그룹은 신청이 승인될 때 만들어져요.">
             <div style={{ display: "flex", gap: "var(--decs-space-xs)" }}>
               <Input
                 value={newGroupName}
@@ -401,7 +396,7 @@ function RequestWizard({ onCancel, onDone, gpuOptions: gpuOptionsProp, envOption
       gpu: selectedGpu.id,
       expiresAt: `${expiresDate}T23:59:59`,
       env,
-      ubuntuGids: selectedGroups.map((g) => g.value),
+      groupIds: selectedGroups.map((g) => g.value),
       portRequests,
     };
 

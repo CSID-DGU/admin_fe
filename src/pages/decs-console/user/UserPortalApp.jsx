@@ -78,7 +78,7 @@ function UserPortalApp() {
     navigate("/user/change-requests");
   }
 
-  async function submitGroupChange({ requestId, groupIds, reason }) {
+  async function submitGroupChange({ requestId, gids, reason }) {
     if (!requestId) throw new Error("변경할 신청 정보를 찾을 수 없어요.");
     const changes = await requestService.getMyChangeRequests();
     const alreadyPending = (changes.data?.data ?? []).some(
@@ -89,7 +89,7 @@ function UserPortalApp() {
     if (alreadyPending) throw new Error("이미 검토 중인 그룹 변경 요청이 있어요.");
     await requestService.createChangeRequest(requestId, {
       changeType: "GROUP",
-      newValue: JSON.stringify([...new Set(groupIds)]),
+      newValue: JSON.stringify([...new Set(gids)]),
       reason,
     });
     navigate("/user/change-requests");
@@ -138,7 +138,8 @@ function toRequestPayload(form) {
     usagePurpose: form.usagePurpose,
     formAnswers: { purpose: form.purpose, ...(form.teamInfo ? { teamInfo: form.teamInfo } : {}) },
     expiresAt: form.expiresAt,
-    ubuntuGids: (form.ubuntuGids ?? []).map((gid) => parseInt(gid, 10)),
+    // 그룹 id로 보낸다 — 새 그룹(승인 대기)은 gid가 아직 없다.
+    groupIds: (form.groupIds ?? []).map((id) => parseInt(id, 10)),
     portRequests: form.portRequests ?? [],
   };
 }

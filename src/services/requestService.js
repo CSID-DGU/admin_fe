@@ -61,12 +61,8 @@ export const requestService = {
   getGroups: () => apiClient.get("/api/groups"),
   checkUbuntuUsername: (username) =>
     apiClient.get("/api/requests/config/check-username", { username }),
-  // 그룹은 작업이 끝나야 생긴다 — 응답은 작업 번호이고, 완료는 waitForGroupOperation으로 기다린다.
-  createGroup: (groupName, ubuntuUsername) =>
-    apiClient.post("/api/groups", {
-      groupName,
-      ...(ubuntuUsername && { ubuntuUsername }),
-    }),
+  // 그룹은 바로 생긴다(201, gid 없음 — 승인 대기 그룹). 인프라 그룹은 이 그룹을 고른 신청이 승인될 때 만들어진다.
+  createGroup: (groupName) => apiClient.post("/api/groups", { groupName }),
   getGroupOperation: (operationId) =>
     apiClient.get(`/api/groups/operations/${encodeURIComponent(operationId)}`),
   getDashboardServers: (status = "ALL") =>
