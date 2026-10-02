@@ -1,4 +1,5 @@
 import { toPublicPort } from "./publicEndpoint";
+import { toGroupOption } from "./groupOption";
 
 // portMappings는 "신청 때 요청한 포트"라 externalPort가 없다 — 실제 배정된 NodePort는
 // pod_external_ports에 있고, 사용자에게 안내할 값은 공인 IP 쪽으로 변환한 포트다.
@@ -29,6 +30,8 @@ export const mapRequestDtoToUiModel = (request) => ({
   image_version: request.imageVersion,
   ubuntu_username: request.ubuntuUsername,
   ubuntu_gids: request.ubuntuGids,
+  // 이 신청이 고른 공유 그룹. ubuntuGids는 계정에 이미 들어간 그룹이라 새 그룹(승인 시 생성)이 빠진다.
+  requested_group_labels: (request.requestedGroups ?? []).map((g) => toGroupOption(g).label),
   volume_size_GB: request.volumeSizeGiB,
   expires_at: request.expiresAt,
   usage_purpose: request.usagePurpose,
