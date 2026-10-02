@@ -266,7 +266,8 @@ function UserContainerDetail({ onBack, onExtend, onGroupChange, onRestarted, gro
           </div>
         ) : null}
         <div style={{ color: "var(--decs-text-secondary)", fontSize: "var(--decs-fs-body-s)" }}>
-          홈 폴더의 파일은 그대로 남고, 지금 돌고 있는 프로그램은 끝나요. 1시간에 5번까지 할 수 있어요.
+          재시작하면 실행 중인 모든 프로세스(학습, Jupyter 커널, tmux 세션 등)가 강제 종료되고, 저장하지 않은 작업은 사라져요.
+          홈 폴더의 파일은 그대로 남아요. 1시간에 5번까지 할 수 있어요.
         </div>
         <div style={{ marginTop: "var(--decs-space-m)" }}>
           <Button iconName="arrow-path" onClick={() => setRestartOpen(true)}>재시작</Button>
