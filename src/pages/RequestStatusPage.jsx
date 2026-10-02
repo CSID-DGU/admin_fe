@@ -189,8 +189,8 @@ const RequestStatusPage = () => {
                   { label: "Ubuntu 계정", value: request.ubuntu_username },
                   { label: "신청일", value: formatDate(request.created_at) },
                   {
-                    label: "Ubuntu GIDs",
-                    value: request.ubuntu_gids?.join(", ") || "설정되지 않음",
+                    label: "공유 그룹",
+                    value: request.requested_group_labels.join(", ") || "없음",
                   },
                 ]}
               />
@@ -367,15 +367,10 @@ const RequestStatusPage = () => {
                       selectedRequest.expires_at
                     ).toLocaleDateString("ko-KR"),
                   },
-                  ...(selectedRequest.ubuntu_gids &&
-                  selectedRequest.ubuntu_gids.length > 0
-                    ? [
-                        {
-                          label: "Ubuntu GIDs",
-                          value: selectedRequest.ubuntu_gids.join(", "),
-                        },
-                      ]
-                    : []),
+                  {
+                    label: "공유 그룹",
+                    value: selectedRequest.requested_group_labels.join(", ") || "없음",
+                  },
                 ]}
               />
               <KeyValuePairs

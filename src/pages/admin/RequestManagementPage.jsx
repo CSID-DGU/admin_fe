@@ -686,8 +686,9 @@ const RequestManagementPage = () => {
                     label: "만료",
                     value: new Date(sel.expires_at).toLocaleDateString("ko-KR"),
                   },
+                  { label: "신청한 공유 그룹", value: sel.requested_group_labels.join(", ") || "없음" },
                   ...(sel.ubuntu_gids && sel.ubuntu_gids.length > 0
-                    ? [{ label: "Ubuntu GIDs", value: sel.ubuntu_gids.join(", ") }]
+                    ? [{ label: "계정 그룹 GID", value: sel.ubuntu_gids.join(", ") }]
                     : []),
                   ...(sel.ubuntu_uid != null
                     ? [{ label: "Ubuntu UID", value: sel.ubuntu_uid }]
