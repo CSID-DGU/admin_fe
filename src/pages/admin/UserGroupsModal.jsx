@@ -95,9 +95,9 @@ const UserGroupsModal = ({ user, onDismiss }) => {
         {error && <Alert type="error">{error}</Alert>}
         {confirming && (
           <Alert type="warning">
-            {user.name} 님을 <b>{confirming.groupName}</b> 그룹에서 뺍니다. 팀 공유 폴더(
-            <code>~/shared/{confirming.groupName}</code>)에 더는 접근할 수 없고, 다시 넣으려면 그룹 변경
-            신청을 승인해야 합니다. 팀 폴더에 남긴 파일은 그대로 남아 다른 팀원이 계속 씁니다.
+            {user.name} 님을 <b>{confirming.groupName}</b> 그룹에서 뺍니다. 다른 사람이 이 그룹과 공유한 폴더에
+            더는 접근할 수 없고, 다시 넣으려면 그룹 변경 신청을 승인해야 합니다. 그 폴더에 남긴 파일은 그대로 남아
+            다른 팀원이 계속 씁니다.
           </Alert>
         )}
         <Table
