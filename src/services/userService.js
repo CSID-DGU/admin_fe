@@ -59,7 +59,7 @@ class UserService {
     }
   }
 
-  // 사용자를 공용 그룹에서 제거(팀 폴더와 파일은 그대로 남는다)
+  // 사용자를 공용 그룹에서 제거(그 그룹과 공유된 폴더와 파일은 그대로 남는다)
   async removeUserFromGroup(userId, groupId) {
     try {
       const response = await apiClient.request(`/api/admin/users/${userId}/groups/${groupId}`, {

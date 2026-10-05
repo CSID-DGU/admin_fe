@@ -313,7 +313,7 @@ function RequestWizard({ onCancel, onDone, gpuOptions: gpuOptionsProp, envOption
             </ol>
             팀 프로젝트(캡스톤 디자인, 종합 설계, 공동 연구 등)는 <b>모든 팀원이 각자 신청</b>해야 승인돼요. 혼자 쓰면 아래 그룹·팀 칸은 비워 두세요.
           </Alert>
-          <FormField label="공유 그룹 (선택)" constraintText="'(승인 시 생성)'이 붙은 그룹은 승인될 때 만들어지는 새 그룹이에요. 골라도 돼요. 팀 폴더(~/shared/그룹 이름)는 승인되고 5분쯤 지나 열려요.">
+          <FormField label="공유 그룹 (선택)" constraintText="'(승인 시 생성)'이 붙은 그룹은 승인될 때 만들어지는 새 그룹이에요. 골라도 돼요. 승인되면 내 홈 아래 폴더를 이 그룹과 같이 쓸 수 있어요(폴더 하나는 그룹 하나와만).">
             <Select selectedValue="" onChange={addGroup} options={groupSelectOptions} placeholder="공유 그룹 고르기" />
             {selectedGroups.length > 0 ? (
               <div style={{ display: "flex", flexWrap: "wrap", gap: "var(--decs-space-xs)", marginTop: "var(--decs-space-xs)" }}>

@@ -230,7 +230,7 @@ function UserContainerDetail({ onBack, onExtend, onGroupChange, onRestarted, gro
         </Container>
       </div>
 
-      <Container header={<Header variant="h2" description="이 컨테이너에서 같이 쓰는 팀 폴더예요">그룹</Header>}>
+      <Container header={<Header variant="h2" description="홈 아래 폴더를 같이 쓸 수 있는 그룹이에요">그룹</Header>}>
         {(server.groups ?? []).length > 0 ? (
           <div style={{ display: "flex", flexWrap: "wrap", gap: "var(--decs-space-xs)" }}>
             {server.groups.map((group) => (
@@ -242,13 +242,15 @@ function UserContainerDetail({ onBack, onExtend, onGroupChange, onRestarted, gro
             소속된 공유 그룹이 없어요.
           </div>
         )}
-        {/* 팀 공유 폴더는 /home/_g_<그룹>에 있고, 컨테이너가 로그인 때마다 ~/shared/<그룹> 링크를 맞춘다
-            (admin_infra-proposed#174). 경로를 모르면 홈에서 작업하는 사용자는 찾아갈 방법이 없다. */}
+        {/* 팀 디렉터리는 따로 만들지 않는다. 홈은 711(남은 지나가기만)이라, 홈 아래 폴더의 그룹을 팀 그룹으로
+            바꾸면 그 팀원만 그룹 권한으로 들어온다. 컨테이너의 group-dir-share 가 그룹·권한을 한 번에 맞춘다. */}
         {(server.groups ?? []).length > 0 ? (
           <div style={{ color: "var(--decs-text-secondary)", fontSize: "var(--decs-fs-body-s)", marginTop: "var(--decs-space-xs)" }}>
-            팀원과 파일을 같이 쓰려면 <code>~/shared/&lt;그룹 이름&gt;</code> 폴더에 넣으세요
-            (실제 위치 <code>/home/_g_&lt;그룹 이름&gt;</code>). 새로 추가된 그룹은 승인되고 5분쯤 지나야 열려요.
-            그 전에는 Permission denied가 나올 수 있으니, 5분 뒤에 SSH로 다시 접속해 주세요.
+            팀원과 파일을 같이 쓰려면 홈 아래에 폴더를 만들고 터미널에서{" "}
+            <code>group-dir-share ~/&lt;폴더 이름&gt; &lt;그룹 이름&gt;</code>을 실행하세요. 팀원은{" "}
+            <code>/home/&lt;내 아이디&gt;/&lt;폴더 이름&gt;</code>으로 열어요. 폴더 하나는 그룹 하나와만 같이 쓸 수 있고,
+            그룹을 정하지 않은 폴더와 파일은 다른 사람이 볼 수 없어요. 새로 추가된 그룹은 승인되고 5분쯤 지나야
+            적용되니, 5분 뒤에 SSH로 다시 접속해 주세요.
           </div>
         ) : null}
         <div style={{ color: "var(--decs-text-secondary)", fontSize: "var(--decs-fs-body-s)", marginTop: "var(--decs-space-xs)" }}>
@@ -339,9 +341,9 @@ function UserContainerDetail({ onBack, onExtend, onGroupChange, onRestarted, gro
       >
         <div style={{ display: "flex", flexDirection: "column", gap: "var(--decs-space-l)" }}>
           {groupError ? <Alert type="error">{groupError}</Alert> : null}
-          <Alert type="info" header="승인되고 조금 기다려야 열려요">
-            관리자가 승인하면 5분쯤 뒤에 팀 폴더가 열려요. 이미 켜져 있는 컨테이너는 30분쯤 걸릴 수 있어요.
-            열리지 않으면 SSH 접속을 끊었다가 다시 접속해 보세요.
+          <Alert type="info" header="승인되고 조금 기다려야 적용돼요">
+            관리자가 승인하면 5분쯤 뒤에 그룹이 적용돼요. 이미 켜져 있는 컨테이너는 30분쯤 걸릴 수 있어요.
+            적용되지 않으면 SSH 접속을 끊었다가 다시 접속해 보세요.
           </Alert>
           <FormField label="지금 들어가 있는 그룹">
             {(server.groups ?? []).length > 0 ? (
