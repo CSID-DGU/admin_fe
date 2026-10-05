@@ -146,7 +146,7 @@ const ImageManagementPage = () => {
     <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--decs-space-l)' }}>
       <Header
         variant="h1"
-        description="컨테이너 생성에 사용할 도커 이미지를 관리합니다."
+        description="컨테이너 생성에 쓰는 도커 이미지 목록입니다."
         actions={
           <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--decs-space-s)' }}>
             {lastUpdated ? (

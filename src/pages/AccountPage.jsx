@@ -99,7 +99,7 @@ const AccountPage = ({ user }) => {
     <div className="space-y-6">
       <Header
         variant="h3"
-        description="개인정보를 확인할 수 있어요. 휴대폰 번호만 변경할 수 있어요."
+        description="휴대폰 번호만 바꿀 수 있어요."
       >
         기본 정보
       </Header>
@@ -176,7 +176,7 @@ const AccountPage = ({ user }) => {
       {/* Header */}
       <Header
         variant="h1"
-        description="개인정보를 관리할 수 있어요."
+        description="내 정보와 비밀번호"
       >
         계정 설정
       </Header>

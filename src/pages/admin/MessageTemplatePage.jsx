@@ -155,7 +155,7 @@ const MessageTemplatePage = () => {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--decs-space-l)' }}>
-      <Header variant="h1" description="알림 메시지 템플릿을 관리합니다.">
+      <Header variant="h1" description="알림 메시지 템플릿 목록입니다.">
         양식 관리
       </Header>
 

@@ -47,7 +47,7 @@ function ContainerManagement({ onOpenDetail, containers = [] }) {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "var(--decs-space-l)" }}>
-      <Header variant="h1" description="검색·필터로 원하는 컨테이너를 찾고 상세 정보를 확인합니다">컨테이너 관리</Header>
+      <Header variant="h1" description="컨테이너 목록과 상세 정보">컨테이너 관리</Header>
 
       <Container disablePadding header={
         <div style={{ display: "flex", flexDirection: "column", gap: "var(--decs-space-s)" }}>
