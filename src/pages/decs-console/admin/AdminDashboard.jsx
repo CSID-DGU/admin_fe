@@ -115,7 +115,7 @@ function AdminDashboard({ onOpenContainers, onOpenErrorContainers, onOpenDetail,
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "var(--decs-space-l)" }}>
-      <Header variant="h1" description="클러스터 자원과 컨테이너 상태를 한눈에 확인합니다">대시보드</Header>
+      <Header variant="h1" description="클러스터 자원과 컨테이너 상태">대시보드</Header>
 
       {errored > 0 ? (
         <Alert type="error" header={`컨테이너 ${errored}건에 오류가 있습니다`} action={<Button variant="normal" onClick={onOpenErrorContainers}>확인</Button>}>

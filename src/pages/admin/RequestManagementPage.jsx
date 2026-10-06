@@ -420,7 +420,7 @@ const RequestManagementPage = () => {
       : filter === "DENIED"
       ? "거절된"
       : "삭제된"
-  } 신청서가 없습니다. 다른 상태나 기간을 확인해보세요.`;
+  } 신청서가 없습니다.`;
 
   const columns = [
     {
@@ -530,7 +530,7 @@ const RequestManagementPage = () => {
 
       <Header
         variant="h1"
-        description="사용자들의 서버 사용 신청서를 검토하고 승인/거절할 수 있습니다."
+        description="사용자의 서버 사용 신청서를 승인하거나 거절합니다."
         actions={
           <div style={{ display: "flex", alignItems: "center", gap: "var(--decs-space-s)" }}>
             {lastUpdated ? (

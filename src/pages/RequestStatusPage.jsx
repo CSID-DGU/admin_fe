@@ -141,8 +141,8 @@ const RequestStatusPage = () => {
           </p>
           <p className="text-(--decs-text-secondary)">
             {filter === "ALL"
-              ? "새 신청을 하면 이곳에서 바로 확인할 수 있어요."
-              : "다른 상태의 신청을 확인해 보세요."}
+              ? "신청한 내역이 없어요."
+              : "다른 상태를 선택해 보세요."}
           </p>
         </div>
       </Container>
@@ -276,7 +276,7 @@ const RequestStatusPage = () => {
       {/* Header */}
       <Header
         variant="h1"
-        description="신청한 서버의 진행 상태를 한눈에 확인할 수 있어요."
+        description="신청한 서버의 진행 상태예요."
         actions={
           <Link to="/user/request">
             <Button variant="primary" iconName="plus">

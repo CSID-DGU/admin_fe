@@ -235,7 +235,7 @@ const UserManagementPage = () => {
       {/* 페이지 헤더 */}
       <Header
         variant="h1"
-        description="등록된 사용자들을 관리하고 권한을 설정할 수 있습니다."
+        description="등록된 사용자와 권한 목록입니다."
         actions={
           <div style={{ display: "flex", alignItems: "center", gap: "var(--decs-space-s)" }}>
             {lastUpdated ? (

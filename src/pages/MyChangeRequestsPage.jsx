@@ -179,8 +179,8 @@ const MyChangeRequestsPage = () => {
           </p>
           <p className="text-(--decs-text-secondary)">
             {filter === "ALL"
-              ? "변경 요청을 제출하면 이곳에서 바로 확인할 수 있어요."
-              : "다른 상태의 변경 요청을 확인해 보세요."}
+              ? "제출한 변경 요청이 없어요."
+              : "다른 상태를 선택해 보세요."}
           </p>
         </div>
       </Container>
@@ -311,7 +311,7 @@ const MyChangeRequestsPage = () => {
       {/* Header */}
       <Header
         variant="h1"
-        description="제출한 서버 변경 요청의 처리 상태를 확인할 수 있어요."
+        description="제출한 서버 변경 요청의 처리 상태예요."
       >
         내 변경 요청 현황
       </Header>

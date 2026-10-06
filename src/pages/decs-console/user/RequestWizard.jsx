@@ -194,7 +194,7 @@ function RequestWizard({ onCancel, onDone, gpuOptions: gpuOptionsProp, envOption
             <StatusIndicator type="success"><span style={{ fontSize: "var(--decs-fs-body-l)", fontWeight: 700 }}>신청했어요</span></StatusIndicator>
           </div>
           <p style={{ color: "var(--decs-text-secondary)", fontSize: "var(--decs-fs-body-m)", maxWidth: 420, margin: "0 auto 20px" }}>
-            관리자가 승인하면 컨테이너를 준비해 드려요. 준비가 끝나면 접속 방법을 메일로 보내 드리고, 대시보드에서도 볼 수 있어요.
+            관리자가 승인하면 컨테이너를 만들고, 접속 방법을 메일로 보내요.
             서버 비밀번호는 이 사이트의 로그인 비밀번호와 같아요.
           </p>
           <Button variant="primary" onClick={onDone}>신청 현황 보기</Button>

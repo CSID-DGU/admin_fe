@@ -256,7 +256,7 @@ const ChangeRequestManagementPage = () => {
     if (newStatus === "FULFILLED" && APPROVAL_BLOCK_REASON[changeRequest.changeType]) {
       setAlert({
         type: "error",
-        message: `현재 안전하게 승인할 수 없습니다. ${APPROVAL_BLOCK_REASON[changeRequest.changeType]}`,
+        message: `지금은 승인할 수 없습니다. ${APPROVAL_BLOCK_REASON[changeRequest.changeType]}`,
       });
       return;
     }
@@ -390,7 +390,7 @@ const ChangeRequestManagementPage = () => {
             : filter === "FULFILLED"
             ? "승인된"
             : "거절된"
-        } 변경 요청이 없습니다. 다른 상태의 변경 요청을 확인해보세요.`;
+        } 변경 요청이 없습니다.`;
 
   const columns = [
     {
@@ -508,7 +508,7 @@ const ChangeRequestManagementPage = () => {
 
       <Header
         variant="h1"
-        description="사용자들의 서버 변경 요청을 검토하고 승인/거절할 수 있습니다."
+        description="사용자의 서버 변경 요청을 승인하거나 거절합니다."
         actions={
           <div style={{ display: "flex", alignItems: "center", gap: "var(--decs-space-s)" }}>
             {lastUpdated ? (
