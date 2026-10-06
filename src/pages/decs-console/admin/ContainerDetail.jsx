@@ -474,7 +474,8 @@ function ContainerDetail({ item, onBack, onRefetch }) {
         <div style={{ display: "flex", flexDirection: "column", gap: "var(--decs-space-s)" }}>
           {deleteError ? <Alert type="error">{deleteError}</Alert> : null}
           <p>
-            컨테이너 &quot;{c.name}&quot;하나만 회수됩니다. 우분투 계정과 홈 디렉터리는 남고, 같은 사용자의 다른 컨테이너는 영향받지 않습니다.
+            컨테이너 &quot;{c.name}&quot;하나만 회수됩니다. 우분투 계정은 남고, 같은 사용자의 다른 컨테이너는 영향받지 않습니다.
+            이 사용자의 마지막 컨테이너라면 홈 디렉터리는 보존 기간이 지난 뒤 삭제되며, 삭제일은 사용자에게 메일로 안내됩니다.
             이 작업은 되돌릴 수 없습니다.
           </p>
         </div>
