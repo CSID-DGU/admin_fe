@@ -1,6 +1,6 @@
 import React from "react";
 import { Navigate, Route, Routes, useLocation, useNavigate } from "react-router-dom";
-import { AppLayout, SideNavigation, Flashbar } from "../../../design-system";
+import { Alert, AppLayout, Button, SideNavigation, Flashbar } from "../../../design-system";
 import UserDashboard from "./UserDashboard";
 import RequestWizard from "./RequestWizard";
 import UserContainerDetail from "./UserContainerDetail";
@@ -20,7 +20,7 @@ function UserPortalApp() {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
   const { t, i18n } = useTranslation();
-  const { server, servers, expiryDays, activities, gpuOptions, envOptions, groupOptions, error, refetch } = useDecsUserData();
+  const { server, servers, expiryDays, activities, awaitingRequestId, gpuOptions, envOptions, groupOptions, error, refetch } = useDecsUserData();
   const userName = user?.name || user?.email || "사용자";
   const isAdmin = user?.role === "ADMIN";
 
@@ -58,6 +58,7 @@ function UserPortalApp() {
     if (response.status !== 200 && response.status !== 201) {
       throw new Error("신청에 실패했습니다.");
     }
+    refetch();
     navigate("/user/requests");
   }
 
@@ -106,9 +107,9 @@ function UserPortalApp() {
         {error ? <div style={{ marginBottom: "var(--decs-space-m)" }}><Flashbar items={[{ id: "decs-user-data", type: "warning", header: error, dismissible: false }]} /></div> : null}
         <Routes>
           <Route index element={<UserDashboard userName={userName} server={server} expiryDays={expiryDays} activities={activities ?? []} onRequest={() => navigate("/user/request")} onConnect={() => navigate("/user/container")} onExtend={() => navigate("/user/container", { state: { extend: true } })} onDetail={() => navigate("/user/container")} />} />
-          <Route path="request" element={<RequestWizard onCancel={() => navigate("/user")} onDone={() => navigate("/user/requests")} gpuOptions={gpuOptions ?? []} envOptions={envOptions ?? []} groupOptions={groupOptions ?? []} onSubmit={submitRequest} accountUsername={user?.ubuntuUsername} />} />
+          <Route path="request" element={awaitingRequestId != null ? <AwaitingRequestNotice onView={() => navigate("/user/requests")} /> : <RequestWizard onCancel={() => navigate("/user")} onDone={() => navigate("/user/requests")} gpuOptions={gpuOptions ?? []} envOptions={envOptions ?? []} groupOptions={groupOptions ?? []} onSubmit={submitRequest} accountUsername={user?.ubuntuUsername} />} />
           <Route path="container" element={<UserContainerDetail onBack={() => navigate("/user")} onExtend={submitExtension} onGroupChange={submitGroupChange} groupOptions={groupOptions ?? []} servers={servers ?? []} onRestarted={refetch} />} />
-          <Route path="requests" element={<RequestStatusPage />} />
+          <Route path="requests" element={<RequestStatusPage onChanged={refetch} />} />
           <Route path="change-requests" element={<MyChangeRequestsPage />} />
           <Route path="account" element={<AccountPage user={user} />} />
           <Route path="monitoring" element={<ResourceMonitoringPage />} />
@@ -116,6 +117,15 @@ function UserPortalApp() {
         </Routes>
       </AppLayout>
     </div>
+  );
+}
+
+// 승인을 기다리는 신청은 한 건만 둘 수 있다. 내용을 바꾸려면 그 신청을 취소하고 다시 낸다.
+function AwaitingRequestNotice({ onView }) {
+  return (
+    <Alert type="info" header="승인을 기다리는 신청이 이미 있어요" action={<Button onClick={onView}>신청 현황 보기</Button>}>
+      신청은 한 번에 한 건만 승인을 기다릴 수 있어요. 내용을 바꾸고 싶다면 신청 현황에서 기존 신청을 취소한 뒤 다시 신청해 주세요.
+    </Alert>
   );
 }
 

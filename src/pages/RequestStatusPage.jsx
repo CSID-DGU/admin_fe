@@ -17,18 +17,37 @@ import { mapRequestDtoToUiModel } from "../utils/requestMapper";
 import { formAnswerLabel } from "../utils/formAnswers";
 import { PUBLIC_HOST, toPublicPort } from "../utils/publicEndpoint";
 
-const RequestStatusPage = () => {
+const RequestStatusPage = ({ onChanged }) => {
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedRequest, setSelectedRequest] = useState(null);
   const [filter, setFilter] = useState("ALL"); // ALL, PENDING, FULFILLED, DENIED
   const [alert, setAlert] = useState(null);
+  const [cancelTarget, setCancelTarget] = useState(null);
+  const [cancelling, setCancelling] = useState(false);
+  const [reloadKey, setReloadKey] = useState(0);
   const { user } = useAuth();
+
+  const confirmCancel = async () => {
+    setCancelling(true);
+    try {
+      await requestService.cancelRequest(cancelTarget.request_id);
+      setAlert({ type: "success", message: "신청을 취소했어요. 이제 새로 신청할 수 있어요." });
+      setReloadKey((key) => key + 1);
+      onChanged?.();
+    } catch (error) {
+      // 그 사이 관리자가 승인을 시작했으면 서버가 취소를 거절한다 — 목록을 다시 읽어 지금 상태를 보여 준다.
+      setAlert({ type: "error", message: error.message || "신청을 취소하지 못했어요. 잠시 뒤에 다시 해 주세요." });
+      setReloadKey((key) => key + 1);
+    } finally {
+      setCancelling(false);
+      setCancelTarget(null);
+    }
+  };
 
   useEffect(() => {
     const fetchRequests = async () => {
       setLoading(true);
-      setAlert(null);
 
       try {
         const response = await requestService.getUserRequests();
@@ -62,7 +81,7 @@ const RequestStatusPage = () => {
     if (user) {
       fetchRequests();
     }
-  }, [user]);
+  }, [user, reloadKey]);
 
   const getStatusIndicator = (status) => {
     switch (status) {
@@ -155,12 +174,19 @@ const RequestStatusPage = () => {
               <Header
                 variant="h3"
                 actions={
-                  <Button
-                    variant="normal"
-                    onClick={() => setSelectedRequest(request)}
-                  >
-                    상세보기
-                  </Button>
+                  <span className="inline-flex items-center gap-2">
+                    {request.status === "PENDING" && (
+                      <Button variant="normal" onClick={() => setCancelTarget(request)}>
+                        신청 취소
+                      </Button>
+                    )}
+                    <Button
+                      variant="normal"
+                      onClick={() => setSelectedRequest(request)}
+                    >
+                      상세보기
+                    </Button>
+                  </span>
                 }
               >
                 <span className="inline-flex items-center gap-3">
@@ -290,6 +316,27 @@ const RequestStatusPage = () => {
 
       {/* Status Filter + List */}
       <Tabs tabs={filterTabs} activeTabId={filter} onChange={setFilter} />
+
+      {cancelTarget && (
+        <Modal
+          visible
+          dismissible={!cancelling}
+          onDismiss={() => setCancelTarget(null)}
+          header="신청을 취소할까요?"
+          footer={
+            <span className="inline-flex items-center gap-2">
+              <Button variant="normal" disabled={cancelling} onClick={() => setCancelTarget(null)}>
+                닫기
+              </Button>
+              <Button variant="primary" loading={cancelling} disabled={cancelling} onClick={confirmCancel}>
+                신청 취소
+              </Button>
+            </span>
+          }
+        >
+          #{cancelTarget.request_id} 신청을 취소해요. 취소한 신청은 되돌릴 수 없고, 취소한 뒤에는 새로 신청할 수 있어요.
+        </Modal>
+      )}
 
       {/* Detail Modal */}
       {selectedRequest && (
