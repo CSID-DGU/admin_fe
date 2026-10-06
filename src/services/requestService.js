@@ -6,6 +6,9 @@ export const requestService = {
   getResourceGroups: () => apiClient.get("/api/resources/groups"),
   getContainerImages: () => apiClient.get("/api/images"),
   getUserRequests: () => apiClient.get("/api/requests/my"),
+  // 승인 대기·거절 상태인 내 신청을 취소한다. 승인을 기다리는 신청은 한 건만 둘 수 있어, 바꾸려면 취소하고 다시 낸다.
+  cancelRequest: (requestId) =>
+    apiClient.request(`/api/requests/${encodeURIComponent(requestId)}`, { method: "DELETE" }),
   getAllRequests: () => apiClient.get("/api/admin/requests"),
   // 신청의 생성·회수 작업 단계 기록(신청 상세). 관리자 API로만 받는다.
   getJobSteps: (requestId) =>
