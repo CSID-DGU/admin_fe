@@ -265,7 +265,8 @@ const RequestStatusPage = ({ onChanged }) => {
 
               {request.status === "PENDING" && (
                 <Alert type="info" header="승인을 기다리고 있어요">
-                  관리자 검토가 끝나면 이곳에서 결과를 확인할 수 있어요.
+                  관리자 검토가 끝나면 이곳에서 결과를 확인할 수 있어요. 승인 메일이 오지 않으면 스팸함을 확인하고,
+                  내 컨테이너 화면에서 접속 정보를 확인해 주세요. 화면에도 없으면 문의 폼으로 알려 주세요.
                 </Alert>
               )}
             </div>
