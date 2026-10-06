@@ -53,7 +53,7 @@ export const requestService = {
   getMyLatestRestart: (requestId) =>
     apiClient.get(`/api/requests/${encodeURIComponent(requestId)}/restarts/latest`),
 
-  // 컨테이너 하나만 회수한다. 우분투 계정·홈 디렉터리와 같은 사용자의 다른 컨테이너는 그대로 둔다.
+  // 컨테이너 하나만 회수한다. 우분투 계정과 같은 사용자의 다른 컨테이너는 그대로 둔다. 홈은 마지막 컨테이너였다면 보존 기간 뒤 지워진다.
   // 계정까지 회수하려면 userService.deleteUbuntuAccount를 쓴다 — 그쪽은 컨테이너를 전부 정리한다.
   deleteContainer: (requestId) =>
     apiClient.request(`/api/admin/requests/${encodeURIComponent(requestId)}/container`, {
