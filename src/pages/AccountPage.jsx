@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { authService } from "../services/authService";
 import {
   Alert,
@@ -12,7 +13,7 @@ import {
   StatusIndicator,
 } from "../design-system";
 import { useAuth } from "../hooks/useAuth";
-import { PHONE_PATTERN, PHONE_FORMAT_ERROR, PHONE_HELP, formatPhoneInput } from "../utils/validators";
+import { PHONE_PATTERN, phoneFormatError, phoneHelp, formatPhoneInput } from "../utils/validators";
 
 // 서버가 답한 오류(status 있음)는 원인별 문구를 그대로 쓰고, 연결 실패 등은 기본 문구를 쓴다.
 const serverMessageOr = (error, fallback) =>
@@ -26,6 +27,7 @@ const ResultAlert = ({ alert, onDismiss }) =>
   ) : null;
 
 const AccountPage = ({ user }) => {
+  const { t, i18n } = useTranslation();
   const { updateUser } = useAuth();
   const [formData, setFormData] = useState({
     phone: "",
@@ -62,9 +64,9 @@ const AccountPage = ({ user }) => {
     const newErrors = {};
 
     if (!formData.phone.trim()) {
-      newErrors.phone = "전화번호를 입력해 주세요.";
+      newErrors.phone = t("account.phoneRequired");
     } else if (!PHONE_PATTERN.test(formData.phone)) {
-      newErrors.phone = PHONE_FORMAT_ERROR;
+      newErrors.phone = phoneFormatError();
     }
 
     setErrors(newErrors);
@@ -83,12 +85,12 @@ const AccountPage = ({ user }) => {
 
     try {
       await authService.updatePhone(formData.phone);
-      setProfileAlert({ type: "success", message: "전화번호를 바꿨어요." });
+      setProfileAlert({ type: "success", message: t("account.phoneSaved") });
       await updateUser();
     } catch (error) {
       setProfileAlert({
         type: "error",
-        message: serverMessageOr(error, "전화번호를 바꾸지 못했어요. 잠시 후 다시 시도해 주세요."),
+        message: serverMessageOr(error, t("account.phoneSaveFailed")),
       });
     } finally {
       setProfileLoading(false);
@@ -99,40 +101,38 @@ const AccountPage = ({ user }) => {
     <div className="space-y-6">
       <Header
         variant="h3"
-        description="개인정보를 확인할 수 있어요. 휴대폰 번호만 변경할 수 있어요."
+        description={t("account.basicDesc")}
       >
-        기본 정보
+        {t("account.basicTitle")}
       </Header>
 
       {/* Read-only fields */}
       <KeyValuePairs
         columns={2}
         items={[
-          { label: "이메일", value: user?.email || "이메일 정보 없음" },
-          { label: "학번", value: user?.studentId || "학번 정보 없음" },
-          { label: "이름", value: user?.name || "이름 정보 없음" },
-          { label: "학과", value: user?.department || "학과 정보 없음" },
+          { label: t("auth.email"), value: user?.email || t("account.emailMissing") },
+          { label: t("auth.studentId"), value: user?.studentId || t("account.studentIdMissing") },
+          { label: t("auth.name"), value: user?.name || t("account.nameMissing") },
+          { label: t("auth.department"), value: user?.department || t("account.departmentMissing") },
           ...(user?.ubuntuUsername
-            ? [{ label: "Ubuntu 유저네임", value: user.ubuntuUsername }]
+            ? [{ label: t("account.ubuntuUsername"), value: user.ubuntuUsername }]
             : []),
         ]}
       />
       <p className="text-sm text-(--decs-text-secondary)">
-        이메일·학번·이름·학과는 변경할 수 없어요. 변경이 필요하면 관리자에게
-        문의해 주세요.
+        {t("account.immutableNote")}
       </p>
       <p className="text-sm text-(--decs-text-secondary)">
-        비밀번호는 웹 로그인과 SSH(Ubuntu 계정)에 함께 쓰여요. 바꾸거나 잊었을 때는
-        로그아웃한 뒤 로그인 화면의 &quot;비밀번호 재설정&quot;으로 신청해 주세요. 관리자가 승인하면 적용돼요.
+        {t("account.passwordNote")}
       </p>
 
       {/* Editable form */}
       <form onSubmit={handleProfileSubmit} className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <FormField
-            label="전화번호"
+            label={t("auth.phone")}
             errorText={errors.phone}
-            constraintText={PHONE_HELP}
+            constraintText={phoneHelp()}
             htmlFor="account-phone"
           >
             <Input
@@ -161,10 +161,10 @@ const AccountPage = ({ user }) => {
               setErrors({});
             }}
           >
-            취소
+            {t("common.cancel")}
           </Button>
           <Button variant="primary" loading={profileLoading} disabled={profileLoading}>
-            저장
+            {t("common.save")}
           </Button>
         </div>
       </form>
@@ -176,45 +176,45 @@ const AccountPage = ({ user }) => {
       {/* Header */}
       <Header
         variant="h1"
-        description="개인정보를 관리할 수 있어요."
+        description={t("account.description")}
       >
-        계정 설정
+        {t("shell.account")}
       </Header>
 
       <Container>{profileTabContent}</Container>
 
       {/* Account Status */}
-      <Container header={<Header variant="h2">계정 상태</Header>}>
+      <Container header={<Header variant="h2">{t("account.statusTitle")}</Header>}>
         <KeyValuePairs
           columns={2}
           items={[
             {
-              label: "계정 유형",
+              label: t("account.accountType"),
               value: (
                 <Badge color={user?.role === "ADMIN" ? "blue" : "grey"}>
-                  {user?.role === "ADMIN" ? "관리자" : "일반 사용자"}
+                  {user?.role === "ADMIN" ? t("common.admin") : t("account.roleUser")}
                 </Badge>
               ),
             },
             {
-              label: "계정 상태",
+              label: t("account.statusTitle"),
               value: user?.isActive ? (
-                <StatusIndicator type="success">활성</StatusIndicator>
+                <StatusIndicator type="success">{t("common.active")}</StatusIndicator>
               ) : (
-                <StatusIndicator type="stopped">비활성</StatusIndicator>
+                <StatusIndicator type="stopped">{t("common.inactive")}</StatusIndicator>
               ),
             },
             {
-              label: "가입일",
+              label: t("account.joinedAt"),
               value: user?.createdAt
-                ? new Date(user.createdAt).toLocaleDateString()
-                : "정보 없음",
+                ? new Date(user.createdAt).toLocaleDateString(i18n.resolvedLanguage)
+                : t("account.noInfo"),
             },
             {
-              label: "최종 수정일",
+              label: t("account.updatedAt"),
               value: user?.updatedAt
-                ? new Date(user.updatedAt).toLocaleDateString()
-                : "정보 없음",
+                ? new Date(user.updatedAt).toLocaleDateString(i18n.resolvedLanguage)
+                : t("account.noInfo"),
             },
           ]}
         />

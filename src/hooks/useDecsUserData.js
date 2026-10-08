@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
+import i18n from "../i18n";
 import { requestService } from "../services/requestService";
 import { mapUserServer, mapPodStatus, daysLeft } from "../utils/decsMapper";
 import { toGroupOption } from "../utils/groupOption";
 
-// 예시 데이터로 대체하는 코드는 없다 — 못 불러온 영역은 그냥 빈 채로 남는다.
-const ERROR_MESSAGE = "일부 정보를 불러오지 못했습니다. 새로고침해도 같으면 관리자에게 문의해주세요.";
 
 function getArrayData(res) {
   if (Array.isArray(res?.data)) return res.data;
@@ -18,7 +18,7 @@ function formatExpiresText(expiresAt) {
   const date = new Date(expiresAt);
   if (Number.isNaN(date.getTime())) return "—";
 
-  return `${date.getFullYear()}년 ${date.getMonth() + 1}월 ${date.getDate()}일 만료`;
+  return i18n.t("data.expiresOn", { date: new Intl.DateTimeFormat(i18n.resolvedLanguage, { dateStyle: "long" }).format(date) });
 }
 
 // PENDING/FULFILLED 외의 값(PROCESSING, MIGRATING, EXPIRING 등)을 전부 "거절됨"으로
@@ -32,7 +32,7 @@ function mapActivity(request) {
 
   return {
     label: createdAt ? String(createdAt).slice(0, 10) : "—",
-    value: `서버 신청 · ${getStatusLabel(request.status)}`,
+    value: i18n.t("data.activityValue", { status: getStatusLabel(request.status) }),
     requestId: request.requestId ?? request.request_id,
     status: request.status,
     statusLabel: getStatusLabel(request.status),
@@ -91,7 +91,7 @@ function buildGpuOptions(gpuTypes) {
     ...option,
     serverName: option.serverNames[0] ?? "",
     desc: option.nodeIds.map((n) => n.toUpperCase()).join(", ") || option.serverNames.join(", ") || "—",
-    memory: `${option.memory} VRAM · 가용 노드 ${option.nodeIds.length || option.availableNodes || 1}개`,
+    memory: i18n.t("data.gpuMemory", { memory: option.memory, count: option.nodeIds.length || option.availableNodes || 1 }),
   }));
 }
 
@@ -112,9 +112,9 @@ function buildServerVm(dto, groupNameByGid = {}) {
     gpuName: serverName || vm.gpuName,
     gpuSpec: serverName ? vm.gpuName : null,
     statusType: vm.statusType ?? "success",
-    statusLabel: vm.statusLabel ?? "사용 가능",
-    jobBadge: `내 서버 · ${serverName || vm.gpuName}`,
-    jobTitle: usagePurpose || "내 서버",
+    statusLabel: vm.statusLabel ?? i18n.t("data.available"),
+    jobBadge: i18n.t("data.myServerBadge", { name: serverName || vm.gpuName }),
+    jobTitle: usagePurpose || i18n.t("data.myServer"),
     daysLeft: vm.daysLeft ?? daysLeft(dto.expiresAt),
     expiresText: formatExpiresText(vm.expiresAt),
     sshCommand: vm.sshCommand || "—",
@@ -143,6 +143,8 @@ export function useDecsUserData() {
   const [error, setError] = useState(null);
   // 재시작처럼 접속 정보가 바뀌는 작업 뒤에 다시 불러온다.
   const [reloadKey, setReloadKey] = useState(0);
+  // 화면에 보일 문구(상태·만료일 등)를 불러올 때 만들어 두므로, 언어가 바뀌면 다시 불러와 새 언어로 만든다.
+  const language = useTranslation().i18n.resolvedLanguage;
 
   useEffect(() => {
     let cancelled = false;
@@ -251,13 +253,13 @@ export function useDecsUserData() {
       }
 
       // 다시 불러와 모두 성공했으면 이전 오류 안내를 지운다.
-      setError(hasError ? ERROR_MESSAGE : null);
+      setError(hasError ? i18n.t("data.loadFailed") : null);
     });
 
     return () => {
       cancelled = true;
     };
-  }, [reloadKey]);
+  }, [reloadKey, language]);
 
   const server = servers?.[0];
   const expiryDays =

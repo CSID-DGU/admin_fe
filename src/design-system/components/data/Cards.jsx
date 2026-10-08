@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { Icon } from "../icons/Icon.jsx";
 
 /**
@@ -18,6 +19,7 @@ export function Cards({
   empty,
   style,
 }) {
+  const { t } = useTranslation();
   const keyOf = (it) => it[trackBy];
   const selectedKeys = new Set(selectedItems.map(keyOf));
   const selectable = !!selectionType;
@@ -30,7 +32,7 @@ export function Cards({
   }
 
   if (items.length === 0) {
-    return <div style={{ padding: "var(--decs-space-xxl)", textAlign: "center", color: "var(--decs-text-secondary)", fontFamily: "var(--decs-font-base)" }}>{empty || "표시할 항목이 없습니다."}</div>;
+    return <div style={{ padding: "var(--decs-space-xxl)", textAlign: "center", color: "var(--decs-text-secondary)", fontFamily: "var(--decs-font-base)" }}>{empty || t("ds.empty")}</div>;
   }
 
   return (

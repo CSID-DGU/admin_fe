@@ -1,7 +1,7 @@
 import { useState } from "react";
 import userService from "../../services/userService";
 import { Alert, Button, FormField, Input, Modal } from "../../design-system";
-import { NEW_PASSWORD_HELP, validateNewPassword } from "../../utils/validators";
+import { newPasswordHelp, validateNewPassword } from "../../utils/validators";
 
 /**
  * 관리자가 사용자 비밀번호를 새로 지정한다. 가입한 메일을 받지 못해 본인이 재설정을 신청할 수 없는 사용자를 위한 경로다.
@@ -58,7 +58,7 @@ const PasswordResetModal = ({ user, onDismiss, onDone }) => {
           잠시 걸릴 수 있고, 적용되면 사용자의 기존 로그인은 끊겨요. 새 비밀번호는 메일로 가지 않으니 사용자에게
           직접 전달해 주세요.
         </Alert>
-        <FormField label="새 비밀번호" errorText={errors.password} constraintText={NEW_PASSWORD_HELP} htmlFor="reset-password">
+        <FormField label="새 비밀번호" errorText={errors.password} constraintText={newPasswordHelp()} htmlFor="reset-password">
           <Input
             id="reset-password"
             type="password"

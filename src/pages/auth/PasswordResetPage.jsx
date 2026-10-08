@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Alert, Button, FormField, Input } from "../../design-system";
 import { authService } from "../../services/authService";
-import { NEW_PASSWORD_HELP, validateNewPassword } from "../../utils/validators";
+import { newPasswordHelp, validateNewPassword } from "../../utils/validators";
 
 const CODE_PATTERN = /^\d{6}$/;
 
@@ -81,7 +81,7 @@ export default function PasswordResetPage() {
         <FormField label={t("auth.verificationCode")} errorText={errors.code}>
           <Input value={form.code} onChange={(value) => change("code", value.replace(/\D/g, "").slice(0, 6))} placeholder="123456" invalid={!!errors.code} />
         </FormField>
-        <FormField label={t("auth.newPassword")} errorText={errors.password} constraintText={`${NEW_PASSWORD_HELP}. 서버(SSH·Ubuntu) 접속에도 이 비밀번호를 써요.`}>
+        <FormField label={t("auth.newPassword")} errorText={errors.password} constraintText={`${newPasswordHelp()}. 서버(SSH·Ubuntu) 접속에도 이 비밀번호를 써요.`}>
           <Input type="password" value={form.password} onChange={(value) => change("password", value)} invalid={!!errors.password} />
         </FormField>
         <FormField label={t("auth.confirmNewPassword")} errorText={errors.confirm}>

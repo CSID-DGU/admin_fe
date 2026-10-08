@@ -1,5 +1,7 @@
 // FARM/LAB 서버별 GPU 사용량·활성 컨테이너를 Prometheus 지표로 직접 표시하는 모니터링 페이지
 import { useEffect, useState, useCallback } from "react";
+import { useTranslation } from "react-i18next";
+import i18n from "../i18n";
 import {
   Alert,
   Badge,
@@ -15,6 +17,7 @@ import { monitoringService } from "../services/grafanaService";
 const REFRESH_INTERVAL_MS = 30_000;
 
 function GpuServerCard({ server }) {
+  const { t } = useTranslation();
   const util = server.gpuUtil ?? 0;
   // ProgressBar: "success" | "in-progress" | "error"
   const barStatus = util >= 80 ? "error" : "in-progress";
@@ -25,11 +28,11 @@ function GpuServerCard({ server }) {
         <span className="font-semibold text-(--decs-text-heading) uppercase tracking-wide text-sm">
           {server.hostname}
         </span>
-        <Badge color={badgeColor}>GPU {server.gpuCount}개</Badge>
+        <Badge color={badgeColor}>{t("monitoring.gpuCount", { count: server.gpuCount })}</Badge>
       </div>
       <ProgressBar
         value={util}
-        label="GPU 사용률"
+        label={t("monitoring.gpuUtil")}
         description={`${util}%`}
         status={barStatus}
       />
@@ -38,6 +41,7 @@ function GpuServerCard({ server }) {
 }
 
 const ResourceMonitoringPage = () => {
+  const { t } = useTranslation();
   const [metrics, setMetrics] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -51,10 +55,10 @@ const ResourceMonitoringPage = () => {
         setLastUpdated(new Date());
         setError(null);
       } else {
-        setError("지표를 불러오지 못했어요.");
+        setError(i18n.t("monitoring.loadFailed"));
       }
     } catch {
-      setError("서버와 연결할 수 없어요. 잠시 후 다시 시도해 주세요.");
+      setError(i18n.t("monitoring.connectFailed"));
     } finally {
       setLoading(false);
     }
@@ -69,11 +73,11 @@ const ResourceMonitoringPage = () => {
   const farmServers = metrics?.gpuServers ?? [];
   const activeContainers = metrics?.activeContainers ?? {};
   const containerItems = Object.entries(activeContainers).map(([cluster, count]) => ({
-    label: `${cluster.toUpperCase()} 활성 컨테이너`,
+    label: t("monitoring.activeContainers", { cluster: cluster.toUpperCase() }),
     value: (
       <span className="text-xl font-bold text-(--decs-text-heading)">
         {count}
-        <span className="text-sm font-normal text-(--decs-text-secondary) ml-1">개</span>
+        <span className="text-sm font-normal text-(--decs-text-secondary) ml-1">{t("monitoring.countUnit")}</span>
       </span>
     ),
   }));
@@ -82,21 +86,21 @@ const ResourceMonitoringPage = () => {
     <div className="space-y-6">
       <Header
         variant="h1"
-        description="30초마다 자동으로 갱신돼요."
+        description={t("monitoring.autoRefresh")}
         actions={
           <div className="flex items-center gap-3">
             {lastUpdated && (
               <span className="text-sm text-(--decs-text-secondary)">
-                {lastUpdated.toLocaleTimeString("ko-KR")} 기준
+                {t("monitoring.asOf", { time: lastUpdated.toLocaleTimeString(i18n.resolvedLanguage) })}
               </span>
             )}
             <Button variant="normal" iconName="refresh" onClick={fetchMetrics}>
-              새로 고침
+              {t("monitoring.refresh")}
             </Button>
           </div>
         }
       >
-        리소스 모니터링
+        {t("shell.resourceMonitoring")}
       </Header>
 
       {error && (
@@ -107,13 +111,13 @@ const ResourceMonitoringPage = () => {
 
       {loading ? (
         <div className="text-center p-12">
-          <StatusIndicator type="loading">지표를 불러오는 중...</StatusIndicator>
+          <StatusIndicator type="loading">{t("monitoring.loading")}</StatusIndicator>
         </div>
       ) : (
         <>
           {/* 활성 컨테이너 요약 */}
           {containerItems.length > 0 && (
-            <Container header={<Header variant="h2">클러스터 현황</Header>}>
+            <Container header={<Header variant="h2">{t("monitoring.clusterStatus")}</Header>}>
               <KeyValuePairs columns={containerItems.length} items={containerItems} />
             </Container>
           )}
@@ -123,15 +127,15 @@ const ResourceMonitoringPage = () => {
             header={
               <Header
                 variant="h2"
-                description="FARM 서버별 실시간 GPU 평균 사용률이에요."
+                description={t("monitoring.gpuUtilDesc")}
               >
-                GPU 사용률
+                {t("monitoring.gpuUtil")}
               </Header>
             }
           >
             {farmServers.length === 0 ? (
               <StatusIndicator type="warning">
-                GPU 데이터를 수신하지 못했어요.
+                {t("monitoring.noGpuData")}
               </StatusIndicator>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">

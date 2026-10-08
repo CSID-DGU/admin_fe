@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { createPortal } from "react-dom";
 import { Icon } from "../icons/Icon.jsx";
 
@@ -10,7 +11,9 @@ import { Icon } from "../icons/Icon.jsx";
  * 모서리를 위해 overflow:hidden을 쓰는데, 그 안에 이 목록을 그대로 두면 절대위치
  * 팝업이 카드 경계에서 잘려버린다(예: 사용자 관리의 역할/상태 필터 드롭다운).
  */
-export function Select({ options = [], selectedValue, onChange, placeholder = "선택하세요", disabled, invalid, id, ariaLabel, style }) {
+export function Select({ options = [], selectedValue, onChange, placeholder: placeholderProp, disabled, invalid, id, ariaLabel, style }) {
+  const { t } = useTranslation();
+  const placeholder = placeholderProp ?? t("ds.selectPlaceholder");
   const [open, setOpen] = React.useState(false);
   const [menuRect, setMenuRect] = React.useState(null);
   const ref = React.useRef(null);

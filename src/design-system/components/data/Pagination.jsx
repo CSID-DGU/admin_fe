@@ -1,10 +1,12 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { Icon } from "../icons/Icon.jsx";
 
 /**
  * Pagination — page navigator for tables. Controlled via currentPage + onChange.
  */
 export function Pagination({ currentPage = 1, pagesCount = 1, onChange, style }) {
+  const { t } = useTranslation();
   const pages = [];
   const max = pagesCount;
   const cur = currentPage;
@@ -26,7 +28,7 @@ export function Pagination({ currentPage = 1, pagesCount = 1, onChange, style })
 
   return (
     <div style={{ display: "inline-flex", alignItems: "center", gap: "2px", ...style }}>
-      <button aria-label="이전" disabled={cur <= 1} onClick={() => onChange?.(cur - 1)} style={{ ...btn(false), cursor: cur <= 1 ? "default" : "pointer", color: cur <= 1 ? "var(--decs-text-disabled)" : "var(--decs-text-secondary)" }}>
+      <button aria-label={t("ds.previous")} disabled={cur <= 1} onClick={() => onChange?.(cur - 1)} style={{ ...btn(false), cursor: cur <= 1 ? "default" : "pointer", color: cur <= 1 ? "var(--decs-text-disabled)" : "var(--decs-text-secondary)" }}>
         <Icon name="chevron-left" size={16} />
       </button>
       {start > 1 ? <span style={{ color: "var(--decs-text-inactive)", padding: "0 4px" }}>…</span> : null}
@@ -34,7 +36,7 @@ export function Pagination({ currentPage = 1, pagesCount = 1, onChange, style })
         <button key={p} onClick={() => onChange?.(p)} aria-current={p === cur} style={btn(p === cur)}>{p}</button>
       ))}
       {end < max ? <span style={{ color: "var(--decs-text-inactive)", padding: "0 4px" }}>…</span> : null}
-      <button aria-label="다음" disabled={cur >= max} onClick={() => onChange?.(cur + 1)} style={{ ...btn(false), cursor: cur >= max ? "default" : "pointer", color: cur >= max ? "var(--decs-text-disabled)" : "var(--decs-text-secondary)" }}>
+      <button aria-label={t("ds.next")} disabled={cur >= max} onClick={() => onChange?.(cur + 1)} style={{ ...btn(false), cursor: cur >= max ? "default" : "pointer", color: cur >= max ? "var(--decs-text-disabled)" : "var(--decs-text-secondary)" }}>
         <Icon name="chevron-right" size={16} />
       </button>
     </div>

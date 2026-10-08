@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { Icon } from "../icons/Icon.jsx";
 
 /**
@@ -23,6 +24,7 @@ export function Table({
   loading = false,
   style,
 }) {
+  const { t } = useTranslation();
   const padY = density === "compact" ? "var(--decs-density-compact-cell-y)" : "var(--decs-density-comfortable-cell-y)";
   const padX = density === "compact" ? "var(--decs-density-compact-cell-x)" : "var(--decs-density-comfortable-cell-x)";
   const keyOf = (it) => it[trackBy];
@@ -56,7 +58,7 @@ export function Table({
               {selectionType ? (
                 <th style={{ ...cellBase, width: "40px", background: "var(--decs-surface-sunken)" }}>
                   {selectionType === "multi" ? (
-                    <input type="checkbox" checked={allSelected} onChange={toggleAll} aria-label="전체 선택" style={{ accentColor: "var(--decs-action-primary)" }} />
+                    <input type="checkbox" checked={allSelected} onChange={toggleAll} aria-label={t("ds.selectAll")} style={{ accentColor: "var(--decs-action-primary)" }} />
                   ) : null}
                 </th>
               ) : null}
@@ -79,7 +81,7 @@ export function Table({
           </thead>
           <tbody>
             {items.length === 0 ? (
-              <tr><td colSpan={columns.length + (selectionType ? 1 : 0)} style={{ ...cellBase, textAlign: "center", padding: "var(--decs-space-xxl)", color: "var(--decs-text-secondary)" }}>{loading ? "불러오는 중…" : empty || "표시할 항목이 없습니다."}</td></tr>
+              <tr><td colSpan={columns.length + (selectionType ? 1 : 0)} style={{ ...cellBase, textAlign: "center", padding: "var(--decs-space-xxl)", color: "var(--decs-text-secondary)" }}>{loading ? t("ds.loading") : empty || t("ds.empty")}</td></tr>
             ) : items.map((it) => {
               const isSel = selectedKeys.has(keyOf(it));
               return (
@@ -88,7 +90,7 @@ export function Table({
                     onMouseLeave={(e) => { e.currentTarget.style.background = isSel ? "var(--decs-surface-selected)" : "transparent"; }}>
                   {selectionType ? (
                     <td style={{ ...cellBase, textAlign: "center" }}>
-                      <input type={selectionType === "single" ? "radio" : "checkbox"} checked={isSel} onChange={() => toggleRow(it)} aria-label="행 선택" style={{ accentColor: "var(--decs-action-primary)" }} />
+                      <input type={selectionType === "single" ? "radio" : "checkbox"} checked={isSel} onChange={() => toggleRow(it)} aria-label={t("ds.selectRow")} style={{ accentColor: "var(--decs-action-primary)" }} />
                     </td>
                   ) : null}
                   {columns.map((col) => (
