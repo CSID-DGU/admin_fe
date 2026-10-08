@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 
 /**
  * ProgressBar — determinate progress for long operations (provisioning, image pull).
@@ -11,6 +12,7 @@ const FILL = {
 };
 
 export function ProgressBar({ value = 0, status = "in-progress", label, description, resultText, style }) {
+  const { t } = useTranslation();
   const pct = Math.max(0, Math.min(100, value));
   const done = status !== "in-progress";
   return (
@@ -29,7 +31,7 @@ export function ProgressBar({ value = 0, status = "in-progress", label, descript
           aria-valuenow={pct}
           aria-valuemin={0}
           aria-valuemax={100}
-          aria-label={label || description || "진행률"}
+          aria-label={label || description || t("ds.progress")}
           style={{ height: "4px", borderRadius: "9999px", background: "var(--decs-grey-200)", overflow: "hidden" }}
         >
           <div style={{ width: pct + "%", height: "100%", background: FILL[status], borderRadius: "9999px", transition: "width var(--decs-motion-slow) var(--decs-easing)" }} />

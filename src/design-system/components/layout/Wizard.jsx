@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { Icon } from "../icons/Icon.jsx";
 import { Button } from "../forms/Button.jsx";
 
@@ -7,7 +8,8 @@ import { Button } from "../forms/Button.jsx";
  * GPU-request flow (사용 목적 → GPU → 기간 → 개발 환경 → 확인) is the canonical use.
  * Controlled: pass activeStepIndex + onNavigate. steps: [{ title, content, description? }]
  */
-export function Wizard({ steps = [], activeStepIndex = 0, onNavigate, onCancel, onSubmit, submitLabel = "제출", isLoadingNextStep = false, style }) {
+export function Wizard({ steps = [], activeStepIndex = 0, onNavigate, onCancel, onSubmit, submitLabel, isLoadingNextStep = false, style }) {
+  const { t } = useTranslation();
   const step = steps[activeStepIndex] || {};
   const isLast = activeStepIndex === steps.length - 1;
   const go = (i) => onNavigate?.(Math.max(0, Math.min(steps.length - 1, i)));
@@ -49,18 +51,18 @@ export function Wizard({ steps = [], activeStepIndex = 0, onNavigate, onCancel, 
       {/* Step content */}
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ fontSize: "var(--decs-fs-body-s)", color: "var(--decs-text-inactive)", marginBottom: "var(--decs-space-xxs)" }}>
-          단계 {activeStepIndex + 1} / {steps.length}
+          {t("ds.stepOf", { current: activeStepIndex + 1, total: steps.length })}
         </div>
         <h2 style={{ margin: 0, fontSize: "var(--decs-fs-heading-l)", lineHeight: "var(--decs-lh-heading-l)", fontWeight: "var(--decs-fw-bold)", color: "var(--decs-text-heading)" }}>{step.title}</h2>
         {step.description ? <p style={{ margin: "var(--decs-space-xxs) 0 0", color: "var(--decs-text-secondary)", fontSize: "var(--decs-fs-body-m)" }}>{step.description}</p> : null}
         <div style={{ marginTop: "var(--decs-space-xl)" }}>{step.content}</div>
 
         <div style={{ display: "flex", justifyContent: "flex-end", gap: "var(--decs-space-xs)", marginTop: "var(--decs-space-xl)", paddingTop: "var(--decs-space-m)", borderTop: "1px solid var(--decs-border-divider)" }}>
-          <Button variant="link" onClick={onCancel}>취소</Button>
-          {activeStepIndex > 0 ? <Button variant="normal" onClick={() => go(activeStepIndex - 1)}>이전</Button> : null}
+          <Button variant="link" onClick={onCancel}>{t("common.cancel")}</Button>
+          {activeStepIndex > 0 ? <Button variant="normal" onClick={() => go(activeStepIndex - 1)}>{t("ds.previous")}</Button> : null}
           {isLast
-            ? <Button variant="primary" loading={isLoadingNextStep} onClick={onSubmit}>{submitLabel}</Button>
-            : <Button variant="primary" loading={isLoadingNextStep} onClick={() => go(activeStepIndex + 1)}>다음</Button>}
+            ? <Button variant="primary" loading={isLoadingNextStep} onClick={onSubmit}>{submitLabel ?? t("ds.submit")}</Button>
+            : <Button variant="primary" loading={isLoadingNextStep} onClick={() => go(activeStepIndex + 1)}>{t("ds.next")}</Button>}
         </div>
       </div>
     </div>

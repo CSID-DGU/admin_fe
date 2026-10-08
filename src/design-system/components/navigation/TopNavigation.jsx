@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { Icon } from "../icons/Icon.jsx";
 
 /**
@@ -7,6 +8,7 @@ import { Icon } from "../icons/Icon.jsx";
  * utilities: [{ type:"button", text?, iconName?, badge?, onClick } | { type:"menu", text, iconName?, items:[] } | { type:"custom", content:<node> }]
  */
 export function TopNavigation({ identity, utilities = [], navigationOpen, onNavigationToggle, style }) {
+  const { t } = useTranslation();
   const [openMenu, setOpenMenu] = React.useState(null);
 
   return (
@@ -17,7 +19,7 @@ export function TopNavigation({ identity, utilities = [], navigationOpen, onNavi
       fontFamily: "var(--decs-font-base)", ...style,
     }}>
       <div style={{ display: "flex", alignItems: "center", minWidth: 0 }}>
-        {onNavigationToggle ? <button onClick={onNavigationToggle} aria-label={navigationOpen ? "메뉴 닫기" : "메뉴 열기"} style={{ display: "inline-flex", background: "none", border: "none", color: "var(--decs-text-inverse)", cursor: "pointer", padding: "var(--decs-space-xs)", marginRight: "var(--decs-space-xxs)" }}><Icon name={navigationOpen ? "x-mark" : "bars-3"} size={20} /></button> : null}
+        {onNavigationToggle ? <button onClick={onNavigationToggle} aria-label={navigationOpen ? t("ds.closeMenu") : t("ds.openMenu")} style={{ display: "inline-flex", background: "none", border: "none", color: "var(--decs-text-inverse)", cursor: "pointer", padding: "var(--decs-space-xs)", marginRight: "var(--decs-space-xxs)" }}><Icon name={navigationOpen ? "x-mark" : "bars-3"} size={20} /></button> : null}
         <a href={identity?.href || "#"} onClick={(e) => { if (identity?.onFollow) { e.preventDefault(); identity.onFollow(); } }}
            style={{ display: "flex", alignItems: "center", minWidth: 0, gap: "var(--decs-space-xs)", textDecoration: "none", color: "var(--decs-text-inverse)" }}>
           {identity?.logo ? <img src={identity.logo} alt="" style={{ height: "22px", width: "auto" }} /> : null}

@@ -71,7 +71,7 @@ function toExtraPort(port) {
   const internalPort = getInternalPort(port);
   const externalPort = getExternalPort(port);
   const publicPort = toPublicPort(externalPort);
-  const purpose = String(getUsagePurpose(port) || `포트 ${internalPort}`);
+  const purpose = String(getUsagePurpose(port) || i18n.t("data.portDefault", { port: internalPort }));
 
   // noVNC는 컨테이너가 websockify로 웹 페이지를 띄우므로 브라우저 주소로 안내할 수 있다.
   // 그 밖의 추가 포트는 사용자가 무엇을 띄울지 모르니(HTTP라는 보장이 없다) 주소만 알려준다.
@@ -137,7 +137,7 @@ export function mapAdminContainer(dto) {
     user: dto.ubuntuUsername ?? dto.userName ?? "—",
     userName: dto.userName,
     podName: dto.podName,
-    gpu: dto.resourceGroupId != null ? `리소스 그룹 ${dto.resourceGroupId}` : "—",
+    gpu: dto.resourceGroupId != null ? i18n.t("data.resourceGroup", { id: dto.resourceGroupId }) : "—",
     node: detail.nodeName ?? dto.nodeName ?? "—",
     namespace: detail.namespace ?? "—",
     hostIP: detail.hostIP ?? "—",
@@ -196,7 +196,7 @@ export function mapUserServer(dto) {
     id: dto.requestId,
     extraPorts,
     gpuName: resourceGroup.resourceGroupName ?? dto.resourceGroupName ?? (
-      dto.resourceGroupId != null ? `리소스 그룹 ${dto.resourceGroupId}` : "—"
+      dto.resourceGroupId != null ? i18n.t("data.resourceGroup", { id: dto.resourceGroupId }) : "—"
     ),
     statusType: status.type,
     statusLabel: status.label,

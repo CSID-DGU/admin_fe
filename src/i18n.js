@@ -12,4 +12,9 @@ i18n.use(LanguageDetector).use(initReactI18next).init({
   interpolation: { escapeValue: false }
 });
 
+// 화면 읽기 프로그램과 브라우저 번역 기능이 문서 언어를 알 수 있게 html lang을 현재 언어에 맞춘다.
+const syncDocumentLang = (language) => { document.documentElement.lang = language; };
+syncDocumentLang(i18n.resolvedLanguage);
+i18n.on("languageChanged", syncDocumentLang);
+
 export default i18n;

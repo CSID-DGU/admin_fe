@@ -1,4 +1,6 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
+import i18n from "../i18n";
 import {
   Alert,
   Button,
@@ -12,6 +14,7 @@ import {
 import { requestService } from "../services/requestService";
 
 const MyChangeRequestsPage = () => {
+  const { t } = useTranslation();
   const [changeRequests, setChangeRequests] = useState([]);
   const [selectedChangeRequest, setSelectedChangeRequest] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -33,7 +36,7 @@ const MyChangeRequestsPage = () => {
           setAlert({
             type: "error",
             message:
-              "변경 요청 목록을 불러올 수 없습니다. 페이지를 새로고침하거나 잠시 후 다시 시도해주세요.",
+              i18n.t("changes.loadFailed"),
           });
         }
       } catch (error) {
@@ -41,7 +44,7 @@ const MyChangeRequestsPage = () => {
         setAlert({
           type: "error",
           message:
-            "변경 요청 목록 로딩 중 네트워크 오류가 발생했습니다. 인터넷 연결을 확인하시고 페이지를 새로고침해주세요.",
+            i18n.t("changes.loadNetworkFailed"),
         });
       } finally {
         setIsLoading(false);
@@ -76,13 +79,13 @@ const MyChangeRequestsPage = () => {
   const getStatusIndicator = (status) => {
     switch (status) {
       case "PENDING":
-        return <StatusIndicator type="pending">대기중</StatusIndicator>;
+        return <StatusIndicator type="pending">{t("requests.status.PENDING")}</StatusIndicator>;
       case "PROCESSING":
-        return <StatusIndicator type="in-progress">반영 중</StatusIndicator>;
+        return <StatusIndicator type="in-progress">{t("changes.applying")}</StatusIndicator>;
       case "FULFILLED":
-        return <StatusIndicator type="success">승인됨</StatusIndicator>;
+        return <StatusIndicator type="success">{t("requests.status.FULFILLED")}</StatusIndicator>;
       case "DENIED":
-        return <StatusIndicator type="error">거절됨</StatusIndicator>;
+        return <StatusIndicator type="error">{t("requests.status.DENIED")}</StatusIndicator>;
       default:
         return <StatusIndicator type="info">{status}</StatusIndicator>;
     }
@@ -91,15 +94,15 @@ const MyChangeRequestsPage = () => {
   const getChangeTypeDisplay = (changeType) => {
     switch (changeType) {
       case "EXPIRES_AT":
-        return "만료일";
+        return t("changes.type.EXPIRES_AT");
       case "RESOURCE_GROUP":
-        return "리소스 그룹";
+        return t("changes.type.RESOURCE_GROUP");
       case "CONTAINER_IMAGE":
-        return "컨테이너 이미지";
+        return t("changes.type.IMAGE");
       case "GROUP":
-        return "그룹";
+        return t("changes.type.GROUP");
       case "PORT":
-        return "포트 매핑";
+        return t("changes.type.PORT");
       default:
         return changeType;
     }
@@ -109,13 +112,13 @@ const MyChangeRequestsPage = () => {
     if (changeType === "EXPIRES_AT") {
       // 날짜 형식으로 포맷팅
       if (value) {
-        return new Date(value).toLocaleDateString("ko-KR", {
+        return new Date(value).toLocaleDateString(i18n.resolvedLanguage, {
           year: "numeric",
           month: "long",
           day: "numeric",
         });
       }
-      return "날짜 없음";
+      return t("changes.noDate");
     } else if (changeType === "RESOURCE_GROUP") {
       // 리소스 그룹 ID 또는 이름 표시
       return value;
@@ -133,17 +136,17 @@ const MyChangeRequestsPage = () => {
     } else if (changeType === "PORT") {
       if (Array.isArray(value)) {
         if (value.length === 0) {
-          return "포트 없음";
+          return t("changes.noPorts");
         }
-        return value.map(port => `${port.internalPort} (${port.usagePurpose || "목적 없음"})`).join(", ");
+        return value.map(port => `${port.internalPort} (${port.usagePurpose || t("changes.noPurpose")})`).join(", ");
       }
-      return "포트 없음";
+      return t("changes.noPorts");
     }
     return value;
   };
 
   const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString("ko-KR", {
+    return new Date(dateString).toLocaleDateString(i18n.resolvedLanguage, {
       year: "numeric",
       month: "long",
       day: "numeric",
@@ -156,7 +159,7 @@ const MyChangeRequestsPage = () => {
     return (
       <div className="flex items-center justify-center h-64">
         <StatusIndicator type="loading">
-          변경 요청 목록을 불러오고 있어요
+          {t("changes.loading")}
         </StatusIndicator>
       </div>
     );
@@ -168,19 +171,13 @@ const MyChangeRequestsPage = () => {
         <div className="text-center py-12 space-y-2">
           <p className="text-(--decs-text-heading) font-bold">
             {filter === "ALL"
-              ? "변경 요청이 없어요"
-              : `${
-                  filter === "PENDING"
-                    ? "대기중인"
-                    : filter === "FULFILLED"
-                    ? "승인된"
-                    : "거절된"
-                } 변경 요청이 없어요`}
+              ? t("changes.emptyAll")
+              : t(`changes.emptyFiltered.${filter}`)}
           </p>
           <p className="text-(--decs-text-secondary)">
             {filter === "ALL"
-              ? "변경 요청을 제출하면 이곳에서 바로 확인할 수 있어요."
-              : "다른 상태의 변경 요청을 확인해 보세요."}
+              ? t("changes.emptyAllHint")
+              : t("changes.emptyFilteredHint")}
           </p>
         </div>
       </Container>
@@ -197,12 +194,12 @@ const MyChangeRequestsPage = () => {
                     variant="normal"
                     onClick={() => setSelectedChangeRequest(changeRequest)}
                   >
-                    상세보기
+                    {t("requests.detail")}
                   </Button>
                 }
               >
                 <span className="inline-flex items-center gap-3">
-                  변경 요청 #{changeRequest.changeRequestId}
+                  {t("changes.itemTitle", { id: changeRequest.changeRequestId })}
                   {getStatusIndicator(changeRequest.status)}
                 </span>
               </Header>
@@ -215,18 +212,18 @@ const MyChangeRequestsPage = () => {
                   columns={3}
                   items={[
                     {
-                      label: "변경 유형",
+                      label: t("changes.changeType"),
                       value: getChangeTypeDisplay(changeRequest.changeType),
                     },
                     {
-                      label: "이전 값",
+                      label: t("changes.oldValue"),
                       value: formatChangeValue(
                         changeRequest.changeType,
                         changeRequest.oldValue
                       ),
                     },
                     {
-                      label: "새로운 값",
+                      label: t("changes.newValue"),
                       value: formatChangeValue(
                         changeRequest.changeType,
                         changeRequest.newValue
@@ -237,7 +234,7 @@ const MyChangeRequestsPage = () => {
                 <KeyValuePairs
                   columns={1}
                   items={[
-                    { label: "변경 사유", value: changeRequest.reason },
+                    { label: t("changes.reason"), value: changeRequest.reason },
                   ]}
                 />
               </div>
@@ -247,15 +244,15 @@ const MyChangeRequestsPage = () => {
                 columns={3}
                 items={[
                   {
-                    label: "원본 요청 ID",
+                    label: t("changes.originalRequestId"),
                     value: `#${changeRequest.originalRequestId}`,
                   },
                   {
-                    label: "요청 일시",
+                    label: t("changes.requestedAt"),
                     value: formatDate(changeRequest.createdAt),
                   },
                   {
-                    label: "변경 유형",
+                    label: t("changes.changeType"),
                     value: getChangeTypeDisplay(changeRequest.changeType),
                   },
                 ]}
@@ -263,24 +260,23 @@ const MyChangeRequestsPage = () => {
 
               {/* Status-specific information */}
               {changeRequest.status === "FULFILLED" && (
-                <Alert type="success" header="승인이 완료됐어요">
+                <Alert type="success" header={t("requests.approvedTitle")}>
                   {changeRequest.adminComment ||
-                    "변경 요청이 승인되었습니다."}
+                    t("changes.approvedDefault")}
                 </Alert>
               )}
 
               {changeRequest.status === "DENIED" && (
-                <Alert type="error" header="변경 요청이 거절됐어요">
-                  사유:{" "}
+                <Alert type="error" header={t("changes.deniedTitle")}>
+                  {t("changes.reasonPrefix")}{" "}
                   {changeRequest.adminComment ||
-                    "변경 요청이 거절되었습니다."}
+                    t("changes.deniedDefault")}
                 </Alert>
               )}
 
               {changeRequest.status === "PENDING" && (
-                <Alert type="info" header="승인을 기다리고 있어요">
-                  관리자가 검토 중이에요. 검토가 끝나면 이곳에서 결과를 확인할
-                  수 있어요.
+                <Alert type="info" header={t("requests.pendingTitle")}>
+                  {t("changes.pendingBody")}
                 </Alert>
               )}
             </div>
@@ -290,10 +286,10 @@ const MyChangeRequestsPage = () => {
     );
 
   const filterTabs = [
-    { key: "ALL", label: "전체" },
-    { key: "PENDING", label: "대기중" },
-    { key: "FULFILLED", label: "승인됨" },
-    { key: "DENIED", label: "거절됨" },
+    { key: "ALL", label: t("requests.filterAll") },
+    { key: "PENDING", label: t("requests.status.PENDING") },
+    { key: "FULFILLED", label: t("requests.status.FULFILLED") },
+    { key: "DENIED", label: t("requests.status.DENIED") },
   ].map((tab) => ({
     id: tab.key,
     label: `${tab.label} (${statusCounts[tab.key]})`,
@@ -311,9 +307,9 @@ const MyChangeRequestsPage = () => {
       {/* Header */}
       <Header
         variant="h1"
-        description="제출한 서버 변경 요청의 처리 상태를 확인할 수 있어요."
+        description={t("changes.description")}
       >
-        내 변경 요청 현황
+        {t("changes.title")}
       </Header>
 
       {/* Status Filter + List */}
@@ -327,7 +323,7 @@ const MyChangeRequestsPage = () => {
           onDismiss={() => setSelectedChangeRequest(null)}
           header={
             <span className="inline-flex items-center gap-3">
-              변경 요청 상세 정보
+              {t("changes.detailTitle")}
               {getStatusIndicator(selectedChangeRequest.status)}
             </span>
           }
@@ -336,7 +332,7 @@ const MyChangeRequestsPage = () => {
               variant="normal"
               onClick={() => setSelectedChangeRequest(null)}
             >
-              닫기
+              {t("common.close")}
             </Button>
           }
         >
@@ -347,26 +343,26 @@ const MyChangeRequestsPage = () => {
 
             {/* Change Information */}
             <div className="space-y-3">
-              <Header variant="h3">변경 내용</Header>
+              <Header variant="h3">{t("changes.changeContent")}</Header>
               <div className="bg-(--decs-surface-sunken) rounded-(--decs-radius-item) p-4 space-y-3">
                 <KeyValuePairs
                   columns={3}
                   items={[
                     {
-                      label: "변경 유형",
+                      label: t("changes.changeType"),
                       value: getChangeTypeDisplay(
                         selectedChangeRequest.changeType
                       ),
                     },
                     {
-                      label: "이전 값",
+                      label: t("changes.oldValue"),
                       value: formatChangeValue(
                         selectedChangeRequest.changeType,
                         selectedChangeRequest.oldValue
                       ),
                     },
                     {
-                      label: "새로운 값",
+                      label: t("changes.newValue"),
                       value: formatChangeValue(
                         selectedChangeRequest.changeType,
                         selectedChangeRequest.newValue
@@ -378,7 +374,7 @@ const MyChangeRequestsPage = () => {
                   columns={1}
                   items={[
                     {
-                      label: "변경 사유",
+                      label: t("changes.reason"),
                       value: selectedChangeRequest.reason,
                     },
                   ]}
@@ -388,24 +384,24 @@ const MyChangeRequestsPage = () => {
 
             {/* Request Information */}
             <div className="space-y-3">
-              <Header variant="h3">요청 정보</Header>
+              <Header variant="h3">{t("changes.requestInfo")}</Header>
               <KeyValuePairs
                 columns={2}
                 items={[
                   {
-                    label: "변경 요청 ID",
+                    label: t("changes.changeRequestId"),
                     value: selectedChangeRequest.changeRequestId,
                   },
                   {
-                    label: "원본 요청 ID",
+                    label: t("changes.originalRequestId"),
                     value: `#${selectedChangeRequest.originalRequestId}`,
                   },
                   {
-                    label: "요청 일시",
+                    label: t("changes.requestedAt"),
                     value: formatDate(selectedChangeRequest.createdAt),
                   },
                   {
-                    label: "처리 상태",
+                    label: t("changes.processStatus"),
                     value: getStatusIndicator(selectedChangeRequest.status),
                   },
                 ]}
@@ -416,7 +412,7 @@ const MyChangeRequestsPage = () => {
             {(selectedChangeRequest.status === "FULFILLED" ||
               selectedChangeRequest.status === "DENIED") && (
               <div className="space-y-3">
-                <Header variant="h3">처리 결과</Header>
+                <Header variant="h3">{t("changes.result")}</Header>
                 <Alert
                   type={
                     selectedChangeRequest.status === "FULFILLED"
@@ -425,15 +421,15 @@ const MyChangeRequestsPage = () => {
                   }
                   header={
                     selectedChangeRequest.status === "FULFILLED"
-                      ? "승인이 완료됐어요"
-                      : "변경 요청이 거절됐어요"
+                      ? t("requests.approvedTitle")
+                      : t("changes.deniedTitle")
                   }
                 >
-                  관리자 메시지:{" "}
+                  {t("changes.adminMessagePrefix")}{" "}
                   {selectedChangeRequest.adminComment ||
                     (selectedChangeRequest.status === "FULFILLED"
-                      ? "변경 요청이 승인되었습니다."
-                      : "변경 요청이 거절되었습니다.")}
+                      ? t("changes.approvedDefault")
+                      : t("changes.deniedDefault"))}
                 </Alert>
               </div>
             )}

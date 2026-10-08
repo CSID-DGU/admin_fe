@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { Icon } from "../icons/Icon.jsx";
 import { Button } from "./Button.jsx";
 
@@ -7,7 +8,9 @@ import { Button } from "./Button.jsx";
  * per-row action menus in admin tables (Restart / Stop / Logs / Delete).
  * Items with variant "danger" render in the error color.
  */
-export function ButtonDropdown({ items = [], children = "작업", variant = "normal", trigger = "label", ariaLabel, onItemClick, style }) {
+export function ButtonDropdown({ items = [], children: childrenProp, variant = "normal", trigger = "label", ariaLabel, onItemClick, style }) {
+  const { t } = useTranslation();
+  const children = childrenProp ?? t("ds.actions");
   const [open, setOpen] = React.useState(false);
   const ref = React.useRef(null);
 
@@ -35,7 +38,7 @@ export function ButtonDropdown({ items = [], children = "작업", variant = "nor
         <Button
           variant="icon"
           iconName="ellipsis-vertical"
-          ariaLabel={ariaLabel ?? (typeof children === "string" ? children : "작업")}
+          ariaLabel={ariaLabel ?? (typeof children === "string" ? children : t("ds.actions"))}
           onClick={() => setOpen((o) => !o)}
         />
       ) : (

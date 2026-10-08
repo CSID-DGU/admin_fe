@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
+import i18n from "../i18n";
 import {
   Alert,
   Badge,
@@ -18,6 +20,7 @@ import { formAnswerLabel, visibleFormAnswers } from "../utils/formAnswers";
 import { PUBLIC_HOST, toPublicPort } from "../utils/publicEndpoint";
 
 const RequestStatusPage = ({ onChanged }) => {
+  const { t } = useTranslation();
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedRequest, setSelectedRequest] = useState(null);
@@ -32,12 +35,12 @@ const RequestStatusPage = ({ onChanged }) => {
     setCancelling(true);
     try {
       await requestService.cancelRequest(cancelTarget.request_id);
-      setAlert({ type: "success", message: "신청을 취소했어요. 이제 새로 신청할 수 있어요." });
+      setAlert({ type: "success", message: t("requests.cancelDone") });
       setReloadKey((key) => key + 1);
       onChanged?.();
     } catch (error) {
       // 그 사이 관리자가 승인을 시작했으면 서버가 취소를 거절한다 — 목록을 다시 읽어 지금 상태를 보여 준다.
-      setAlert({ type: "error", message: error.message || "신청을 취소하지 못했어요. 잠시 뒤에 다시 해 주세요." });
+      setAlert({ type: "error", message: error.message || t("requests.cancelFailed") });
       setReloadKey((key) => key + 1);
     } finally {
       setCancelling(false);
@@ -63,7 +66,7 @@ const RequestStatusPage = ({ onChanged }) => {
           setAlert({
             type: "error",
             message:
-              "요청 목록을 불러오는 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.",
+              i18n.t("requests.loadFailed"),
           });
         }
       } catch (error) {
@@ -71,7 +74,7 @@ const RequestStatusPage = ({ onChanged }) => {
         setAlert({
           type: "error",
           message:
-            "요청 목록을 불러오는 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.",
+            i18n.t("requests.loadFailed"),
         });
       } finally {
         setLoading(false);
@@ -86,20 +89,20 @@ const RequestStatusPage = ({ onChanged }) => {
   const getStatusIndicator = (status) => {
     switch (status) {
       case "PENDING":
-        return <StatusIndicator type="pending">대기중</StatusIndicator>;
+        return <StatusIndicator type="pending">{t("requests.status.PENDING")}</StatusIndicator>;
       case "FULFILLED":
-        return <StatusIndicator type="success">승인됨</StatusIndicator>;
+        return <StatusIndicator type="success">{t("requests.status.FULFILLED")}</StatusIndicator>;
       case "DENIED":
-        return <StatusIndicator type="error">거절됨</StatusIndicator>;
+        return <StatusIndicator type="error">{t("requests.status.DENIED")}</StatusIndicator>;
       case "DELETED":
-        return <StatusIndicator type="stopped">삭제됨</StatusIndicator>;
+        return <StatusIndicator type="stopped">{t("requests.status.DELETED")}</StatusIndicator>;
       default:
         return <StatusIndicator type="info">{status}</StatusIndicator>;
     }
   };
 
   const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString("ko-KR", {
+    return new Date(dateString).toLocaleDateString(i18n.resolvedLanguage, {
       year: "numeric",
       month: "long",
       day: "numeric",
@@ -135,7 +138,7 @@ const RequestStatusPage = ({ onChanged }) => {
     return (
       <div className="flex items-center justify-center h-64">
         <StatusIndicator type="loading">
-          신청 현황을 불러오고 있어요
+          {t("requests.loading")}
         </StatusIndicator>
       </div>
     );
@@ -147,21 +150,13 @@ const RequestStatusPage = ({ onChanged }) => {
         <div className="text-center py-12 space-y-2">
           <p className="text-(--decs-text-heading) font-bold">
             {filter === "ALL"
-              ? "아직 신청한 서버가 없어요"
-              : `${
-                  filter === "PENDING"
-                    ? "대기중인"
-                    : filter === "FULFILLED"
-                    ? "승인된"
-                    : filter === "DENIED"
-                    ? "거절된"
-                    : "삭제된"
-                } 신청이 없어요`}
+              ? t("requests.emptyAll")
+              : t(`requests.emptyFiltered.${filter}`)}
           </p>
           <p className="text-(--decs-text-secondary)">
             {filter === "ALL"
-              ? "새 신청을 하면 이곳에서 바로 확인할 수 있어요."
-              : "다른 상태의 신청을 확인해 보세요."}
+              ? t("requests.emptyAllHint")
+              : t("requests.emptyFilteredHint")}
           </p>
         </div>
       </Container>
@@ -177,14 +172,14 @@ const RequestStatusPage = ({ onChanged }) => {
                   <span className="inline-flex items-center gap-2">
                     {request.status === "PENDING" && (
                       <Button variant="normal" onClick={() => setCancelTarget(request)}>
-                        신청 취소
+                        {t("requests.cancel")}
                       </Button>
                     )}
                     <Button
                       variant="normal"
                       onClick={() => setSelectedRequest(request)}
                     >
-                      상세보기
+                      {t("requests.detail")}
                     </Button>
                   </span>
                 }
@@ -200,23 +195,23 @@ const RequestStatusPage = ({ onChanged }) => {
               <KeyValuePairs
                 columns={4}
                 items={[
-                  { label: "리소스 그룹", value: request.rsgroup_name },
+                  { label: t("requests.resourceGroup"), value: request.rsgroup_name },
                   {
-                    label: "이미지",
+                    label: t("requests.image"),
                     value: `${request.image_name}:${request.image_version}`,
                   },
                   {
-                    label: "만료일",
+                    label: t("requests.expiresAt"),
                     value: new Date(request.expires_at).toLocaleDateString(
                       "ko-KR"
                     ),
                   },
-                  { label: "서버", value: request.server_name },
-                  { label: "Ubuntu 계정", value: request.ubuntu_username },
-                  { label: "신청일", value: formatDate(request.created_at) },
+                  { label: t("requests.server"), value: request.server_name },
+                  { label: t("requests.ubuntuAccount"), value: request.ubuntu_username },
+                  { label: t("requests.createdAt"), value: formatDate(request.created_at) },
                   {
-                    label: "공유 그룹",
-                    value: request.requested_group_labels.join(", ") || "없음",
+                    label: t("requests.sharedGroup"),
+                    value: request.requested_group_labels.join(", ") || t("common.none"),
                   },
                 ]}
               />
@@ -228,7 +223,7 @@ const RequestStatusPage = ({ onChanged }) => {
                 return (
                   <div>
                     <p className="text-sm text-(--decs-text-inactive) mb-1">
-                      외부 포트
+                      {t("requests.externalPorts")}
                     </p>
                     <div className="flex flex-wrap gap-2">
                       {ports.map((port, index) => (
@@ -247,25 +242,25 @@ const RequestStatusPage = ({ onChanged }) => {
 
               <KeyValuePairs
                 columns={1}
-                items={[{ label: "사용 목적", value: request.usage_purpose }]}
+                items={[{ label: t("requests.purpose"), value: request.usage_purpose }]}
               />
 
               {/* Status-specific information */}
               {request.status === "FULFILLED" && request.approved_at && (
-                <Alert type="success" header="승인이 완료됐어요">
-                  승인일: {formatDate(request.approved_at)}
+                <Alert type="success" header={t("requests.approvedTitle")}>
+                  {t("requests.approvedOn", { date: formatDate(request.approved_at) })}
                 </Alert>
               )}
 
               {request.status === "DENIED" && request.admin_comment && (
-                <Alert type="error" header="신청이 거절됐어요">
+                <Alert type="error" header={t("requests.deniedTitle")}>
                   {request.admin_comment}
                 </Alert>
               )}
 
               {request.status === "PENDING" && (
-                <Alert type="info" header="승인을 기다리고 있어요">
-                  관리자 검토가 끝나면 이메일이나 Slack으로 알려 드려요. 알림을 확인해 주세요.
+                <Alert type="info" header={t("requests.pendingTitle")}>
+                  {t("requests.pendingBody")}
                 </Alert>
               )}
             </div>
@@ -275,11 +270,11 @@ const RequestStatusPage = ({ onChanged }) => {
     );
 
   const filterTabs = [
-    { key: "ALL", label: "전체" },
-    { key: "PENDING", label: "대기중" },
-    { key: "FULFILLED", label: "승인됨" },
-    { key: "DENIED", label: "거절됨" },
-    { key: "DELETED", label: "삭제됨" },
+    { key: "ALL", label: t("requests.filterAll") },
+    { key: "PENDING", label: t("requests.status.PENDING") },
+    { key: "FULFILLED", label: t("requests.status.FULFILLED") },
+    { key: "DENIED", label: t("requests.status.DENIED") },
+    { key: "DELETED", label: t("requests.status.DELETED") },
   ].map((tab) => ({
     id: tab.key,
     label: `${tab.label} (${statusCounts[tab.key]})`,
@@ -302,16 +297,16 @@ const RequestStatusPage = ({ onChanged }) => {
       {/* Header */}
       <Header
         variant="h1"
-        description="신청한 서버의 진행 상태를 한눈에 확인할 수 있어요."
+        description={t("requests.description")}
         actions={
           <Link to="/user/request">
             <Button variant="primary" iconName="plus">
-              새 신청
+              {t("requests.newRequest")}
             </Button>
           </Link>
         }
       >
-        신청 현황 조회
+        {t("requests.title")}
       </Header>
 
       {/* Status Filter + List */}
@@ -322,19 +317,19 @@ const RequestStatusPage = ({ onChanged }) => {
           visible
           dismissible={!cancelling}
           onDismiss={() => setCancelTarget(null)}
-          header="신청을 취소할까요?"
+          header={t("requests.cancelConfirmTitle")}
           footer={
             <span className="inline-flex items-center gap-2">
               <Button variant="normal" disabled={cancelling} onClick={() => setCancelTarget(null)}>
-                닫기
+                {t("common.close")}
               </Button>
               <Button variant="primary" loading={cancelling} disabled={cancelling} onClick={confirmCancel}>
-                신청 취소
+                {t("requests.cancel")}
               </Button>
             </span>
           }
         >
-          #{cancelTarget.request_id} 신청을 취소해요. 취소한 신청은 되돌릴 수 없고, 취소한 뒤에는 새로 신청할 수 있어요.
+          {t("requests.cancelConfirmBody", { id: cancelTarget.request_id })}
         </Modal>
       )}
 
@@ -346,13 +341,13 @@ const RequestStatusPage = ({ onChanged }) => {
           onDismiss={() => setSelectedRequest(null)}
           header={
             <span className="inline-flex items-center gap-3">
-              신청 상세 정보
+              {t("requests.detailTitle")}
               {getStatusIndicator(selectedRequest.status)}
             </span>
           }
           footer={
             <Button variant="normal" onClick={() => setSelectedRequest(null)}>
-              닫기
+              {t("common.close")}
             </Button>
           }
         >
@@ -363,31 +358,31 @@ const RequestStatusPage = ({ onChanged }) => {
 
             {/* User Information */}
             <div className="space-y-3">
-              <Header variant="h3">사용자 정보</Header>
+              <Header variant="h3">{t("requests.userInfo")}</Header>
               <KeyValuePairs
                 columns={2}
                 items={[
-                  { label: "이름", value: selectedRequest.user_name },
-                  { label: "이메일", value: selectedRequest.user_email },
-                  { label: "학번", value: selectedRequest.student_id },
-                  { label: "학과", value: selectedRequest.department },
+                  { label: t("auth.name"), value: selectedRequest.user_name },
+                  { label: t("auth.email"), value: selectedRequest.user_email },
+                  { label: t("auth.studentId"), value: selectedRequest.student_id },
+                  { label: t("auth.department"), value: selectedRequest.department },
                 ]}
               />
             </div>
 
             {/* Resource Group Information */}
             <div className="space-y-3">
-              <Header variant="h3">리소스 그룹 정보</Header>
+              <Header variant="h3">{t("requests.resourceGroupInfo")}</Header>
               <KeyValuePairs
                 columns={2}
                 items={[
                   {
-                    label: "리소스 그룹명",
+                    label: t("requests.resourceGroupName"),
                     value: selectedRequest.rsgroup_name,
                   },
-                  { label: "서버명", value: selectedRequest.server_name },
+                  { label: t("requests.serverName"), value: selectedRequest.server_name },
                   {
-                    label: "설명",
+                    label: t("requests.desc"),
                     value: selectedRequest.rsgroup_description,
                   },
                 ]}
@@ -396,27 +391,27 @@ const RequestStatusPage = ({ onChanged }) => {
 
             {/* Request Information */}
             <div className="space-y-3">
-              <Header variant="h3">신청 정보</Header>
+              <Header variant="h3">{t("requests.requestInfo")}</Header>
               <KeyValuePairs
                 columns={2}
                 items={[
                   {
-                    label: "Ubuntu 사용자명",
+                    label: t("auth.ubuntuUsername"),
                     value: selectedRequest.ubuntu_username,
                   },
                   {
-                    label: "컨테이너 이미지",
+                    label: t("requests.containerImage"),
                     value: `${selectedRequest.image_name}:${selectedRequest.image_version}`,
                   },
                   {
-                    label: "만료일",
+                    label: t("requests.expiresAt"),
                     value: new Date(
                       selectedRequest.expires_at
                     ).toLocaleDateString("ko-KR"),
                   },
                   {
-                    label: "공유 그룹",
-                    value: selectedRequest.requested_group_labels.join(", ") || "없음",
+                    label: t("requests.sharedGroup"),
+                    value: selectedRequest.requested_group_labels.join(", ") || t("common.none"),
                   },
                 ]}
               />
@@ -424,7 +419,7 @@ const RequestStatusPage = ({ onChanged }) => {
                 columns={1}
                 items={[
                   {
-                    label: "사용 목적",
+                    label: t("requests.purpose"),
                     value: selectedRequest.usage_purpose,
                   },
                 ]}
@@ -445,19 +440,19 @@ const RequestStatusPage = ({ onChanged }) => {
             {/* Server Access Information (for approved requests) */}
             {selectedRequest.status === "FULFILLED" && (
               <div className="space-y-3">
-                <Header variant="h3">서버 접속 정보</Header>
+                <Header variant="h3">{t("requests.connectionInfo")}</Header>
                 <div className="bg-(--decs-surface-sunken) rounded-(--decs-radius-item) p-4 space-y-4">
                   <KeyValuePairs
                     columns={2}
                     items={[
                       {
-                        label: "사용자명",
+                        label: t("requests.username"),
                         value: selectedRequest.ubuntu_username,
                         copyable: true,
                         copyText: selectedRequest.ubuntu_username,
                       },
                       {
-                        label: "리소스 그룹",
+                        label: t("requests.resourceGroup"),
                         value: selectedRequest.rsgroup_name,
                         copyable: true,
                         copyText: selectedRequest.rsgroup_name,
@@ -465,7 +460,7 @@ const RequestStatusPage = ({ onChanged }) => {
                       ...(selectedRequest.image_name
                         ? [
                             {
-                              label: "컨테이너 이미지",
+                              label: t("requests.containerImage"),
                               value: `${selectedRequest.image_name}:${selectedRequest.image_version}`,
                               copyable: true,
                               copyText: `${selectedRequest.image_name}:${selectedRequest.image_version}`,
@@ -510,10 +505,10 @@ const RequestStatusPage = ({ onChanged }) => {
                     const jupyterPublicPort = jupyterPort && toPublicPort(jupyterPort.externalPort);
                     const sshText = sshPublicPort
                       ? `ssh ${selectedRequest.ubuntu_username}@${PUBLIC_HOST} -p ${sshPublicPort}`
-                      : sshPort && `ssh ${selectedRequest.ubuntu_username}@<서버IP> -p ${sshPort.externalPort}`;
+                      : sshPort && `ssh ${selectedRequest.ubuntu_username}@${t("requests.serverIp")} -p ${sshPort.externalPort}`;
                     const jupyterText = jupyterPublicPort
                       ? `http://${PUBLIC_HOST}:${jupyterPublicPort}`
-                      : jupyterPort && `http://<서버IP>:${jupyterPort.externalPort}`;
+                      : jupyterPort && `http://${t("requests.serverIp")}:${jupyterPort.externalPort}`;
                     return (
                       <KeyValuePairs
                         columns={1}
@@ -521,7 +516,7 @@ const RequestStatusPage = ({ onChanged }) => {
                           ...(sshPort
                             ? [
                                 {
-                                  label: "SSH 접속",
+                                  label: t("requests.sshAccess"),
                                   value: sshText,
                                   copyable: true,
                                   copyText: sshText,
@@ -531,7 +526,7 @@ const RequestStatusPage = ({ onChanged }) => {
                           ...(jupyterPort
                             ? [
                                 {
-                                  label: "Jupyter 접속",
+                                  label: t("requests.jupyterAccess"),
                                   value: jupyterText,
                                   copyable: true,
                                   copyText: jupyterText,
@@ -541,9 +536,7 @@ const RequestStatusPage = ({ onChanged }) => {
                           ...otherPorts.map((port) => {
                             const publicPort = toPublicPort(port.externalPort);
                             return {
-                              label: `추가 포트${
-                                port.usagePurpose ? ` (${port.usagePurpose})` : ""
-                              }`,
+                              label: port.usagePurpose ? t("requests.extraPortWith", { purpose: port.usagePurpose }) : t("requests.extraPort"),
                               value: publicPort
                                 ? `${PUBLIC_HOST}:${publicPort} → ${port.internalPort}`
                                 : `${port.externalPort} → ${port.internalPort}`,
@@ -563,7 +556,7 @@ const RequestStatusPage = ({ onChanged }) => {
               if (!ports || ports.length === 0) return null;
               return (
                 <div className="space-y-3">
-                  <Header variant="h3">외부 포트 상세 정보</Header>
+                  <Header variant="h3">{t("requests.portDetailTitle")}</Header>
                   <div className="space-y-3">
                     {ports.map((port, index) => (
                       <div
@@ -574,29 +567,29 @@ const RequestStatusPage = ({ onChanged }) => {
                           columns={4}
                           items={[
                             {
-                              label: "외부 포트",
+                              label: t("requests.externalPort"),
                               value: String(port.externalPort),
                             },
                             {
-                              label: "내부 포트",
+                              label: t("requests.internalPort"),
                               value: String(port.internalPort),
                             },
                             {
-                              label: "상태",
+                              label: t("requests.portStatus"),
                               value:
                                 port.isActive !== false ? (
                                   <StatusIndicator type="success">
-                                    활성
+                                    {t("common.active")}
                                   </StatusIndicator>
                                 ) : (
                                   <StatusIndicator type="stopped">
-                                    비활성
+                                    {t("common.inactive")}
                                   </StatusIndicator>
                                 ),
                             },
                             {
-                              label: "사용 목적",
-                              value: port.usagePurpose || "지정되지 않음",
+                              label: t("requests.purpose"),
+                              value: port.usagePurpose || t("requests.notSpecified"),
                             },
                           ]}
                         />
@@ -609,22 +602,22 @@ const RequestStatusPage = ({ onChanged }) => {
 
             {/* Status History */}
             <div className="space-y-3">
-              <Header variant="h3">처리 이력</Header>
+              <Header variant="h3">{t("requests.history")}</Header>
               <div className="space-y-2">
                 <StatusIndicator type="info">
-                  신청 제출: {formatDate(selectedRequest.created_at)}
+                  {t("requests.submittedOn", { date: formatDate(selectedRequest.created_at) })}
                 </StatusIndicator>
                 {selectedRequest.approved_at && (
                   <div>
                     <StatusIndicator type="success">
-                      승인 완료: {formatDate(selectedRequest.approved_at)}
+                      {t("requests.approvedDoneOn", { date: formatDate(selectedRequest.approved_at) })}
                     </StatusIndicator>
                   </div>
                 )}
                 {selectedRequest.status === "DENIED" && (
                   <div>
                     <StatusIndicator type="error">
-                      거절: {formatDate(selectedRequest.updated_at)}
+                      {t("requests.deniedOn", { date: formatDate(selectedRequest.updated_at) })}
                     </StatusIndicator>
                   </div>
                 )}
@@ -635,7 +628,7 @@ const RequestStatusPage = ({ onChanged }) => {
                     columns={1}
                     items={[
                       {
-                        label: "관리자 의견",
+                        label: t("requests.adminComment"),
                         value: selectedRequest.admin_comment,
                       },
                     ]}

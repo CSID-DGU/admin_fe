@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { Icon } from "../icons/Icon.jsx";
 
 /**
@@ -39,6 +40,7 @@ async function copyToClipboard(text) {
  * item.multiline keeps the value's line breaks (free text a user typed).
  */
 function CopyValue({ text }) {
+  const { t } = useTranslation();
   const [copied, setCopied] = React.useState(false);
   return (
     <span style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}>
@@ -51,7 +53,7 @@ function CopyValue({ text }) {
             setTimeout(() => setCopied(false), 1200);
           }
         }}
-        aria-label="복사" style={{ background: "none", border: "none", cursor: "pointer", color: copied ? "var(--decs-status-success)" : "var(--decs-text-secondary)", display: "inline-flex", padding: 0 }}
+        aria-label={t("ds.copy")} style={{ background: "none", border: "none", cursor: "pointer", color: copied ? "var(--decs-status-success)" : "var(--decs-text-secondary)", display: "inline-flex", padding: 0 }}
       >
         <Icon name={copied ? "check" : "clipboard"} size={14} />
       </button>

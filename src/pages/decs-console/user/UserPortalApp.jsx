@@ -21,7 +21,7 @@ function UserPortalApp() {
   const { user, logout } = useAuth();
   const { t, i18n } = useTranslation();
   const { server, servers, expiryDays, activities, awaitingRequestId, gpuOptions, envOptions, groupOptions, error, refetch } = useDecsUserData();
-  const userName = user?.name || user?.email || "사용자";
+  const userName = user?.name || user?.email || t("portal.defaultUserName");
   const isAdmin = user?.role === "ADMIN";
 
   const nav = {
@@ -56,21 +56,21 @@ function UserPortalApp() {
   async function submitRequest(form) {
     const response = await requestService.createRequest(toRequestPayload(form));
     if (response.status !== 200 && response.status !== 201) {
-      throw new Error("신청에 실패했습니다.");
+      throw new Error(t("portal.submitFailed"));
     }
     refetch();
     navigate("/user/requests");
   }
 
   async function submitExtension({ requestId, expiresAt, reason }) {
-    if (!requestId) throw new Error("변경할 신청 정보를 찾을 수 없어요.");
+    if (!requestId) throw new Error(t("portal.changeTargetMissing"));
     const changes = await requestService.getMyChangeRequests();
     const alreadyPending = (changes.data?.data ?? []).some(
       (change) => change.originalRequestId === requestId
         && change.changeType === "EXPIRES_AT"
         && change.status === "PENDING"
     );
-    if (alreadyPending) throw new Error("이미 검토 중인 기간 연장 요청이 있어요.");
+    if (alreadyPending) throw new Error(t("portal.extensionAlreadyPending"));
     await requestService.createChangeRequest(requestId, {
       changeType: "EXPIRES_AT",
       newValue: expiresAt,
@@ -80,14 +80,14 @@ function UserPortalApp() {
   }
 
   async function submitGroupChange({ requestId, gids, reason }) {
-    if (!requestId) throw new Error("변경할 신청 정보를 찾을 수 없어요.");
+    if (!requestId) throw new Error(t("portal.changeTargetMissing"));
     const changes = await requestService.getMyChangeRequests();
     const alreadyPending = (changes.data?.data ?? []).some(
       (change) => change.originalRequestId === requestId
         && change.changeType === "GROUP"
         && change.status === "PENDING"
     );
-    if (alreadyPending) throw new Error("이미 검토 중인 그룹 변경 요청이 있어요.");
+    if (alreadyPending) throw new Error(t("portal.groupChangeAlreadyPending"));
     await requestService.createChangeRequest(requestId, {
       changeType: "GROUP",
       newValue: JSON.stringify([...new Set(gids)]),
@@ -122,9 +122,10 @@ function UserPortalApp() {
 
 // 승인을 기다리는 신청은 한 건만 둘 수 있다. 내용을 바꾸려면 그 신청을 취소하고 다시 낸다.
 function AwaitingRequestNotice({ onView }) {
+  const { t } = useTranslation();
   return (
-    <Alert type="info" header="승인을 기다리는 신청이 이미 있어요" action={<Button onClick={onView}>신청 현황 보기</Button>}>
-      신청은 한 번에 한 건만 승인을 기다릴 수 있어요. 내용을 바꾸고 싶다면 신청 현황에서 기존 신청을 취소한 뒤 다시 신청해 주세요.
+    <Alert type="info" header={t("portal.awaitingTitle")} action={<Button onClick={onView}>{t("portal.viewRequests")}</Button>}>
+      {t("portal.awaitingBody")}
     </Alert>
   );
 }
