@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Alert, Button, FormField, Input, Table } from "../../../../design-system";
-import { MAX_EXTRA_PORTS, PORT_PURPOSE_MAX_LENGTH, PROTECTED_PORTS, RESERVED_PORT_PURPOSES } from "./changeRequestRules";
+import { MAX_EXTRA_PORTS, PROTECTED_PORTS, portPurposeError } from "./changeRequestRules";
 
 function PortForm({ value, onChange }) {
   const { t } = useTranslation();
@@ -29,9 +29,7 @@ function PortForm({ value, onChange }) {
     if (PROTECTED_PORTS.includes(internalPort)) return t("change.errPortProtected");
     if (value.some((port) => port.internalPort === internalPort)) return t("wizard.errPortDuplicate");
     if (value.length >= MAX_EXTRA_PORTS) return t("change.errPortMax", { max: MAX_EXTRA_PORTS });
-    if (RESERVED_PORT_PURPOSES.includes(usagePurpose.toLowerCase())) return t("change.errPortPurposeReserved", { purpose: usagePurpose });
-    if (usagePurpose.length > PORT_PURPOSE_MAX_LENGTH) return t("change.errPortPurposeLong", { max: PORT_PURPOSE_MAX_LENGTH });
-    return null;
+    return portPurposeError(usagePurpose, t);
   }
 
   return (
