@@ -62,37 +62,11 @@ function UserPortalApp() {
     navigate("/user/requests");
   }
 
-  async function submitExtension({ requestId, expiresAt, reason }) {
+  async function submitChangeRequest({ requestId, changeType, newValue, reason }) {
     if (!requestId) throw new Error(t("portal.changeTargetMissing"));
-    const changes = await requestService.getMyChangeRequests();
-    const alreadyPending = (changes.data?.data ?? []).some(
-      (change) => change.originalRequestId === requestId
-        && change.changeType === "EXPIRES_AT"
-        && change.status === "PENDING"
-    );
-    if (alreadyPending) throw new Error(t("portal.extensionAlreadyPending"));
-    await requestService.createChangeRequest(requestId, {
-      changeType: "EXPIRES_AT",
-      newValue: expiresAt,
-      reason,
-    });
-    navigate("/user/change-requests");
-  }
-
-  async function submitGroupChange({ requestId, gids, reason }) {
-    if (!requestId) throw new Error(t("portal.changeTargetMissing"));
-    const changes = await requestService.getMyChangeRequests();
-    const alreadyPending = (changes.data?.data ?? []).some(
-      (change) => change.originalRequestId === requestId
-        && change.changeType === "GROUP"
-        && change.status === "PENDING"
-    );
-    if (alreadyPending) throw new Error(t("portal.groupChangeAlreadyPending"));
-    await requestService.createChangeRequest(requestId, {
-      changeType: "GROUP",
-      newValue: JSON.stringify([...new Set(gids)]),
-      reason,
-    });
+    const pendingTypes = await loadPendingChangeTypes(requestId);
+    if (pendingTypes.includes(changeType)) throw new Error(t("portal.changeAlreadyPending"));
+    await requestService.createChangeRequest(requestId, { changeType, newValue, reason });
     navigate("/user/change-requests");
   }
 
@@ -108,7 +82,7 @@ function UserPortalApp() {
         <Routes>
           <Route index element={<UserDashboard userName={userName} server={server} expiryDays={expiryDays} activities={activities ?? []} onRequest={() => navigate("/user/request")} onConnect={() => navigate("/user/container")} onExtend={() => navigate("/user/container", { state: { extend: true } })} />} />
           <Route path="request" element={awaitingRequestId != null ? <AwaitingRequestNotice onView={() => navigate("/user/requests")} /> : <RequestWizard onCancel={() => navigate("/user")} onDone={() => navigate("/user/requests")} gpuOptions={gpuOptions ?? []} envOptions={envOptions ?? []} groupOptions={groupOptions ?? []} onSubmit={submitRequest} accountUsername={user?.ubuntuUsername} />} />
-          <Route path="container" element={<UserContainerDetail onBack={() => navigate("/user")} onExtend={submitExtension} onGroupChange={submitGroupChange} groupOptions={groupOptions ?? []} servers={servers ?? []} onRestarted={refetch} />} />
+          <Route path="container" element={<UserContainerDetail onBack={() => navigate("/user")} onChangeRequest={submitChangeRequest} loadPendingChangeTypes={loadPendingChangeTypes} groupOptions={groupOptions ?? []} servers={servers ?? []} onRestarted={refetch} />} />
           <Route path="requests" element={<RequestStatusPage onChanged={refetch} />} />
           <Route path="change-requests" element={<MyChangeRequestsPage />} />
           <Route path="account" element={<AccountPage user={user} />} />
@@ -118,6 +92,14 @@ function UserPortalApp() {
       </AppLayout>
     </div>
   );
+}
+
+// 이 신청에 검토 중으로 걸려 있는 변경 요청 종류. 같은 종류는 한 번에 하나만 검토받는다(서버 규칙).
+async function loadPendingChangeTypes(requestId) {
+  const changes = await requestService.getMyChangeRequests();
+  return (changes.data?.data ?? [])
+    .filter((change) => change.originalRequestId === requestId && change.status === "PENDING")
+    .map((change) => change.changeType);
 }
 
 // 승인을 기다리는 신청은 한 건만 둘 수 있다. 내용을 바꾸려면 그 신청을 취소하고 다시 낸다.

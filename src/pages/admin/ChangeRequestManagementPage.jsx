@@ -17,7 +17,7 @@ import RequestDecisionModal from "../../components/RequestDecisionModal";
 
 const STATUS_META = {
   PENDING: { type: "pending", label: "대기중" },
-  // 승인은 했고 계정·컨테이너에 반영하는 작업이 도는 중이다(공유 그룹 추가). 끝나면 승인됨, 실패하면 대기중으로 돌아온다.
+  // 승인은 했고 계정·컨테이너에 반영하는 작업이 도는 중이다(공유 그룹 추가, 추가 포트 변경). 끝나면 승인됨, 실패하면 대기중으로 돌아온다.
   PROCESSING: { type: "in-progress", label: "반영 중" },
   FULFILLED: { type: "success", label: "승인됨" },
   DENIED: { type: "error", label: "거절됨" },
@@ -25,7 +25,6 @@ const STATUS_META = {
 const APPROVAL_BLOCK_REASON = {
   RESOURCE_GROUP: "DB 리소스 그룹만 변경되고 실행 중인 Pod에는 반영되지 않습니다.",
   CONTAINER_IMAGE: "DB 이미지 정보만 변경되고 실행 중인 Pod 이미지는 변경되지 않습니다.",
-  PORT: "백엔드 승인 서비스가 포트 변경을 아직 처리하지 않습니다.",
 };
 
 // 승인은 되지만 즉시 반영되지는 않는 변경 유형. 차단이 아니라 정보로 보여준다.
@@ -38,7 +37,7 @@ const APPROVAL_DELAY_NOTE = {
 };
 
 // 승인하면 작업으로 등록돼 반영되는 변경 유형.
-const APPLIED_BY_JOB = new Set(["GROUP"]);
+const APPLIED_BY_JOB = new Set(["GROUP", "PORT"]);
 const POLL_MS = 3000;
 const OPEN_STATUSES = new Set(["PENDING", "PROCESSING"]);
 
