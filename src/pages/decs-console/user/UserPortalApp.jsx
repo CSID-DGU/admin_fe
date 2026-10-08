@@ -146,7 +146,7 @@ function toRequestPayload(form) {
     // 30083 신청 DTO의 레거시 필수 필드. PVC UI에서는 노출하지 않는다.
     volumeSizeGiB: 20,
     usagePurpose: form.usagePurpose,
-    formAnswers: { purpose: form.purpose, ...(form.teamInfo ? { teamInfo: form.teamInfo } : {}) },
+    formAnswers: form.teamInfo ? { teamInfo: form.teamInfo } : {},
     expiresAt: form.expiresAt,
     // 그룹 id로 보낸다 — 새 그룹(승인 대기)은 gid가 아직 없다.
     groupIds: (form.groupIds ?? []).map((id) => parseInt(id, 10)),

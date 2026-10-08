@@ -412,7 +412,6 @@ function RequestWizard({ onCancel, onDone, gpuOptions: gpuOptionsProp, envOption
     }
 
     const payload = {
-      purpose: purposeText,
       usagePurpose: purposeText,
       teamInfo: teamInfo.trim(),
       gpu: selectedGpu.id,

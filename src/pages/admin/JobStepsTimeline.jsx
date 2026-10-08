@@ -28,6 +28,13 @@ const ACTION_LABELS = {
   REMOVE_KRB5: "Kerberos 정리",
 };
 
+// 제어기는 계정에 딸린 단계 몇 개를 같은 action 으로 기록하고 다룬 대상(resource)으로 가른다.
+const RESOURCE_LABELS = {
+  replication: "AD 복제 대기",
+  groups: "공유 그룹 반영",
+  new_groups: "새 공유 그룹 준비",
+};
+
 const KIND_LABELS = { provision: "생성 작업", revoke: "회수 작업", migrate: "마이그레이션 작업" };
 
 const PROBE_LABELS = {
@@ -115,7 +122,7 @@ const stepTitle = (s) => {
   if (s.action === "VERIFY_REVOKED") return `차단 확인: ${PROBE_LABELS[s.probe] ?? s.probe}`;
   if (s.phase === "RETRY") return `다시 시도: ${STEP_LABELS[s.step] ?? s.step}`;
   if (s.action === "PROVISION" || s.action === "REVOKE" || s.action === "MIGRATE") return "작업 종료";
-  return ACTION_LABELS[s.action] ?? s.action;
+  return RESOURCE_LABELS[s.resource] ?? ACTION_LABELS[s.action] ?? s.action;
 };
 
 // 접근·차단 시험 결과를 한 문장으로. 요약 항목 이름을 그대로 보이면 "읽기·쓰기 예"처럼 뜻이 안 통한다.
