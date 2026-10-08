@@ -13,7 +13,11 @@
     "dashboard": "Dashboard",
     "save": "Save",
     "active": "Active",
-    "inactive": "Inactive"
+    "inactive": "Inactive",
+    "notFound": "Page not found.",
+    "backHome": "Back to home",
+    "loading": "Loading...",
+    "checkingLogin": "Checking your login..."
   },
   "auth": {
     "email": "Email",
@@ -473,5 +477,21 @@
     "closeMenu": "Close menu",
     "openMenu": "Open menu",
     "progress": "Progress"
+  },
+  "monitoring": {
+    "gpuCount_one": "{{count}} GPU",
+    "gpuCount_other": "{{count}} GPUs",
+    "gpuUtil": "GPU utilization",
+    "loadFailed": "The metrics could not be loaded.",
+    "connectFailed": "Could not connect to the server. Please try again shortly.",
+    "activeContainers": "{{cluster}} active containers",
+    "countUnit": "",
+    "autoRefresh": "Refreshes automatically every 30 seconds.",
+    "asOf": "As of {{time}}",
+    "refresh": "Refresh",
+    "loading": "Loading metrics...",
+    "clusterStatus": "Cluster status",
+    "gpuUtilDesc": "Live average GPU utilization per FARM server.",
+    "noGpuData": "No GPU data was received."
   }
 }

@@ -13,7 +13,11 @@
     "dashboard": "대시보드",
     "save": "저장",
     "active": "활성",
-    "inactive": "비활성"
+    "inactive": "비활성",
+    "notFound": "페이지를 찾을 수 없습니다.",
+    "backHome": "홈으로 돌아가기",
+    "loading": "불러오는 중...",
+    "checkingLogin": "로그인 확인 중..."
   },
   "auth": {
     "email": "이메일",
@@ -469,5 +473,20 @@
     "closeMenu": "메뉴 닫기",
     "openMenu": "메뉴 열기",
     "progress": "진행률"
+  },
+  "monitoring": {
+    "gpuCount_other": "GPU {{count}}개",
+    "gpuUtil": "GPU 사용률",
+    "loadFailed": "지표를 불러오지 못했어요.",
+    "connectFailed": "서버와 연결할 수 없어요. 잠시 후 다시 시도해 주세요.",
+    "activeContainers": "{{cluster}} 활성 컨테이너",
+    "countUnit": "개",
+    "autoRefresh": "30초마다 자동으로 갱신돼요.",
+    "asOf": "{{time}} 기준",
+    "refresh": "새로 고침",
+    "loading": "지표를 불러오는 중...",
+    "clusterStatus": "클러스터 현황",
+    "gpuUtilDesc": "FARM 서버별 실시간 GPU 평균 사용률이에요.",
+    "noGpuData": "GPU 데이터를 수신하지 못했어요."
   }
 }
