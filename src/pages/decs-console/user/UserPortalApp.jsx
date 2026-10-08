@@ -80,7 +80,7 @@ function UserPortalApp() {
       >
         {error ? <div style={{ marginBottom: "var(--decs-space-m)" }}><Flashbar items={[{ id: "decs-user-data", type: "warning", header: error, dismissible: false }]} /></div> : null}
         <Routes>
-          <Route index element={<UserDashboard userName={userName} server={server} expiryDays={expiryDays} activities={activities ?? []} onRequest={() => navigate("/user/request")} onConnect={() => navigate("/user/container")} onExtend={() => navigate("/user/container", { state: { extend: true } })} onDetail={() => navigate("/user/container")} />} />
+          <Route index element={<UserDashboard userName={userName} server={server} expiryDays={expiryDays} activities={activities ?? []} onRequest={() => navigate("/user/request")} onConnect={() => navigate("/user/container")} onExtend={() => navigate("/user/container", { state: { extend: true } })} />} />
           <Route path="request" element={awaitingRequestId != null ? <AwaitingRequestNotice onView={() => navigate("/user/requests")} /> : <RequestWizard onCancel={() => navigate("/user")} onDone={() => navigate("/user/requests")} gpuOptions={gpuOptions ?? []} envOptions={envOptions ?? []} groupOptions={groupOptions ?? []} onSubmit={submitRequest} accountUsername={user?.ubuntuUsername} />} />
           <Route path="container" element={<UserContainerDetail onBack={() => navigate("/user")} onChangeRequest={submitChangeRequest} loadPendingChangeTypes={loadPendingChangeTypes} groupOptions={groupOptions ?? []} servers={servers ?? []} onRestarted={refetch} />} />
           <Route path="requests" element={<RequestStatusPage onChanged={refetch} />} />

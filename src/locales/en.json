@@ -128,7 +128,6 @@
     "days_other": "{{count}} days",
     "connect": "Connect to container",
     "extend": "Extend usage period",
-    "viewDetail": "View details",
     "greeting": "Hello, {{name}}",
     "description": "Check your GPU usage and recent activity.",
     "expiryHeader_one": "Your usage period expires in {{count}} day",

@@ -35,7 +35,7 @@ function ActivityDetailModal({ activity, onDismiss }) {
   );
 }
 
-function BigStatus({ onConnect, onExtend, onDetail, server }) {
+function BigStatus({ onConnect, onExtend, server }) {
   const { t } = useTranslation();
   return (
     <div style={{ background: "var(--decs-surface-container)", border: "1px solid var(--decs-border-container)", borderRadius: "var(--decs-radius-container)", boxShadow: "var(--decs-shadow-container)", padding: "var(--decs-space-xl)" }}>
@@ -57,13 +57,12 @@ function BigStatus({ onConnect, onExtend, onDetail, server }) {
       <div style={{ display: "flex", gap: "var(--decs-space-s)", marginTop: "var(--decs-space-l)" }}>
         <Button variant="primary" iconName="arrow-up-right" onClick={onConnect}>{t("dashboard.connect")}</Button>
         <Button variant="normal" iconName="calendar" onClick={onExtend}>{t("dashboard.extend")}</Button>
-        <Button variant="link" onClick={onDetail}>{t("dashboard.viewDetail")}</Button>
       </div>
     </div>
   );
 }
 
-function UserDashboard({ onRequest, onConnect, onExtend, onDetail, userName, server, expiryDays, activities = [] }) {
+function UserDashboard({ onRequest, onConnect, onExtend, userName, server, expiryDays, activities = [] }) {
   const { t } = useTranslation();
   const [selectedActivity, setSelectedActivity] = useState(null);
 
@@ -76,7 +75,7 @@ function UserDashboard({ onRequest, onConnect, onExtend, onDetail, userName, ser
       </Alert>) : null}
 
       {server ? (
-        <BigStatus onConnect={onConnect} onExtend={onExtend} onDetail={onDetail} server={server} />
+        <BigStatus onConnect={onConnect} onExtend={onExtend} server={server} />
       ) : (
         <Container>
           <div style={{ color: "var(--decs-text-secondary)", fontSize: "var(--decs-fs-body-m)", padding: "24px 0", textAlign: "center" }}>
