@@ -26,7 +26,7 @@ const PERIOD_OPTIONS = [
 import { requestService } from "../../services/requestService";
 import { podService } from "../../services/podService";
 import { mapRequestDtoToUiModel } from "../../utils/requestMapper";
-import { formAnswerLabel } from "../../utils/formAnswers";
+import { formAnswerLabel, visibleFormAnswers } from "../../utils/formAnswers";
 import { JobStepsTimeline } from "./JobStepsTimeline";
 import RequestDecisionModal from "../../components/RequestDecisionModal";
 
@@ -704,15 +704,14 @@ const RequestManagementPage = () => {
                   {sel.usage_purpose}
                 </div>
               </div>
-              {sel.form_answers &&
-                Object.keys(sel.form_answers).length > 0 && (
+              {visibleFormAnswers(sel.form_answers).length > 0 && (
                   <div style={{ marginTop: "var(--decs-space-m)" }}>
                     <div style={{ color: "var(--decs-text-inactive)", marginBottom: "var(--decs-space-xxs)" }}>
                       추가 정보
                     </div>
                     <KeyValuePairs
                       columns={2}
-                      items={Object.entries(sel.form_answers).map(
+                      items={visibleFormAnswers(sel.form_answers).map(
                         ([key, value]) => ({
                           label: formAnswerLabel(key),
                           value,
