@@ -6,7 +6,7 @@ import { toGroupOption } from "../../../utils/groupOption";
 
 const GROUP_NAME_PATTERN = /^[a-z_][a-z0-9_-]*$/;
 // BE(SaveRequestRequestDTO.usagePurpose)와 같은 한도. 승인자가 이 글만 보고 판단하므로 최소 길이를 둔다.
-const PURPOSE_MIN_LENGTH = 50;
+const PURPOSE_MIN_LENGTH = 200;
 const PURPOSE_MAX_LENGTH = 1000;
 // 신청서 폼 응답(formAnswers) 전체가 10,000자로 묶여 있어 한 칸은 짧게 받는다.
 const TEAM_INFO_MAX_LENGTH = 300;
@@ -16,7 +16,7 @@ const TEAM_STEPS = [
   { role: "팀장", text: "만든 그룹 이름을 팀원에게 알려 줘요." },
   { role: "팀원", text: "'공유 그룹'에서 그 그룹을 골라 각자 신청해요. 그룹을 새로 만들지 마세요." },
 ];
-const PURPOSE_EXAMPLE = "예: 졸업 프로젝트로 PyTorch를 사용해 흉부 X-ray 사진을 분류하는 모델을 학습하려고 합니다. 사진은 약 2만 장(10GB)이고, 한 번 학습하는 데 GPU 1장으로 6시간 정도 걸릴 것 같습니다. 일주일에 2~3번 학습할 예정입니다.";
+const PURPOSE_EXAMPLE = "예: 졸업 프로젝트로 PyTorch를 사용해 흉부 X-ray 사진을 분류하는 모델을 학습하려고 합니다. 사진은 약 2만 장(10GB)이고, 한 번 학습하는 데 GPU 1장으로 6시간 정도 걸릴 것 같습니다. 일주일에 2~3번 학습할 예정이며, 12월 중순 최종 발표 전까지 사용하려고 합니다. 학습한 모델과 실험 기록은 홈 디렉터리에 저장하고, 결과 확인에는 Jupyter와 TensorBoard를 쓸 예정입니다.";
 
 function toLocalDateInput(date) {
   const offset = date.getTimezoneOffset() * 60_000;
@@ -26,6 +26,7 @@ function toLocalDateInput(date) {
 function RequestWizard({ onCancel, onDone, gpuOptions: gpuOptionsProp, envOptions: envOptionsProp, groupOptions: groupOptionsProp, onSubmit: onSubmitProp, accountUsername }) {
   const [step, setStep] = React.useState(0);
   const [purpose, setPurpose] = React.useState("");
+  const purposeLength = purpose.trim().length;
   const [selectedServer, setSelectedServer] = React.useState("");
   const [gpu, setGpu] = React.useState([]);
   const [expiresDate, setExpiresDate] = React.useState(() => {
@@ -96,8 +97,8 @@ function RequestWizard({ onCancel, onDone, gpuOptions: gpuOptionsProp, envOption
   }
 
   function validateStep(nextStep) {
-    if (step === 0 && nextStep > step && purpose.trim().length < PURPOSE_MIN_LENGTH) {
-      setStepErrors((prev) => ({ ...prev, purpose: `${PURPOSE_MIN_LENGTH}자 이상 적어 주세요. 지금 ${purpose.trim().length}자예요.` }));
+    if (step === 0 && nextStep > step && purposeLength < PURPOSE_MIN_LENGTH) {
+      setStepErrors((prev) => ({ ...prev, purpose: `최소 ${PURPOSE_MIN_LENGTH}자 · 현재 ${purposeLength}자` }));
       return false;
     }
     if (step === 1 && nextStep > step && !selectedServer) {
@@ -212,7 +213,11 @@ function RequestWizard({ onCancel, onDone, gpuOptions: gpuOptionsProp, envOption
             label="사용 목적"
             description="무엇을 하는지, 어떤 프로그램을 쓰는지, 데이터가 얼마나 되는지, 얼마나 오래 돌리는지 넣어 주세요."
             errorText={stepErrors.purpose}
-            constraintText={`${purpose.trim().length} / ${PURPOSE_MIN_LENGTH}자 이상`}
+            constraintText={(
+              <span style={{ color: purposeLength >= PURPOSE_MIN_LENGTH ? "var(--decs-status-success)" : undefined }}>
+                최소 {PURPOSE_MIN_LENGTH}자 · 현재 {purposeLength}자
+              </span>
+            )}
           >
             <textarea
               value={purpose}
