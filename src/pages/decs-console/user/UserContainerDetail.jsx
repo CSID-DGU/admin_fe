@@ -2,125 +2,34 @@
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Trans, useTranslation } from "react-i18next";
-import { Container, Header, KeyValuePairs, StatusIndicator, Button, Alert, ExpandableSection, Badge, FormField, Input, Select, Modal } from "../../../design-system";
+import { Container, Header, KeyValuePairs, StatusIndicator, Button, Alert, ExpandableSection, Badge } from "../../../design-system";
 import RestartContainerModal from "../../../components/RestartContainerModal";
 import { requestService } from "../../../services/requestService";
+import ChangeRequestModal from "./changeRequest/ChangeRequestModal";
 
 const CONTACT_FORM_URL = "https://forms.gle/nACaxj2UeJF56V2i7";
 
-function UserContainerDetail({ onBack, onExtend, onGroupChange, onRestarted, groupOptions = [], servers = [] }) {
+function UserContainerDetail({ onBack, onChangeRequest, loadPendingChangeTypes, onRestarted, groupOptions = [], servers = [] }) {
   const { t } = useTranslation();
   const location = useLocation();
   const navigate = useNavigate();
   const [selectedId, setSelectedId] = useState(null);
-  const [extendOpen, setExtendOpen] = useState(false);
-  const [expiresDate, setExpiresDate] = useState("");
-  const [reason, setReason] = useState("");
-  const [extendError, setExtendError] = useState(null);
-  const [submitting, setSubmitting] = useState(false);
+  // 변경 요청 창이 열려 있으면 처음 고를 종류(EXPIRES_AT·GROUP·PORT), 닫혀 있으면 null
+  const [changeType, setChangeType] = useState(null);
   const [autoExtended, setAutoExtended] = useState(false);
-  const [groupModalOpen, setGroupModalOpen] = useState(false);
-  const [selectedGroupId, setSelectedGroupId] = useState("");
-  const [addedGroups, setAddedGroups] = useState([]);
-  const [groupReason, setGroupReason] = useState("");
-  const [groupError, setGroupError] = useState(null);
-  const [groupSubmitting, setGroupSubmitting] = useState(false);
   const [restartOpen, setRestartOpen] = useState(false);
   const [restartNotice, setRestartNotice] = useState(null);
 
   const server = servers.find((s) => s.requestId === selectedId) ?? servers[0];
-  // 그룹 추가 변경 요청은 gid로 보낸다. 아직 만들어지지 않은 새 그룹(gid 없음)은 새 신청으로만 쓸 수 있어 뺀다.
-  const currentGids = new Set((server?.groups ?? []).map((g) => String(g.ubuntuGid)));
-  const addedGroupIds = new Set(addedGroups.map((g) => g.value));
-  const groupSelectOptions = groupOptions
-    .filter((g) => g.ubuntuGid != null && !currentGids.has(String(g.ubuntuGid)))
-    .map((g) => ({ ...g, disabled: addedGroupIds.has(g.value) }));
-
-  // 대시보드 연장 버튼 경유(location.state.extend) 시 서버 로드 후 모달 자동 오픈
-  // eslint-disable-next-line react-hooks/exhaustive-deps -- openExtension은 매 렌더 새로 생성, autoExtended 가드로 1회만 실행
+  // 대시보드 연장 버튼 경유(location.state.extend) 시 서버 로드 후 변경 요청 창을 기간 연장으로 자동 오픈
   useEffect(() => {
     if (location.state?.extend && server && !autoExtended) {
       setAutoExtended(true);
       // history.state를 비워 새로고침 시 모달이 재오픈되지 않게 함
       navigate(location.pathname, { replace: true, state: null });
-      openExtension();
+      setChangeType("EXPIRES_AT");
     }
-  }, [location.state, server, autoExtended]);
-
-  function openExtension() {
-    const suggested = new Date(server.expiresAt);
-    suggested.setDate(suggested.getDate() + 14);
-    setExpiresDate(toLocalDateInput(suggested));
-    setReason("");
-    setExtendError(null);
-    setExtendOpen(true);
-  }
-
-  async function submitExtension() {
-    const next = new Date(`${expiresDate}T23:59:59`);
-    const current = new Date(server.expiresAt);
-    if (!expiresDate || Number.isNaN(next.getTime()) || next <= current || next <= new Date()) {
-      setExtendError(t("container.errExtendDate"));
-      return;
-    }
-    if (!reason.trim()) {
-      setExtendError(t("container.errExtendReason"));
-      return;
-    }
-    setSubmitting(true);
-    setExtendError(null);
-    try {
-      await onExtend({ requestId: server.requestId, expiresAt: `${expiresDate}T23:59:59`, reason: reason.trim() });
-    } catch (error) {
-      setExtendError(error.message || t("container.errExtendFailed"));
-    } finally {
-      setSubmitting(false);
-    }
-  }
-
-  function openGroupRequest() {
-    setSelectedGroupId("");
-    setAddedGroups([]);
-    setGroupReason("");
-    setGroupError(null);
-    setGroupModalOpen(true);
-  }
-
-  function addGroupToRequest() {
-    const group = groupOptions.find((g) => g.value === selectedGroupId);
-    if (!group || group.ubuntuGid == null || currentGids.has(String(group.ubuntuGid)) || addedGroupIds.has(group.value)) return;
-    setAddedGroups((prev) => [...prev, group]);
-    setSelectedGroupId("");
-  }
-
-  function removeGroupFromRequest(value) {
-    setAddedGroups((prev) => prev.filter((g) => g.value !== value));
-  }
-
-  async function submitGroupRequest() {
-    if (addedGroups.length === 0) {
-      setGroupError(t("container.errGroupEmpty"));
-      return;
-    }
-    if (!groupReason.trim()) {
-      setGroupError(t("container.errGroupReason"));
-      return;
-    }
-    setGroupSubmitting(true);
-    setGroupError(null);
-    try {
-      const gids = [
-        ...(server.groups ?? []).map((g) => g.ubuntuGid),
-        ...addedGroups.map((g) => Number(g.ubuntuGid)),
-      ];
-      await onGroupChange({ requestId: server.requestId, gids, reason: groupReason.trim() });
-      setGroupModalOpen(false);
-    } catch (error) {
-      setGroupError(error.message || t("container.errGroupFailed"));
-    } finally {
-      setGroupSubmitting(false);
-    }
-  }
+  }, [location.state, location.pathname, navigate, server, autoExtended]);
 
   if (!server) {
     return (
@@ -218,6 +127,9 @@ function UserContainerDetail({ onBack, onExtend, onGroupChange, onRestarted, gro
             </ExpandableSection>
           </div>
         ) : null}
+        <div style={{ marginTop: "var(--decs-space-m)" }}>
+          <Button iconName="plus" onClick={() => setChangeType("PORT")}>{t("container.requestPort")}</Button>
+        </div>
       </Container>
 
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "var(--decs-space-m)" }}>
@@ -229,7 +141,7 @@ function UserContainerDetail({ onBack, onExtend, onGroupChange, onRestarted, gro
         <Container header={<Header variant="h2">{t("container.period")}</Header>}>
           <div style={{ fontSize: "var(--decs-fs-heading-xl)", fontWeight: 700, color: "var(--decs-text-heading)" }}>{t("container.daysLeft", { count: server.daysLeft })}</div>
           <div style={{ color: "var(--decs-text-secondary)", fontSize: "var(--decs-fs-body-m)", marginTop: 4 }}>{server.expiresText}</div>
-          <div style={{ marginTop: "var(--decs-space-m)" }}><Button variant="primary" iconName="calendar" onClick={openExtension}>{t("container.extend")}</Button></div>
+          <div style={{ marginTop: "var(--decs-space-m)" }}><Button variant="primary" iconName="calendar" onClick={() => setChangeType("EXPIRES_AT")}>{t("container.extend")}</Button></div>
         </Container>
       </div>
 
@@ -256,7 +168,7 @@ function UserContainerDetail({ onBack, onExtend, onGroupChange, onRestarted, gro
           <Trans i18nKey="container.leaveHint" components={{ a: <a href={CONTACT_FORM_URL} target="_blank" rel="noreferrer" /> }} />
         </div>
         <div style={{ marginTop: "var(--decs-space-m)" }}>
-          <Button iconName="plus" onClick={openGroupRequest}>{t("container.requestGroup")}</Button>
+          <Button iconName="plus" onClick={() => setChangeType("GROUP")}>{t("container.requestGroup")}</Button>
         </div>
       </Container>
 
@@ -291,108 +203,19 @@ function UserContainerDetail({ onBack, onExtend, onGroupChange, onRestarted, gro
         }}
       />
 
-      <Modal
-        visible={extendOpen}
-        onDismiss={() => !submitting && setExtendOpen(false)}
-        header={t("container.extendModalTitle")}
-        footer={<>
-          <Button variant="normal" disabled={submitting} onClick={() => setExtendOpen(false)}>{t("common.cancel")}</Button>
-          <Button variant="primary" loading={submitting} onClick={submitExtension}>{t("container.extendSubmit")}</Button>
-        </>}
-      >
-        <div style={{ display: "flex", flexDirection: "column", gap: "var(--decs-space-l)" }}>
-          {extendError ? <Alert type="error">{extendError}</Alert> : null}
-          <FormField label={t("container.currentEnd")}>
-            <Input value={toLocalDateInput(new Date(server.expiresAt))} readOnly />
-          </FormField>
-          <FormField label={t("container.newEnd")} constraintText={t("container.errExtendDate")}>
-            <Input type="date" value={expiresDate} onChange={setExpiresDate} />
-          </FormField>
-          <FormField label={t("container.extendReason")} constraintText={t("container.extendReasonHelp")}>
-            <textarea
-              value={reason}
-              onChange={(event) => setReason(event.target.value)}
-              rows={4}
-              placeholder={t("container.extendReasonPlaceholder")}
-              style={{
-                width: "100%", boxSizing: "border-box", resize: "vertical",
-                padding: "var(--decs-space-s) var(--decs-space-m)",
-                font: "inherit", color: "var(--decs-text-body)",
-                background: "var(--decs-surface-input)",
-                border: "thin solid var(--decs-border-input)",
-                borderRadius: "var(--decs-radius-input)",
-              }}
-            />
-          </FormField>
-        </div>
-      </Modal>
-
-      <Modal
-        visible={groupModalOpen}
-        onDismiss={() => !groupSubmitting && setGroupModalOpen(false)}
-        header={t("container.groupModalTitle")}
-        footer={<>
-          <Button variant="normal" disabled={groupSubmitting} onClick={() => setGroupModalOpen(false)}>{t("common.cancel")}</Button>
-          <Button variant="primary" loading={groupSubmitting} onClick={submitGroupRequest}>{t("container.groupSubmit")}</Button>
-        </>}
-      >
-        <div style={{ display: "flex", flexDirection: "column", gap: "var(--decs-space-l)" }}>
-          {groupError ? <Alert type="error">{groupError}</Alert> : null}
-          <Alert type="info" header={t("container.groupDelayTitle")}>
-            {t("container.groupDelayBody")}
-          </Alert>
-          <FormField label={t("container.currentGroups")}>
-            {(server.groups ?? []).length > 0 ? (
-              <div style={{ display: "flex", flexWrap: "wrap", gap: "var(--decs-space-xs)" }}>
-                {server.groups.map((group) => (
-                  <Badge key={group.ubuntuGid} color="grey">{group.groupName}</Badge>
-                ))}
-              </div>
-            ) : (
-              <span style={{ color: "var(--decs-text-secondary)", fontSize: "var(--decs-fs-body-m)" }}>{t("common.none")}</span>
-            )}
-          </FormField>
-          <FormField label={t("container.groupsToAdd")}>
-            <div style={{ display: "flex", gap: "var(--decs-space-xs)" }}>
-              <Select selectedValue={selectedGroupId} onChange={setSelectedGroupId} options={groupSelectOptions} placeholder={t("wizard.pickGroup")} style={{ flex: 1 }} />
-              <Button iconName="plus" onClick={addGroupToRequest} disabled={!selectedGroupId || addedGroupIds.has(selectedGroupId)} ariaLabel={t("container.addGroupAria")}>{t("common.add")}</Button>
-            </div>
-            {addedGroups.length > 0 ? (
-              <div style={{ display: "flex", flexWrap: "wrap", gap: "var(--decs-space-xs)", marginTop: "var(--decs-space-xs)" }}>
-                {addedGroups.map((group) => (
-                  <span key={group.value} style={{ display: "inline-flex", alignItems: "center", gap: "var(--decs-space-xxxs)" }}>
-                    <Badge color="blue">{group.label}</Badge>
-                    <Button variant="icon" iconName="x-mark" onClick={() => removeGroupFromRequest(group.value)} ariaLabel={t("container.removeGroupAria", { name: group.label })} />
-                  </span>
-                ))}
-              </div>
-            ) : null}
-          </FormField>
-          <FormField label={t("container.groupReason")}>
-            <textarea
-              value={groupReason}
-              onChange={(event) => setGroupReason(event.target.value)}
-              rows={4}
-              placeholder={t("container.groupReasonPlaceholder")}
-              style={{
-                width: "100%", boxSizing: "border-box", resize: "vertical",
-                padding: "var(--decs-space-s) var(--decs-space-m)",
-                font: "inherit", color: "var(--decs-text-body)",
-                background: "var(--decs-surface-input)",
-                border: "thin solid var(--decs-border-input)",
-                borderRadius: "var(--decs-radius-input)",
-              }}
-            />
-          </FormField>
-        </div>
-      </Modal>
+      {/* 컨테이너를 바꿔 고르거나 다시 열면 새로 마운트해 입력을 비운다 */}
+      {changeType ? (
+        <ChangeRequestModal
+          key={`${server.requestId}-${changeType}`}
+          server={server}
+          groupOptions={groupOptions}
+          initialType={changeType}
+          loadPendingTypes={loadPendingChangeTypes}
+          onSubmit={onChangeRequest}
+          onDismiss={() => setChangeType(null)}
+        />
+      ) : null}
     </div>
   );
 }
 export default UserContainerDetail;
-
-function toLocalDateInput(date) {
-  if (Number.isNaN(date.getTime())) return "";
-  const offset = date.getTimezoneOffset() * 60_000;
-  return new Date(date.getTime() - offset).toISOString().slice(0, 10);
-}
