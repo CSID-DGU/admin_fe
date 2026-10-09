@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import i18n from "../i18n";
 import {
@@ -12,20 +13,24 @@ import {
   Tabs,
 } from "../design-system";
 import { requestService } from "../services/requestService";
+import ChangeRequestModal from "./decs-console/user/changeRequest/ChangeRequestModal";
 
-const MyChangeRequestsPage = () => {
+// 변경 요청을 내는 곳은 이 화면 하나다. 대시보드의 연장 버튼은 location.state.extend로 넘어와 기간 연장 창을 바로 연다.
+const MyChangeRequestsPage = ({ servers = [], groupOptions = [], accountEmail, loadPendingChangeTypes, onChangeRequest }) => {
   const { t } = useTranslation();
+  const location = useLocation();
+  const navigate = useNavigate();
+  // 변경 요청 창이 열려 있으면 처음 고를 종류, 닫혀 있으면 null
+  const [newChangeType, setNewChangeType] = useState(null);
   const [changeRequests, setChangeRequests] = useState([]);
   const [selectedChangeRequest, setSelectedChangeRequest] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [filter, setFilter] = useState("ALL"); // ALL, PENDING, FULFILLED, DENIED
   const [alert, setAlert] = useState(null);
 
-  useEffect(() => {
-    const fetchChangeRequests = async () => {
-      setIsLoading(true);
-      setAlert(null);
-
+  // 제출 뒤에도 다시 부른다. 그때 화면 전체를 '불러오는 중'으로 바꾸면 열려 있는 변경 요청 창이 사라지고,
+  // 안내를 비우면 방금 띄운 제출 안내가 지워진다 — 둘 다 처음 한 번의 상태(isLoading=true, alert=null)에 맡긴다.
+  const fetchChangeRequests = useCallback(async () => {
       try {
         const response = await requestService.getMyChangeRequests();
 
@@ -49,10 +54,25 @@ const MyChangeRequestsPage = () => {
       } finally {
         setIsLoading(false);
       }
-    };
-
-    fetchChangeRequests();
   }, []);
+
+  useEffect(() => {
+    fetchChangeRequests();
+  }, [fetchChangeRequests]);
+
+  useEffect(() => {
+    if (!location.state?.extend) return;
+    // history.state를 비워 새로고침 시 창이 다시 열리지 않게 한다.
+    navigate(location.pathname, { replace: true, state: null });
+    setNewChangeType("EXPIRES_AT");
+  }, [location.state, location.pathname, navigate]);
+
+  async function submitChangeRequest(change) {
+    await onChangeRequest(change);
+    setNewChangeType(null);
+    setAlert({ type: "success", message: t("changes.submitted") });
+    fetchChangeRequests();
+  }
 
   const filteredChangeRequests = changeRequests
     .filter((changeReq) => {
@@ -103,13 +123,22 @@ const MyChangeRequestsPage = () => {
         return t("changes.type.GROUP");
       case "PORT":
         return t("changes.type.PORT");
+      case "PASSWORD":
+        return t("changes.type.PASSWORD");
       default:
         return changeType;
     }
   };
 
+  // 비밀번호 변경은 계정 단위라 대상 신청이 없다.
+  const formatTarget = (changeRequest) =>
+    changeRequest.originalRequestId == null ? t("changes.accountTarget") : `#${changeRequest.originalRequestId}`;
+
   const formatChangeValue = (changeType, value) => {
-    if (changeType === "EXPIRES_AT") {
+    if (changeType === "PASSWORD") {
+      // 새 비밀번호는 서버도 해시로만 들고 있어 보여 줄 값이 없다.
+      return "—";
+    } else if (changeType === "EXPIRES_AT") {
       // 날짜 형식으로 포맷팅
       if (value) {
         return new Date(value).toLocaleDateString(i18n.resolvedLanguage, {
@@ -234,7 +263,7 @@ const MyChangeRequestsPage = () => {
                 <KeyValuePairs
                   columns={1}
                   items={[
-                    { label: t("changes.reason"), value: changeRequest.reason },
+                    { label: t("changes.reason"), value: changeRequest.reason || "—" },
                   ]}
                 />
               </div>
@@ -245,7 +274,7 @@ const MyChangeRequestsPage = () => {
                 items={[
                   {
                     label: t("changes.originalRequestId"),
-                    value: `#${changeRequest.originalRequestId}`,
+                    value: formatTarget(changeRequest),
                   },
                   {
                     label: t("changes.requestedAt"),
@@ -308,12 +337,30 @@ const MyChangeRequestsPage = () => {
       <Header
         variant="h1"
         description={t("changes.description")}
+        actions={
+          <Button variant="primary" iconName="plus" onClick={() => setNewChangeType("EXPIRES_AT")}>
+            {t("change.modalTitle")}
+          </Button>
+        }
       >
         {t("changes.title")}
       </Header>
 
       {/* Status Filter + List */}
       <Tabs tabs={filterTabs} activeTabId={filter} onChange={setFilter} />
+
+      {newChangeType ? (
+        <ChangeRequestModal
+          servers={servers}
+          groupOptions={groupOptions}
+          initialType={newChangeType}
+          accountEmail={accountEmail}
+          loadPendingTypes={loadPendingChangeTypes}
+          onSubmit={submitChangeRequest}
+          onSubmitted={fetchChangeRequests}
+          onDismiss={() => setNewChangeType(null)}
+        />
+      ) : null}
 
       {/* Detail Modal */}
       {selectedChangeRequest && (
@@ -375,7 +422,7 @@ const MyChangeRequestsPage = () => {
                   items={[
                     {
                       label: t("changes.reason"),
-                      value: selectedChangeRequest.reason,
+                      value: selectedChangeRequest.reason || "—",
                     },
                   ]}
                 />
@@ -394,7 +441,7 @@ const MyChangeRequestsPage = () => {
                   },
                   {
                     label: t("changes.originalRequestId"),
-                    value: `#${selectedChangeRequest.originalRequestId}`,
+                    value: formatTarget(selectedChangeRequest),
                   },
                   {
                     label: t("changes.requestedAt"),
