@@ -37,9 +37,6 @@ const APPROVAL_DELAY_NOTE = {
   PASSWORD: "웹 로그인과 SSH(Ubuntu 계정) 비밀번호가 함께 바뀝니다. 신청자가 가입한 메일로 본인 확인을 마친 요청이고, 적용되면 신청자의 기존 로그인은 끊깁니다.",
 };
 
-// 승인하면 작업으로 등록돼 반영되는 변경 유형.
-// 비밀번호 변경은 리눅스 계정이 없으면 바로 끝나지만, 그때도 다음 조회에서 승인됨으로 바뀐다.
-const APPLIED_BY_JOB = new Set(["GROUP", "PORT", "PASSWORD"]);
 const POLL_MS = 3000;
 const OPEN_STATUSES = new Set(["PENDING", "PROCESSING"]);
 
@@ -286,10 +283,9 @@ const ChangeRequestManagementPage = () => {
         throw new Error("지원하지 않는 상태 변경입니다.");
       }
 
-      if (response.status === 200) {
-        // 작업으로 반영하는 변경은 승인해도 바로 끝나지 않는다 — 반영 중으로 두고 목록을 다시 불러와 결과를 본다.
-        const applied =
-          newStatus === "FULFILLED" && APPLIED_BY_JOB.has(changeRequest.changeType) ? "PROCESSING" : newStatus;
+      if (response.status === 200 || response.status === 202) {
+        // 202는 반영 작업만 등록됐다는 뜻이다(공유 그룹 추가, 추가 포트 변경, 비밀번호 변경) — 반영 중으로 두고 목록을 다시 불러와 결과를 본다.
+        const applied = response.status === 202 ? "PROCESSING" : newStatus;
         fetchSeqRef.current += 1;
         if (applied === "PROCESSING") {
           processingRef.current.set(changeRequest.changeRequestId, changeRequest.requestedBy.name);

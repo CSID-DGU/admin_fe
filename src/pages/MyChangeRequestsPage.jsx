@@ -28,10 +28,9 @@ const MyChangeRequestsPage = ({ servers = [], groupOptions = [], accountEmail, l
   const [filter, setFilter] = useState("ALL"); // ALL, PENDING, FULFILLED, DENIED
   const [alert, setAlert] = useState(null);
 
+  // 제출 뒤에도 다시 부른다. 그때 화면 전체를 '불러오는 중'으로 바꾸면 열려 있는 변경 요청 창이 사라지고,
+  // 안내를 비우면 방금 띄운 제출 안내가 지워진다 — 둘 다 처음 한 번의 상태(isLoading=true, alert=null)에 맡긴다.
   const fetchChangeRequests = useCallback(async () => {
-      setIsLoading(true);
-      setAlert(null);
-
       try {
         const response = await requestService.getMyChangeRequests();
 

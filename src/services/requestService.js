@@ -27,6 +27,7 @@ export const requestService = {
   // 대상 신청(requestId)은 본문에 넣는다. 비밀번호 변경은 메일 인증이 필요해 authService.requestPasswordReset으로 낸다.
   createChangeRequest: (data) => apiClient.post("/api/users/me/change-requests", data),
   getChangeRequests: () => apiClient.get("/api/admin/change-requests"),
+  // 바로 반영되면 200, 반영 작업만 등록되면 202로 돌아온다.
   approveChangeRequest: (changeRequestId, adminComment) =>
     apiClient.post(`/api/admin/change-requests/${encodeURIComponent(changeRequestId)}/approval`, { adminComment }),
   rejectChangeRequest: (changeRequestId, adminComment) =>
