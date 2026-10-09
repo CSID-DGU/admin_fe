@@ -94,14 +94,14 @@ function UserContainerDetail({ onBack, onRestarted, servers = [] }) {
           <div style={{ marginTop: "var(--decs-space-m)" }}>
             <ExpandableSection headerText={t("container.extraPortsTitle")}>
               <KeyValuePairs columns={1} items={server.extraPorts.map((port) => ({
-                label: t("container.extraPortLabel", { purpose: port.purpose, port: port.internalPort }),
+                label: port.purpose,
                 // noVNC만 브라우저로 바로 여는 주소를 준다. 나머지는 무엇을 띄웠는지 알 수 없어
                 // http를 붙이면 틀린 안내가 되므로 주소만 알려준다.
                 value: !port.reachable
-                  ? t("container.portUnreachable", { address: port.address })
+                  ? t("container.portUnreachable", { internal: port.internalPort })
                   : port.url
                   ? port.url
-                  : t("container.portAddressOnly", { address: port.address }),
+                  : t("container.portAddressOnly", { internal: port.internalPort, external: port.publicPort }),
                 copyable: port.reachable,
               }))} />
               {server.extraPorts.some((port) => port.isVnc) ? (

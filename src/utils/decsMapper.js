@@ -1,5 +1,5 @@
 import i18n from "../i18n";
-import { PUBLIC_HOST, toPublicPort } from "./publicEndpoint";
+import { PUBLIC_HOST, endpointOf, toPublicPort } from "./publicEndpoint";
 
 const STATUS_MAP = {
   Running: { type: "success", key: "running" },
@@ -67,10 +67,10 @@ function getUsagePurpose(port) {
 
 // SSH/Jupyter 외의 추가 포트(예: novnc 6080)는 지금까지 어느 화면에도 안 나와서,
 // 사용자가 배정받은 외부 포트를 알 방법이 없었다.
-function toExtraPort(port) {
+function toExtraPort(port, endpoint) {
   const internalPort = getInternalPort(port);
   const externalPort = getExternalPort(port);
-  const publicPort = toPublicPort(externalPort);
+  const publicPort = endpoint.toPublicPort(externalPort);
   const purpose = String(getUsagePurpose(port) || i18n.t("data.portDefault", { port: internalPort }));
 
   // noVNC는 컨테이너가 websockify로 웹 페이지를 띄우므로 브라우저 주소로 안내할 수 있다.
@@ -79,12 +79,13 @@ function toExtraPort(port) {
 
   return {
     internalPort,
+    publicPort,
     purpose,
     isVnc,
     // NodePort가 DNAT 대역(30000~30097) 밖이면 내부만 열리고 외부는 막힌다 — 주소를 안내하면 안 된다
     reachable: publicPort != null,
-    address: publicPort != null ? `${PUBLIC_HOST}:${publicPort}` : "—",
-    url: publicPort != null && isVnc ? `http://${PUBLIC_HOST}:${publicPort}` : null,
+    address: publicPort != null ? `${endpoint.host}:${publicPort}` : "—",
+    url: publicPort != null && isVnc ? `http://${endpoint.host}:${publicPort}` : null,
   };
 }
 
@@ -175,22 +176,23 @@ export function daysLeft(dateStr, now = new Date()) {
 export function mapUserServer(dto) {
   const status = mapPodStatus(dto.status);
   const resourceGroup = dto.resourceGroup ?? {};
+  const endpoint = endpointOf(resourceGroup.serverName);
   const ports = getPodExternalPorts(dto);
   const sshEntry = findPort(ports, "ssh", 22);
   const jupyterEntry = findPort(ports, "jupyter", 8888);
   const sshPort = getExternalPort(sshEntry);
   const jupyterPort = getExternalPort(jupyterEntry);
-  const sshPublicPort = toPublicPort(sshPort);
-  const jupyterPublicPort = toPublicPort(jupyterPort);
+  const sshPublicPort = endpoint.toPublicPort(sshPort);
+  const jupyterPublicPort = endpoint.toPublicPort(jupyterPort);
   const sshCommand = sshPort && dto.ubuntuUsername
-    ? `ssh ${dto.ubuntuUsername}@${PUBLIC_HOST} -p ${sshPublicPort ?? sshPort}`
+    ? `ssh ${dto.ubuntuUsername}@${endpoint.host} -p ${sshPublicPort ?? sshPort}`
     : "—";
   const jupyterUrl = jupyterPort
-    ? `http://${PUBLIC_HOST}:${jupyterPublicPort ?? jupyterPort}`
+    ? `http://${endpoint.host}:${jupyterPublicPort ?? jupyterPort}`
     : "—";
   const extraPorts = ports
     .filter((port) => port !== sshEntry && port !== jupyterEntry)
-    .map(toExtraPort);
+    .map((port) => toExtraPort(port, endpoint));
 
   return {
     id: dto.requestId,
