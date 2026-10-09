@@ -434,6 +434,7 @@ function RequestWizard({ onCancel, onDone, gpuOptions: gpuOptionsProp, envOption
   return (
     <div style={{ maxWidth: 940, margin: "0 auto" }}>
       <Header variant="h1">{t("wizard.title")}</Header>
+      <div style={{ marginBottom: "var(--decs-space-m)" }}><Alert type="info" header={t("wizard.slackTitle")}>{t("wizard.slackBody")}</Alert></div>
       {error ? <div style={{ marginBottom: "var(--decs-space-m)" }}><Alert type="error">{error}</Alert></div> : null}
       <Container>
         <Wizard steps={steps} activeStepIndex={step} onNavigate={handleNavigate} onCancel={onCancel} onSubmit={submit} submitLabel={t("wizard.submit")} isLoadingNextStep={submitting} />
