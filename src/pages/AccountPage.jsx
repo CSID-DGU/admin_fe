@@ -26,11 +26,14 @@ const ResultAlert = ({ alert, onDismiss }) =>
     </Alert>
   ) : null;
 
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 const AccountPage = ({ user }) => {
   const { t, i18n } = useTranslation();
   const { updateUser } = useAuth();
   const [formData, setFormData] = useState({
     phone: "",
+    contactEmail: "",
   });
   const [errors, setErrors] = useState({});
   const [profileLoading, setProfileLoading] = useState(false);
@@ -41,6 +44,7 @@ const AccountPage = ({ user }) => {
     if (user) {
       setFormData({
         phone: user.phone || "",
+        contactEmail: user.contactEmail || "",
       });
     }
   }, [user]);
@@ -69,6 +73,10 @@ const AccountPage = ({ user }) => {
       newErrors.phone = phoneFormatError();
     }
 
+    if (formData.contactEmail.trim() && !EMAIL_PATTERN.test(formData.contactEmail.trim())) {
+      newErrors.contactEmail = t("auth.contactEmailInvalid");
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -84,13 +92,18 @@ const AccountPage = ({ user }) => {
     setProfileAlert(null);
 
     try {
-      await authService.updatePhone(formData.phone);
-      setProfileAlert({ type: "success", message: t("account.phoneSaved") });
+      if (formData.phone !== (user?.phone || "")) {
+        await authService.updatePhone(formData.phone);
+      }
+      if (formData.contactEmail.trim() !== (user?.contactEmail || "")) {
+        await authService.updateContactEmail(formData.contactEmail.trim());
+      }
+      setProfileAlert({ type: "success", message: t("account.profileSaved") });
       await updateUser();
     } catch (error) {
       setProfileAlert({
         type: "error",
-        message: serverMessageOr(error, t("account.phoneSaveFailed")),
+        message: serverMessageOr(error, t("account.profileSaveFailed")),
       });
     } finally {
       setProfileLoading(false);
@@ -146,6 +159,21 @@ const AccountPage = ({ user }) => {
               placeholder="010-1234-5678"
             />
           </FormField>
+          <FormField
+            label={t("auth.contactEmail")}
+            errorText={errors.contactEmail}
+            constraintText={t("auth.contactEmailHelp")}
+            htmlFor="account-contact-email"
+          >
+            <Input
+              id="account-contact-email"
+              type="email"
+              value={formData.contactEmail}
+              onChange={(value) => handleProfileChange({ target: { name: "contactEmail", value } })}
+              invalid={!!errors.contactEmail}
+              placeholder={user?.email || ""}
+            />
+          </FormField>
         </div>
 
         <ResultAlert alert={profileAlert} onDismiss={() => setProfileAlert(null)} />
@@ -157,6 +185,7 @@ const AccountPage = ({ user }) => {
               e.preventDefault();
               setFormData({
                 phone: user?.phone || "",
+                contactEmail: user?.contactEmail || "",
               });
               setErrors({});
             }}

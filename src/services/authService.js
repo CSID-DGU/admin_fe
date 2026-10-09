@@ -74,6 +74,7 @@ export const authService = {
         studentId: userData.studentId,
         phone: userData.phone,
         ubuntuUsername: userData.ubuntuUsername,
+        contactEmail: userData.contactEmail || null,
       });
       return response;
     } catch (error) {
@@ -124,6 +125,25 @@ export const authService = {
     } catch (error) {
       if (error.status) throw error; // API 에러는 status 보존 위해 원본 유지
       throw new Error(error.message || "휴대폰 번호 변경에 실패했습니다.");
+    }
+  },
+
+  // 지금 신청하면 Slack 가입 확인에 걸리는지 — MEMBER / NOT_MEMBER / UNCHECKED
+  getSlackMembership: async () => {
+    requireAccessToken();
+    const response = await apiClient.get("/api/users/me/slack-membership");
+    return response.data?.data?.status;
+  },
+
+  // 자주 사용하는 이메일 변경 (비우면 지운다)
+  updateContactEmail: async (contactEmail) => {
+    try {
+      requireAccessToken();
+      const response = await apiClient.patch("/api/users/me/contact-email", { contactEmail });
+      return response;
+    } catch (error) {
+      if (error.status) throw error; // API 에러는 status 보존 위해 원본 유지
+      throw new Error(error.message || "자주 사용하는 이메일 변경에 실패했습니다.");
     }
   },
 

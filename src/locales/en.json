@@ -27,6 +27,9 @@
     "department": "Department",
     "studentId": "Student ID",
     "phone": "Phone",
+    "contactEmail": "Frequently used email",
+    "contactEmailHelp": "Enter the email you joined Slack with. If you joined with your school email, keep it the same or leave it blank.",
+    "contactEmailInvalid": "The email format is not valid.",
     "verificationCode": "Verification code",
     "login": "Log in",
     "signup": "Sign up",
@@ -61,7 +64,7 @@
     "previous": "Previous",
     "ubuntuUsername": "Ubuntu username",
     "domainHelp": "Use a dgu.ac.kr or dongguk.edu email address.",
-    "slackHelp": "Use the exact same name as your Slack display name to receive notifications.",
+    "slackHelp": "Use the exact same name as your Slack display name. Otherwise you cannot request a server or receive notifications.",
     "ubuntuUsernameHelp": "The account name you use to SSH into your containers. Every container you get uses this name, and it cannot be changed after signup."
   },
   "shell": {
@@ -154,6 +157,8 @@
   },
   "wizard": {
     "title": "GPU request",
+    "slackTitle": "Join Slack before requesting",
+    "slackBody": "You must be a member of the Slack workspace to submit a request. Your Slack name must match the name in your profile, and the email you joined Slack with must match your school email or the 'Frequently used email' in account settings.",
     "roleLeader": "Team leader",
     "roleMember": "Team member",
     "teamStep1": "Create a group with 'Create a new shared group' below, then submit this request.",
@@ -414,12 +419,20 @@
     "deniedOn": "Denied: {{date}}",
     "adminComment": "Administrator comment"
   },
+  "slackModal": {
+    "title": "We could not find you on Slack",
+    "body": "You must be a member of the Slack workspace to request a server. Enter the email you joined Slack with.",
+    "emailHelp": "If you joined Slack with an address other than your school email ({{email}}), enter that address.",
+    "nameNote": "Your Slack name (display name or real name) must also exactly match the name in your profile, \"{{name}}\". If you have not joined Slack yet, join first.",
+    "stillNotFound": "Saved, but we still could not find you on Slack. Check the email and your Slack name again.",
+    "later": "Later"
+  },
   "account": {
     "phoneRequired": "Enter your phone number.",
-    "phoneSaved": "Your phone number was updated.",
-    "phoneSaveFailed": "Your phone number could not be updated. Please try again shortly.",
+    "profileSaved": "Saved.",
+    "profileSaveFailed": "Could not save. Please try again shortly.",
     "basicTitle": "Basic information",
-    "basicDesc": "Only the phone number can be changed.",
+    "basicDesc": "Only the phone number and frequently used email can be changed.",
     "emailMissing": "No email",
     "studentIdMissing": "No student ID",
     "nameMissing": "No name",
