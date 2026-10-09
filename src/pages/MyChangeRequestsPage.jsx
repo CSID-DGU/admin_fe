@@ -27,6 +27,8 @@ const MyChangeRequestsPage = ({ servers = [], groupOptions = [], accountEmail, l
   const [isLoading, setIsLoading] = useState(true);
   const [filter, setFilter] = useState("ALL"); // ALL, PENDING, FULFILLED, DENIED
   const [alert, setAlert] = useState(null);
+  const [cancelTarget, setCancelTarget] = useState(null);
+  const [cancelling, setCancelling] = useState(false);
 
   // 제출 뒤에도 다시 부른다. 그때 화면 전체를 '불러오는 중'으로 바꾸면 열려 있는 변경 요청 창이 사라지고,
   // 안내를 비우면 방금 띄운 제출 안내가 지워진다 — 둘 다 처음 한 번의 상태(isLoading=true, alert=null)에 맡긴다.
@@ -66,6 +68,24 @@ const MyChangeRequestsPage = ({ servers = [], groupOptions = [], accountEmail, l
     navigate(location.pathname, { replace: true, state: null });
     setNewChangeType("EXPIRES_AT");
   }, [location.state, location.pathname, navigate]);
+
+  async function confirmCancel() {
+    setCancelling(true);
+    try {
+      await requestService.cancelChangeRequest(cancelTarget.changeRequestId);
+      setAlert({ type: "success", message: t("changes.cancelDone") });
+    } catch (error) {
+      // 그 사이 관리자가 승인을 시작했으면 서버가 거절한다 — 목록을 다시 읽어 지금 상태를 보여 준다.
+      setAlert({ type: "error", message: error.message || t("changes.cancelFailed") });
+    } finally {
+      setCancelling(false);
+      setCancelTarget(null);
+      fetchChangeRequests();
+    }
+  }
+
+  // 비밀번호 변경은 함께 지울 해시가 있어 서버가 취소를 받지 않는다.
+  const isCancellable = (changeRequest) => changeRequest.status === "PENDING" && changeRequest.changeType !== "PASSWORD";
 
   async function submitChangeRequest(change) {
     await onChangeRequest(change);
@@ -203,11 +223,6 @@ const MyChangeRequestsPage = ({ servers = [], groupOptions = [], accountEmail, l
               ? t("changes.emptyAll")
               : t(`changes.emptyFiltered.${filter}`)}
           </p>
-          <p className="text-(--decs-text-secondary)">
-            {filter === "ALL"
-              ? t("changes.emptyAllHint")
-              : t("changes.emptyFilteredHint")}
-          </p>
         </div>
       </Container>
     ) : (
@@ -219,12 +234,19 @@ const MyChangeRequestsPage = ({ servers = [], groupOptions = [], accountEmail, l
               <Header
                 variant="h3"
                 actions={
-                  <Button
-                    variant="normal"
-                    onClick={() => setSelectedChangeRequest(changeRequest)}
-                  >
-                    {t("requests.detail")}
-                  </Button>
+                  <span className="inline-flex items-center gap-2">
+                    {isCancellable(changeRequest) && (
+                      <Button variant="normal" onClick={() => setCancelTarget(changeRequest)}>
+                        {t("changes.cancel")}
+                      </Button>
+                    )}
+                    <Button
+                      variant="normal"
+                      onClick={() => setSelectedChangeRequest(changeRequest)}
+                    >
+                      {t("requests.detail")}
+                    </Button>
+                  </span>
                 }
               >
                 <span className="inline-flex items-center gap-3">
@@ -326,7 +348,7 @@ const MyChangeRequestsPage = ({ servers = [], groupOptions = [], accountEmail, l
   }));
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 mx-auto max-w-[900px]">
       {alert && (
         <Alert type={alert.type} dismissible onDismiss={() => setAlert(null)}>
           {alert.message}
@@ -361,6 +383,27 @@ const MyChangeRequestsPage = ({ servers = [], groupOptions = [], accountEmail, l
           onDismiss={() => setNewChangeType(null)}
         />
       ) : null}
+
+      {cancelTarget && (
+        <Modal
+          visible
+          dismissible={!cancelling}
+          onDismiss={() => setCancelTarget(null)}
+          header={t("changes.cancelConfirmTitle")}
+          footer={
+            <span className="inline-flex items-center gap-2">
+              <Button variant="normal" disabled={cancelling} onClick={() => setCancelTarget(null)}>
+                {t("common.close")}
+              </Button>
+              <Button variant="primary" loading={cancelling} disabled={cancelling} onClick={confirmCancel}>
+                {t("changes.cancel")}
+              </Button>
+            </span>
+          }
+        >
+          {t("changes.cancelConfirmBody", { id: cancelTarget.changeRequestId })}
+        </Modal>
+      )}
 
       {/* Detail Modal */}
       {selectedChangeRequest && (

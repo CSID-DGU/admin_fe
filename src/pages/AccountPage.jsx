@@ -98,7 +98,7 @@ const AccountPage = ({ user }) => {
   };
 
   const profileTabContent = (
-    <div className="space-y-6">
+    <div className="space-y-6 mx-auto max-w-[900px]">
       <Header
         variant="h3"
         description={t("account.basicDesc")}
@@ -172,7 +172,7 @@ const AccountPage = ({ user }) => {
   );
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 mx-auto max-w-[900px]">
       {/* Header */}
       <Header
         variant="h1"
