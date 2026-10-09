@@ -153,11 +153,6 @@ const RequestStatusPage = ({ onChanged }) => {
               ? t("requests.emptyAll")
               : t(`requests.emptyFiltered.${filter}`)}
           </p>
-          <p className="text-(--decs-text-secondary)">
-            {filter === "ALL"
-              ? t("requests.emptyAllHint")
-              : t("requests.emptyFilteredHint")}
-          </p>
         </div>
       </Container>
     ) : (
@@ -282,7 +277,7 @@ const RequestStatusPage = ({ onChanged }) => {
   }));
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 mx-auto max-w-[900px]">
       {/* Alert */}
       {alert && (
         <Alert

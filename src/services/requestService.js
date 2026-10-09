@@ -33,6 +33,9 @@ export const requestService = {
   rejectChangeRequest: (changeRequestId, adminComment) =>
     apiClient.post(`/api/admin/change-requests/${encodeURIComponent(changeRequestId)}/rejection`, { adminComment }),
   getMyChangeRequests: () => apiClient.get("/api/users/me/change-requests"),
+  // 승인 대기 중인 내 변경 요청을 취소한다(비밀번호 변경 제외).
+  cancelChangeRequest: (changeRequestId) =>
+    apiClient.request(`/api/users/me/change-requests/${encodeURIComponent(changeRequestId)}`, { method: "DELETE" }),
 
   // 마이그레이션은 작업을 등록하고 바로 202로 돌아온다. 끝났는지는 신청 상태(MIGRATING → FULFILLED)와
   // 마지막 마이그레이션 결과로 확인한다.
