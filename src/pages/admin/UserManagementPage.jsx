@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import userService from "../../services/userService";
 import UserGroupsModal from "./UserGroupsModal";
 import PasswordResetModal from "./PasswordResetModal";
+import UserWarningsModal from "./UserWarningsModal";
 import {
   Alert,
   Badge,
@@ -27,6 +28,7 @@ const UserManagementPage = () => {
   const [filterStatus, setFilterStatus] = useState("ALL");
   const [groupsUser, setGroupsUser] = useState(null);
   const [passwordUser, setPasswordUser] = useState(null);
+  const [warningsUser, setWarningsUser] = useState(null);
 
   // 사용자 목록 로드
   const loadUsers = async () => {
@@ -182,6 +184,10 @@ const UserManagementPage = () => {
                 text: "비밀번호 초기화",
                 onClick: () => setPasswordUser(user),
               },
+              // 관리자에게는 경고를 줄 수 없다.
+              ...(user.role === "ADMIN"
+                ? []
+                : [{ id: "manage-warnings", text: "경고 관리", onClick: () => setWarningsUser(user) }]),
             ]}
           />
         </div>
@@ -317,6 +323,7 @@ const UserManagementPage = () => {
       </Container>
 
       {groupsUser && <UserGroupsModal user={groupsUser} onDismiss={() => setGroupsUser(null)} />}
+      {warningsUser && <UserWarningsModal user={warningsUser} onDismiss={() => setWarningsUser(null)} />}
       {passwordUser && (
         <PasswordResetModal
           user={passwordUser}

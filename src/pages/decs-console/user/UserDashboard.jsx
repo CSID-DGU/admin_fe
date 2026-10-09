@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Container, Header, Button, StatusIndicator, Badge, Alert, KeyValuePairs, Modal } from "../../../design-system";
+import { formatWarningTime } from "../../../services/warningService";
 
 const ACTIVITY_STATUS_TYPE = {
   PENDING: "pending",
@@ -62,13 +63,38 @@ function BigStatus({ onConnect, onExtend, server }) {
   );
 }
 
-function UserDashboard({ onRequest, onConnect, onExtend, userName, server, expiryDays, activities = [] }) {
+// 경고·이용 정지 안내. 정지 중이면 접속이 막힌 이유와 끝나는 때를, 아니면 쌓인 경고 횟수를 알린다.
+function WarningNotice({ warnings }) {
+  const { t } = useTranslation();
+  if (!warnings) return null;
+  if (warnings.suspendedUntil) {
+    return (
+      <Alert type="error" header={t("dashboard.suspendedHeader", { until: formatWarningTime(warnings.suspendedUntil) })}>
+        {t("dashboard.suspendedBody", { count: warnings.count })}
+      </Alert>
+    );
+  }
+  if (warnings.count > 0) {
+    return (
+      <Alert type="warning" header={t("dashboard.warningHeader", { count: warnings.count })}>
+        {warnings.nextSuspensionDays > 0
+          ? t("dashboard.warningBody", { days: warnings.nextSuspensionDays })
+          : null}
+      </Alert>
+    );
+  }
+  return null;
+}
+
+function UserDashboard({ onRequest, onConnect, onExtend, userName, server, expiryDays, activities = [], warnings }) {
   const { t } = useTranslation();
   const [selectedActivity, setSelectedActivity] = useState(null);
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "var(--decs-space-l)", maxWidth: 900, margin: "0 auto" }}>
       <Header variant="h1" description={t("dashboard.description")}>{t("dashboard.greeting", { name: userName })}</Header>
+
+      <WarningNotice warnings={warnings} />
 
       {expiryDays != null ? (<Alert type="warning" header={t("dashboard.expiryHeader", { count: expiryDays })} action={<Button variant="normal" onClick={onExtend}>{t("dashboard.extendShort")}</Button>}>
         {t("dashboard.expiryBody")}
