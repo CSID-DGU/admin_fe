@@ -7,6 +7,7 @@ import UserContainerDetail from "./UserContainerDetail";
 import { useAuth } from "../../../hooks/useAuth";
 import { useDecsUserData } from "../../../hooks/useDecsUserData";
 import { requestService } from "../../../services/requestService";
+import { warningService } from "../../../services/warningService";
 import RequestStatusPage from "../../RequestStatusPage";
 import MyChangeRequestsPage from "../../MyChangeRequestsPage";
 import AccountPage from "../../AccountPage";
@@ -22,8 +23,18 @@ function UserPortalApp() {
   const { user, logout } = useAuth();
   const { t, i18n } = useTranslation();
   const { server, servers, expiryDays, activities, awaitingRequestId, gpuOptions, envOptions, groupOptions, error, refetch } = useDecsUserData();
+  const [warnings, setWarnings] = React.useState(null);
   const userName = user?.name || user?.email || t("portal.defaultUserName");
   const isAdmin = user?.role === "ADMIN";
+
+  // 경고 현황은 안내용이다. 못 불러오면 안내만 빠지고 나머지 화면은 그대로 쓴다.
+  React.useEffect(() => {
+    let alive = true;
+    warningService.getMyWarnings()
+      .then((loaded) => { if (alive) setWarnings(loaded); })
+      .catch(() => {});
+    return () => { alive = false; };
+  }, []);
 
   const nav = {
     header: { text: "DECS", href: "/user" },
@@ -81,7 +92,7 @@ function UserPortalApp() {
       >
         {error ? <div style={{ marginBottom: "var(--decs-space-m)" }}><Flashbar items={[{ id: "decs-user-data", type: "warning", header: error, dismissible: false }]} /></div> : null}
         <Routes>
-          <Route index element={<UserDashboard userName={userName} server={server} expiryDays={expiryDays} activities={activities ?? []} onRequest={() => navigate("/user/request")} onConnect={() => navigate("/user/container")} onExtend={() => navigate("/user/change-requests", { state: { extend: true } })} />} />
+          <Route index element={<UserDashboard userName={userName} warnings={warnings} server={server} expiryDays={expiryDays} activities={activities ?? []} onRequest={() => navigate("/user/request")} onConnect={() => navigate("/user/container")} onExtend={() => navigate("/user/change-requests", { state: { extend: true } })} />} />
           <Route path="request" element={awaitingRequestId != null ? <AwaitingRequestNotice onView={() => navigate("/user/requests")} /> : <RequestWizard onCancel={() => navigate("/user")} onDone={() => navigate("/user/requests")} gpuOptions={gpuOptions ?? []} envOptions={envOptions ?? []} groupOptions={groupOptions ?? []} onSubmit={submitRequest} accountUsername={user?.ubuntuUsername} />} />
           <Route path="container" element={<UserContainerDetail onBack={() => navigate("/user")} servers={servers ?? []} onRestarted={refetch} />} />
           <Route path="requests" element={<RequestStatusPage onChanged={refetch} />} />
