@@ -4,6 +4,8 @@
 // 항목 모양:
 //   type            서버의 ChangeType 이름
 //   labelKey        종류 이름 번역 키
+//   accountScoped   true면 계정 단위 변경 — 대상 컨테이너·사유가 없고 Form이 스스로 제출한다.
+//                   이때 Form은 ({ accountEmail, onSubmitted })를 받고, 아래 나머지 항목은 쓰지 않는다.
 //   reasonPlaceholderKey  사유 입력란 예시 번역 키
 //   Form            ({ server, groupOptions, value, onChange }) => 폼
 //   initialValue    (server) => 폼의 처음 값
@@ -12,7 +14,11 @@
 import ExpiresAtForm from "./ExpiresAtForm";
 import GroupForm from "./GroupForm";
 import PortForm from "./PortForm";
+import PasswordResetForm from "../../../../components/PasswordResetForm";
 import { MAX_EXTRA_PORTS, PROTECTED_PORTS, toLocalDateInput } from "./changeRequestRules";
+
+// 서버(SingleChangeRequestDTO.reason)와 같은 한도. 승인자가 이 글만 보고 판단하므로 최소 길이를 둔다.
+export const REASON_MIN_LENGTH = 100;
 
 function changeablePorts(server) {
   return (server.extraPorts ?? [])
@@ -71,6 +77,12 @@ export const CHANGE_REQUEST_TYPES = [
     },
     // 서버는 승인 뒤에 열려 있을 추가 포트 전체를 받는다. 빈 목록이면 모두 닫는다.
     toNewValue: (ports) => JSON.stringify(ports),
+  },
+  {
+    type: "PASSWORD",
+    labelKey: "change.type.PASSWORD",
+    accountScoped: true,
+    Form: PasswordResetForm,
   },
 ];
 

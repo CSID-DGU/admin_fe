@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import userService from "../../services/userService";
 import UserGroupsModal from "./UserGroupsModal";
 import PasswordResetModal from "./PasswordResetModal";
-import PasswordResetRequestsPanel from "./PasswordResetRequestsPanel";
 import {
   Alert,
   Badge,
@@ -28,8 +27,6 @@ const UserManagementPage = () => {
   const [filterStatus, setFilterStatus] = useState("ALL");
   const [groupsUser, setGroupsUser] = useState(null);
   const [passwordUser, setPasswordUser] = useState(null);
-  // 값이 바뀌면 비밀번호 재설정 신청 목록을 다시 읽는다.
-  const [passwordResetsKey, setPasswordResetsKey] = useState(0);
 
   // 사용자 목록 로드
   const loadUsers = async () => {
@@ -246,10 +243,7 @@ const UserManagementPage = () => {
             <Button
               iconName="arrow-path"
               loading={loading}
-              onClick={() => {
-                loadUsers();
-                setPasswordResetsKey((key) => key + 1);
-              }}
+              onClick={loadUsers}
             >
               새로고침
             </Button>
@@ -265,8 +259,6 @@ const UserManagementPage = () => {
           {alert.message}
         </Alert>
       )}
-
-      <PasswordResetRequestsPanel reloadKey={passwordResetsKey} onNotice={setAlert} />
 
       {/* 검색 및 필터 */}
       <Container>
@@ -328,20 +320,15 @@ const UserManagementPage = () => {
       {passwordUser && (
         <PasswordResetModal
           user={passwordUser}
-          onDismiss={() => {
-            setPasswordUser(null);
-            // 작업 등록이 실패하면 신청이 승인 대기로 남으므로, 닫을 때도 목록을 다시 읽는다.
-            setPasswordResetsKey((key) => key + 1);
-          }}
+          onDismiss={() => setPasswordUser(null)}
           onDone={(done, status) => {
             setPasswordUser(null);
-            setPasswordResetsKey((key) => key + 1);
             setAlert({
-              type: status === "APPLIED" ? "success" : "info",
+              type: status === "FULFILLED" ? "success" : "info",
               message:
-                status === "APPLIED"
+                status === "FULFILLED"
                   ? `${done.name} 님의 비밀번호를 초기화했어요. 새 비밀번호를 직접 전달해 주세요.`
-                  : `${done.name} 님의 새 비밀번호를 컨테이너에 반영하는 중이에요. 적용되면 여기에 알려 드려요. 새 비밀번호는 직접 전달해 주세요.`,
+                  : `${done.name} 님의 새 비밀번호를 컨테이너에 반영하는 중이에요. 결과는 변경 요청 관리에서 확인할 수 있어요. 새 비밀번호는 직접 전달해 주세요.`,
             });
           }}
         />

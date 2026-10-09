@@ -24,14 +24,14 @@ export const requestService = {
   rejectRequest: (requestId, adminComment) =>
     apiClient.post(`/api/admin/requests/${encodeURIComponent(requestId)}/rejection`, { adminComment }),
 
-  createChangeRequest: (requestId, data) =>
-    apiClient.post(`/api/requests/${requestId}/change`, data),
+  // 대상 신청(requestId)은 본문에 넣는다. 비밀번호 변경은 메일 인증이 필요해 authService.requestPasswordReset으로 낸다.
+  createChangeRequest: (data) => apiClient.post("/api/users/me/change-requests", data),
   getChangeRequests: () => apiClient.get("/api/admin/change-requests"),
   approveChangeRequest: (changeRequestId, adminComment) =>
     apiClient.post(`/api/admin/change-requests/${encodeURIComponent(changeRequestId)}/approval`, { adminComment }),
   rejectChangeRequest: (changeRequestId, adminComment) =>
     apiClient.post(`/api/admin/change-requests/${encodeURIComponent(changeRequestId)}/rejection`, { adminComment }),
-  getMyChangeRequests: () => apiClient.get("/api/requests/my/changes"),
+  getMyChangeRequests: () => apiClient.get("/api/users/me/change-requests"),
 
   // 마이그레이션은 작업을 등록하고 바로 202로 돌아온다. 끝났는지는 신청 상태(MIGRATING → FULFILLED)와
   // 마지막 마이그레이션 결과로 확인한다.

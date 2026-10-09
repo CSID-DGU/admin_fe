@@ -1,35 +1,20 @@
 // UserContainerDetail — 접속·상태 이해 (친절한 문구 + 복사 가능한 접속 정보)
-import { useEffect, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useState } from "react";
 import { Trans, useTranslation } from "react-i18next";
 import { Container, Header, KeyValuePairs, StatusIndicator, Button, Alert, ExpandableSection, Badge } from "../../../design-system";
 import RestartContainerModal from "../../../components/RestartContainerModal";
 import { requestService } from "../../../services/requestService";
-import ChangeRequestModal from "./changeRequest/ChangeRequestModal";
 
 const CONTACT_FORM_URL = "https://forms.gle/nACaxj2UeJF56V2i7";
 
-function UserContainerDetail({ onBack, onChangeRequest, loadPendingChangeTypes, onRestarted, groupOptions = [], servers = [] }) {
+// 기간 연장·그룹 추가·포트 변경은 여기서 내지 않는다 — 사이드바의 변경 요청 화면 한 곳에서 낸다.
+function UserContainerDetail({ onBack, onRestarted, servers = [] }) {
   const { t } = useTranslation();
-  const location = useLocation();
-  const navigate = useNavigate();
   const [selectedId, setSelectedId] = useState(null);
-  // 변경 요청 창이 열려 있으면 처음 고를 종류(EXPIRES_AT·GROUP·PORT), 닫혀 있으면 null
-  const [changeType, setChangeType] = useState(null);
-  const [autoExtended, setAutoExtended] = useState(false);
   const [restartOpen, setRestartOpen] = useState(false);
   const [restartNotice, setRestartNotice] = useState(null);
 
   const server = servers.find((s) => s.requestId === selectedId) ?? servers[0];
-  // 대시보드 연장 버튼 경유(location.state.extend) 시 서버 로드 후 변경 요청 창을 기간 연장으로 자동 오픈
-  useEffect(() => {
-    if (location.state?.extend && server && !autoExtended) {
-      setAutoExtended(true);
-      // history.state를 비워 새로고침 시 모달이 재오픈되지 않게 함
-      navigate(location.pathname, { replace: true, state: null });
-      setChangeType("EXPIRES_AT");
-    }
-  }, [location.state, location.pathname, navigate, server, autoExtended]);
 
   if (!server) {
     return (
@@ -127,9 +112,6 @@ function UserContainerDetail({ onBack, onChangeRequest, loadPendingChangeTypes, 
             </ExpandableSection>
           </div>
         ) : null}
-        <div style={{ marginTop: "var(--decs-space-m)" }}>
-          <Button iconName="plus" onClick={() => setChangeType("PORT")}>{t("container.requestPort")}</Button>
-        </div>
       </Container>
 
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "var(--decs-space-m)" }}>
@@ -141,7 +123,6 @@ function UserContainerDetail({ onBack, onChangeRequest, loadPendingChangeTypes, 
         <Container header={<Header variant="h2">{t("container.period")}</Header>}>
           <div style={{ fontSize: "var(--decs-fs-heading-xl)", fontWeight: 700, color: "var(--decs-text-heading)" }}>{t("container.daysLeft", { count: server.daysLeft })}</div>
           <div style={{ color: "var(--decs-text-secondary)", fontSize: "var(--decs-fs-body-m)", marginTop: 4 }}>{server.expiresText}</div>
-          <div style={{ marginTop: "var(--decs-space-m)" }}><Button variant="primary" iconName="calendar" onClick={() => setChangeType("EXPIRES_AT")}>{t("container.extend")}</Button></div>
         </Container>
       </div>
 
@@ -164,27 +145,23 @@ function UserContainerDetail({ onBack, onChangeRequest, loadPendingChangeTypes, 
             <Trans i18nKey="container.shareHint" components={{ code: <code /> }} shouldUnescape />
           </div>
         ) : null}
-        <div style={{ color: "var(--decs-text-secondary)", fontSize: "var(--decs-fs-body-s)", marginTop: "var(--decs-space-xs)" }}>
-          <Trans i18nKey="container.leaveHint" components={{ a: <a href={CONTACT_FORM_URL} target="_blank" rel="noreferrer" /> }} />
-        </div>
-        <div style={{ marginTop: "var(--decs-space-m)" }}>
-          <Button iconName="plus" onClick={() => setChangeType("GROUP")}>{t("container.requestGroup")}</Button>
-        </div>
       </Container>
 
-      <Container header={<Header variant="h2" description={t("container.restartDesc")}>{t("container.restartTitle")}</Header>}>
+      {/* 강제 종료 경고는 재시작 확인 창이 자세히 보여 준다 — 여기서는 언제 쓰는지만 적는다. */}
+      <Container>
+        <Header
+          variant="h2"
+          description={t("container.restartDesc")}
+          actions={<Button iconName="arrow-path" onClick={() => setRestartOpen(true)}>{t("container.restart")}</Button>}
+        >
+          {t("container.restartTitle")}
+        </Header>
         {/* 컨테이너가 여러 개면 다른 컨테이너를 골랐을 때 이 결과가 따라가지 않게 한다 */}
         {restartNotice?.requestId === server.requestId ? (
-          <div style={{ marginBottom: "var(--decs-space-m)" }}>
+          <div style={{ marginTop: "var(--decs-space-m)" }}>
             <Alert type={restartNotice.type}>{restartNotice.message}</Alert>
           </div>
         ) : null}
-        <div style={{ color: "var(--decs-text-secondary)", fontSize: "var(--decs-fs-body-s)" }}>
-          {t("container.restartWarn")}
-        </div>
-        <div style={{ marginTop: "var(--decs-space-m)" }}>
-          <Button iconName="arrow-path" onClick={() => setRestartOpen(true)}>{t("container.restart")}</Button>
-        </div>
       </Container>
 
       <Alert type="info" header={t("container.helpTitle")}>
@@ -202,19 +179,6 @@ function UserContainerDetail({ onBack, onChangeRequest, loadPendingChangeTypes, 
           onRestarted?.();
         }}
       />
-
-      {/* 컨테이너를 바꿔 고르거나 다시 열면 새로 마운트해 입력을 비운다 */}
-      {changeType ? (
-        <ChangeRequestModal
-          key={`${server.requestId}-${changeType}`}
-          server={server}
-          groupOptions={groupOptions}
-          initialType={changeType}
-          loadPendingTypes={loadPendingChangeTypes}
-          onSubmit={onChangeRequest}
-          onDismiss={() => setChangeType(null)}
-        />
-      ) : null}
     </div>
   );
 }

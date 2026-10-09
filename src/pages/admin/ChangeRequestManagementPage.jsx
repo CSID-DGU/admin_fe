@@ -17,7 +17,7 @@ import RequestDecisionModal from "../../components/RequestDecisionModal";
 
 const STATUS_META = {
   PENDING: { type: "pending", label: "대기중" },
-  // 승인은 했고 계정·컨테이너에 반영하는 작업이 도는 중이다(공유 그룹 추가, 추가 포트 변경). 끝나면 승인됨, 실패하면 대기중으로 돌아온다.
+  // 승인은 했고 계정·컨테이너에 반영하는 작업이 도는 중이다(공유 그룹 추가, 추가 포트 변경, 비밀번호 변경). 끝나면 승인됨, 실패하면 대기중으로 돌아온다.
   PROCESSING: { type: "in-progress", label: "반영 중" },
   FULFILLED: { type: "success", label: "승인됨" },
   DENIED: { type: "error", label: "거절됨" },
@@ -34,10 +34,12 @@ const APPROVAL_BLOCK_REASON = {
 // 컨테이너를 새로 만드는 경우는 새 컨텍스트라 즉시 반영된다.
 const APPROVAL_DELAY_NOTE = {
   GROUP: "그룹 변경은 이미 실행 중인 컨테이너에 최대 약 30분 뒤에 반영됩니다. 새로 만드는 컨테이너는 즉시 반영됩니다.",
+  PASSWORD: "웹 로그인과 SSH(Ubuntu 계정) 비밀번호가 함께 바뀝니다. 신청자가 가입한 메일로 본인 확인을 마친 요청이고, 적용되면 신청자의 기존 로그인은 끊깁니다.",
 };
 
 // 승인하면 작업으로 등록돼 반영되는 변경 유형.
-const APPLIED_BY_JOB = new Set(["GROUP", "PORT"]);
+// 비밀번호 변경은 리눅스 계정이 없으면 바로 끝나지만, 그때도 다음 조회에서 승인됨으로 바뀐다.
+const APPLIED_BY_JOB = new Set(["GROUP", "PORT", "PASSWORD"]);
 const POLL_MS = 3000;
 const OPEN_STATUSES = new Set(["PENDING", "PROCESSING"]);
 
@@ -208,13 +210,18 @@ const ChangeRequestManagementPage = () => {
         return "그룹";
       case "PORT":
         return "포트 매핑";
+      case "PASSWORD":
+        return "비밀번호";
       default:
         return changeType;
     }
   };
 
   const formatChangeValue = (changeType, value) => {
-    if (changeType === "EXPIRES_AT") {
+    if (changeType === "PASSWORD") {
+      // 새 비밀번호는 서버도 해시로만 들고 있어 보여 줄 값이 없다.
+      return "—";
+    } else if (changeType === "EXPIRES_AT") {
       // 날짜 형식으로 포맷팅
       if (value) {
         return new Date(value).toLocaleDateString("ko-KR", {
@@ -621,7 +628,8 @@ const ChangeRequestManagementPage = () => {
                   },
                   {
                     label: "원본 요청 ID",
-                    value: `#${sel.originalRequestId}`,
+                    // 비밀번호 변경은 계정 단위라 대상 신청이 없다.
+                    value: sel.originalRequestId == null ? "계정" : `#${sel.originalRequestId}`,
                   },
                   {
                     label: "이전 값",
@@ -636,7 +644,7 @@ const ChangeRequestManagementPage = () => {
               <div style={{ marginTop: "var(--decs-space-m)" }}>
                 <div style={{ color: "var(--decs-text-inactive)", marginBottom: "var(--decs-space-xxs)" }}>변경 사유</div>
                 <div style={{ background: "var(--decs-surface-sunken)", padding: "var(--decs-space-s)" }}>
-                  {sel.reason}
+                  {sel.reason || "—"}
                 </div>
               </div>
             </div>

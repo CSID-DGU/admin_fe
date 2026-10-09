@@ -66,8 +66,7 @@ function UserPortalApp() {
     if (!requestId) throw new Error(t("portal.changeTargetMissing"));
     const pendingTypes = await loadPendingChangeTypes(requestId);
     if (pendingTypes.includes(changeType)) throw new Error(t("portal.changeAlreadyPending"));
-    await requestService.createChangeRequest(requestId, { changeType, newValue, reason });
-    navigate("/user/change-requests");
+    await requestService.createChangeRequest({ requestId, changeType, newValue, reason });
   }
 
   return (
@@ -80,11 +79,11 @@ function UserPortalApp() {
       >
         {error ? <div style={{ marginBottom: "var(--decs-space-m)" }}><Flashbar items={[{ id: "decs-user-data", type: "warning", header: error, dismissible: false }]} /></div> : null}
         <Routes>
-          <Route index element={<UserDashboard userName={userName} server={server} expiryDays={expiryDays} activities={activities ?? []} onRequest={() => navigate("/user/request")} onConnect={() => navigate("/user/container")} onExtend={() => navigate("/user/container", { state: { extend: true } })} />} />
+          <Route index element={<UserDashboard userName={userName} server={server} expiryDays={expiryDays} activities={activities ?? []} onRequest={() => navigate("/user/request")} onConnect={() => navigate("/user/container")} onExtend={() => navigate("/user/change-requests", { state: { extend: true } })} />} />
           <Route path="request" element={awaitingRequestId != null ? <AwaitingRequestNotice onView={() => navigate("/user/requests")} /> : <RequestWizard onCancel={() => navigate("/user")} onDone={() => navigate("/user/requests")} gpuOptions={gpuOptions ?? []} envOptions={envOptions ?? []} groupOptions={groupOptions ?? []} onSubmit={submitRequest} accountUsername={user?.ubuntuUsername} />} />
-          <Route path="container" element={<UserContainerDetail onBack={() => navigate("/user")} onChangeRequest={submitChangeRequest} loadPendingChangeTypes={loadPendingChangeTypes} groupOptions={groupOptions ?? []} servers={servers ?? []} onRestarted={refetch} />} />
+          <Route path="container" element={<UserContainerDetail onBack={() => navigate("/user")} servers={servers ?? []} onRestarted={refetch} />} />
           <Route path="requests" element={<RequestStatusPage onChanged={refetch} />} />
-          <Route path="change-requests" element={<MyChangeRequestsPage />} />
+          <Route path="change-requests" element={<MyChangeRequestsPage servers={servers ?? []} groupOptions={groupOptions ?? []} accountEmail={user?.email} loadPendingChangeTypes={loadPendingChangeTypes} onChangeRequest={submitChangeRequest} />} />
           <Route path="account" element={<AccountPage user={user} />} />
           <Route path="monitoring" element={<ResourceMonitoringPage />} />
           <Route path="*" element={<Navigate to="/user" replace />} />
