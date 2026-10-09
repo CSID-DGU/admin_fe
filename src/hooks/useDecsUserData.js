@@ -97,7 +97,8 @@ function buildGpuOptions(gpuTypes) {
 
 function buildServerVm(dto, groupNameByGid = {}) {
   const vm = mapUserServer(dto);
-  const serverName = dto.resourceGroup?.serverName ?? "";
+  // 노드가 배정돼 있으면 "FARM1"처럼 노드 번호까지 보여 준다. 아직 없으면 서버 이름만 쓴다.
+  const serverName = (dto.nodeName ?? "").toUpperCase() || (dto.resourceGroup?.serverName ?? "");
   // 웹 계정 하나당 우분투 유저네임이 하나로 고정되면서, 한 사용자가 컨테이너를 여러 개
   // 동시에 가질 때 ubuntuUsername만으로는 서로 구분이 안 된다 — 신청 시 적어낸 사용
   // 목적이 그나마 본인이 알아볼 수 있는 유일한 값이라 이걸 제목으로 쓴다.
