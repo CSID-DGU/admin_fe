@@ -1,6 +1,6 @@
 // AdminDashboard — 전체 상태 즉시 파악 (GPU 사용률 · 컨테이너 상태 · 만료 예정 · 최근 활동)
 import { useEffect, useState, useCallback } from "react";
-import { Container, Header, StatusIndicator, Badge, Button, Table, Alert, ProgressBar } from "../../../design-system";
+import { Container, Header, StatusIndicator, Badge, Button, Table, Alert, ProgressBar, PHONE_QUERY, useMediaQuery } from "../../../design-system";
 import { monitoringService } from "../../../services/grafanaService";
 
 const GPU_METRICS_REFRESH_MS = 30_000;
@@ -35,6 +35,7 @@ function GpuUtilRow({ server }) {
 }
 
 function GpuUtilPanel({ onUpdated }) {
+  const phone = useMediaQuery(PHONE_QUERY);
   const [servers, setServers] = useState(null);
   const [error, setError] = useState(null);
 
@@ -77,7 +78,7 @@ function GpuUtilPanel({ onUpdated }) {
         <span style={{ fontSize: "var(--decs-fs-heading-l)", fontWeight: 700, color: "var(--decs-text-heading)" }}>{avgUtil}%</span>
         <span style={{ fontSize: "var(--decs-fs-body-s)", color: "var(--decs-text-secondary)" }}>전체 평균 · 서버 {servers.length}대</span>
       </div>
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "var(--decs-space-s)" }}>
+      <div style={{ display: "grid", gridTemplateColumns: phone ? "minmax(0, 1fr)" : "1fr 1fr", gap: "var(--decs-space-s)" }}>
         {servers.map((s) => <GpuUtilRow key={s.hostname} server={s} />)}
       </div>
     </div>
@@ -104,6 +105,7 @@ function StatCard({ label, value, sub, accent, onClick }) {
 const EXPIRING_SOON_DAYS = 3;
 
 function AdminDashboard({ onOpenContainers, onOpenErrorContainers, onOpenDetail, containers = [], users = [] }) {
+  const phone = useMediaQuery(PHONE_QUERY);
   const [gpuLastUpdated, setGpuLastUpdated] = useState(null);
   const running = containers.filter((c) => c.status === "success").length;
   const errored = containers.filter((c) => c.status === "error").length;
@@ -127,14 +129,14 @@ function AdminDashboard({ onOpenContainers, onOpenErrorContainers, onOpenDetail,
         </Alert>
       ) : null}
 
-      <div style={{ display: "flex", gap: "var(--decs-space-m)" }}>
+      <div style={{ display: "grid", gridTemplateColumns: phone ? "repeat(2, minmax(0, 1fr))" : "repeat(4, minmax(0, 1fr))", gap: "var(--decs-space-m)" }}>
         <StatCard label="실행 중 컨테이너" value={running} sub={`전체 ${containers.length}건`} onClick={onOpenContainers} />
         <StatCard label="오류" value={errored} sub="즉시 조치 필요" accent="var(--decs-status-error)" onClick={onOpenErrorContainers} />
         <StatCard label={`만료 임박 (${EXPIRING_SOON_DAYS}일)`} value={expiring} sub="연장 안내 대상" accent="var(--decs-status-warning)" onClick={onOpenContainers} />
         <StatCard label="등록 사용자" value={users.length} />
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1.4fr", gap: "var(--decs-space-l)", alignItems: "start" }}>
+      <div style={{ display: "grid", gridTemplateColumns: phone ? "minmax(0, 1fr)" : "1fr 1.4fr", gap: "var(--decs-space-l)", alignItems: "start" }}>
         <Container header={
           <Header
             variant="h2"

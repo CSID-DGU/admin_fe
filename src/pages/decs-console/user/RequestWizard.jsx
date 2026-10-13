@@ -354,9 +354,9 @@ function RequestWizard({ onCancel, onDone, gpuOptions: gpuOptionsProp, envOption
             />
           </FormField>
           <FormField label={t("wizard.extraPortsOptional")} errorText={portError} constraintText={t("wizard.extraPortsHelp")}>
-            <div style={{ display: "grid", gridTemplateColumns: "150px minmax(0, 1fr) auto", gap: "var(--decs-space-xs)" }}>
-              <Input value={portNumber} onChange={(value) => { setPortNumber(value); setPortError(null); }} type="number" min={1} max={65535} step={1} placeholder={t("wizard.portPlaceholder")} invalid={!!portError} />
-              <Input value={portPurpose} onChange={setPortPurpose} placeholder={t("wizard.portPurposePlaceholder")} ariaLabel={t("wizard.portPurposePlaceholder")} />
+            <div style={{ display: "flex", flexWrap: "wrap", gap: "var(--decs-space-xs)" }}>
+              <Input value={portNumber} onChange={(value) => { setPortNumber(value); setPortError(null); }} type="number" min={1} max={65535} step={1} placeholder={t("wizard.portPlaceholder")} invalid={!!portError} style={{ flex: "0 1 150px" }} />
+              <Input value={portPurpose} onChange={setPortPurpose} placeholder={t("wizard.portPurposePlaceholder")} ariaLabel={t("wizard.portPurposePlaceholder")} style={{ flex: "1 1 40%" }} />
               <Button iconName="plus" onClick={addPort} ariaLabel={t("wizard.addPortAria")}>{t("common.add")}</Button>
             </div>
             {portRequests.length > 0 ? (

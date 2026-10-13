@@ -1,6 +1,7 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { Icon } from "../icons/Icon.jsx";
+import { PHONE_QUERY, useMediaQuery } from "../../hooks/useMediaQuery.js";
 
 /**
  * navigator.clipboard는 보안 컨텍스트(HTTPS/localhost)에서만 존재한다. 이 사이트는
@@ -62,8 +63,9 @@ function CopyValue({ text }) {
 }
 
 export function KeyValuePairs({ items = [], columns = 2, style }) {
+  const phone = useMediaQuery(PHONE_QUERY);
   return (
-    <div style={{ display: "grid", gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))`, gap: "var(--decs-space-m) var(--decs-space-xl)", fontFamily: "var(--decs-font-base)", ...style }}>
+    <div style={{ display: "grid", gridTemplateColumns: `repeat(${phone ? 1 : columns}, minmax(0, 1fr))`, gap: "var(--decs-space-m) var(--decs-space-xl)", fontFamily: "var(--decs-font-base)", ...style }}>
       {items.map((it, i) => (
         <div key={i} style={{ minWidth: 0, gridColumn: it.fullWidth ? "1 / -1" : undefined }}>
           <div style={{ fontSize: "var(--decs-fs-body-s)", color: "var(--decs-text-inactive)", marginBottom: "2px" }}>{it.label}</div>
