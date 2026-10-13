@@ -2,22 +2,25 @@ import React from "react";
 import { useTranslation } from "react-i18next";
 import { Icon } from "../icons/Icon.jsx";
 import { Button } from "../forms/Button.jsx";
+import { PHONE_QUERY, useMediaQuery } from "../../hooks/useMediaQuery.js";
 
 /**
  * Wizard — multi-step flow with a left step navigator (Cloudscape). The user
  * GPU-request flow (사용 목적 → GPU → 기간 → 개발 환경 → 확인) is the canonical use.
+ * 휴대폰 폭에서는 단계 목록을 내용 위에 번호만 가로로 놓는다(현재 단계 제목은 내용 머리에 있다).
  * Controlled: pass activeStepIndex + onNavigate. steps: [{ title, content, description? }]
  */
 export function Wizard({ steps = [], activeStepIndex = 0, onNavigate, onCancel, onSubmit, submitLabel, isLoadingNextStep = false, style }) {
   const { t } = useTranslation();
+  const stacked = useMediaQuery(PHONE_QUERY);
   const step = steps[activeStepIndex] || {};
   const isLast = activeStepIndex === steps.length - 1;
   const go = (i) => onNavigate?.(Math.max(0, Math.min(steps.length - 1, i)));
 
   return (
-    <div style={{ display: "flex", gap: "var(--decs-space-xxl)", fontFamily: "var(--decs-font-base)", alignItems: "flex-start", ...style }}>
+    <div style={{ display: "flex", flexDirection: stacked ? "column" : "row", gap: stacked ? "var(--decs-space-m)" : "var(--decs-space-xxl)", fontFamily: "var(--decs-font-base)", alignItems: stacked ? "stretch" : "flex-start", ...style }}>
       {/* Step navigator */}
-      <nav style={{ flex: "0 1 220px", minWidth: "160px", display: "flex", flexDirection: "column", gap: "var(--decs-space-xs)" }}>
+      <nav style={stacked ? { display: "flex", flexWrap: "wrap", gap: "var(--decs-space-xs)" } : { flex: "0 1 220px", minWidth: "160px", display: "flex", flexDirection: "column", gap: "var(--decs-space-xs)" }}>
         {steps.map((s, i) => {
           const done = i < activeStepIndex;
           const current = i === activeStepIndex;
@@ -25,6 +28,8 @@ export function Wizard({ steps = [], activeStepIndex = 0, onNavigate, onCancel, 
             <button
               key={i}
               onClick={() => i <= activeStepIndex && go(i)}
+              aria-label={stacked ? s.title : undefined}
+              aria-current={current ? "step" : undefined}
               style={{
                 display: "flex", alignItems: "center", gap: "var(--decs-space-xs)", textAlign: "left",
                 background: "none", border: "none", cursor: i <= activeStepIndex ? "pointer" : "default",
@@ -40,9 +45,11 @@ export function Wizard({ steps = [], activeStepIndex = 0, onNavigate, onCancel, 
               }}>
                 {done ? <Icon name="check" size={14} /> : i + 1}
               </span>
-              <span title={s.title} style={{ minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontSize: "var(--decs-fs-body-m)", color: current ? "var(--decs-text-heading)" : "var(--decs-text-secondary)", fontWeight: current ? "var(--decs-fw-bold)" : "var(--decs-fw-regular)" }}>
-                {s.title}
-              </span>
+              {stacked ? null : (
+                <span title={s.title} style={{ minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontSize: "var(--decs-fs-body-m)", color: current ? "var(--decs-text-heading)" : "var(--decs-text-secondary)", fontWeight: current ? "var(--decs-fw-bold)" : "var(--decs-fw-regular)" }}>
+                  {s.title}
+                </span>
+              )}
             </button>
           );
         })}
@@ -57,7 +64,7 @@ export function Wizard({ steps = [], activeStepIndex = 0, onNavigate, onCancel, 
         {step.description ? <p style={{ margin: "var(--decs-space-xxs) 0 0", color: "var(--decs-text-secondary)", fontSize: "var(--decs-fs-body-m)" }}>{step.description}</p> : null}
         <div style={{ marginTop: "var(--decs-space-xl)" }}>{step.content}</div>
 
-        <div style={{ display: "flex", justifyContent: "flex-end", gap: "var(--decs-space-xs)", marginTop: "var(--decs-space-xl)", paddingTop: "var(--decs-space-m)", borderTop: "1px solid var(--decs-border-divider)" }}>
+        <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "flex-end", gap: "var(--decs-space-xs)", marginTop: "var(--decs-space-xl)", paddingTop: "var(--decs-space-m)", borderTop: "1px solid var(--decs-border-divider)" }}>
           <Button variant="link" onClick={onCancel}>{t("common.cancel")}</Button>
           {activeStepIndex > 0 ? <Button variant="normal" onClick={() => go(activeStepIndex - 1)}>{t("ds.previous")}</Button> : null}
           {isLast

@@ -36,9 +36,9 @@ function PortForm({ value, onChange }) {
     <>
       <Alert type="info">{t("change.portNotice")}</Alert>
       <FormField label={t("change.portList")} errorText={portError} constraintText={t("change.portHelp", { max: MAX_EXTRA_PORTS })}>
-        <div style={{ display: "grid", gridTemplateColumns: "150px minmax(0, 1fr) auto", gap: "var(--decs-space-xs)" }}>
-          <Input value={portNumber} onChange={(next) => { setPortNumber(next); setPortError(null); }} type="number" min={1} max={65535} step={1} placeholder={t("wizard.portPlaceholder")} invalid={!!portError} />
-          <Input value={portPurpose} onChange={setPortPurpose} placeholder={t("wizard.portPurposePlaceholder")} ariaLabel={t("wizard.portPurposePlaceholder")} />
+        <div style={{ display: "flex", flexWrap: "wrap", gap: "var(--decs-space-xs)" }}>
+          <Input value={portNumber} onChange={(next) => { setPortNumber(next); setPortError(null); }} type="number" min={1} max={65535} step={1} placeholder={t("wizard.portPlaceholder")} invalid={!!portError} style={{ flex: "0 1 150px" }} />
+          <Input value={portPurpose} onChange={setPortPurpose} placeholder={t("wizard.portPurposePlaceholder")} ariaLabel={t("wizard.portPurposePlaceholder")} style={{ flex: "1 1 40%" }} />
           <Button iconName="plus" onClick={addPort} ariaLabel={t("wizard.addPortAria")}>{t("common.add")}</Button>
         </div>
         {value.length > 0 ? (

@@ -27,6 +27,8 @@ export { Tabs } from "./components/layout/Tabs.jsx";
 export { Modal } from "./components/layout/Modal.jsx";
 export { Wizard } from "./components/layout/Wizard.jsx";
 
+export { NARROW_QUERY, PHONE_QUERY, useMediaQuery } from "./hooks/useMediaQuery.js";
+
 export { AppLayout } from "./components/navigation/AppLayout.jsx";
 export { SideNavigation } from "./components/navigation/SideNavigation.jsx";
 export { TopNavigation } from "./components/navigation/TopNavigation.jsx";

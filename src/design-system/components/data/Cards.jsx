@@ -1,6 +1,7 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { Icon } from "../icons/Icon.jsx";
+import { PHONE_QUERY, useMediaQuery } from "../../hooks/useMediaQuery.js";
 
 /**
  * Cards — the user surface's primary layout. A responsive grid of cards, each
@@ -20,6 +21,7 @@ export function Cards({
   style,
 }) {
   const { t } = useTranslation();
+  const phone = useMediaQuery(PHONE_QUERY);
   const keyOf = (it) => it[trackBy];
   const selectedKeys = new Set(selectedItems.map(keyOf));
   const selectable = !!selectionType;
@@ -36,7 +38,7 @@ export function Cards({
   }
 
   return (
-    <div style={{ display: "grid", gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))`, gap: "var(--decs-space-m)", fontFamily: "var(--decs-font-base)", ...style }}>
+    <div style={{ display: "grid", gridTemplateColumns: `repeat(${phone ? 1 : columns}, minmax(0, 1fr))`, gap: "var(--decs-space-m)", fontFamily: "var(--decs-font-base)", ...style }}>
       {items.map((it) => {
         const isSel = selectedKeys.has(keyOf(it));
         return (

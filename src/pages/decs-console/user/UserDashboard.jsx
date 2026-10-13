@@ -1,7 +1,7 @@
 // UserDashboard — "지금 상태 + 다음 행동" (Toss식 행동 중심, Cards 우선)
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Container, Header, Button, StatusIndicator, Badge, Alert, KeyValuePairs, Modal } from "../../../design-system";
+import { Container, Header, Button, StatusIndicator, Badge, Alert, KeyValuePairs, Modal, PHONE_QUERY, useMediaQuery } from "../../../design-system";
 import { formatWarningTime } from "../../../services/warningService";
 
 const ACTIVITY_STATUS_TYPE = {
@@ -88,6 +88,7 @@ function WarningNotice({ warnings }) {
 
 function UserDashboard({ onRequest, onConnect, onExtend, userName, server, expiryDays, activities = [], warnings }) {
   const { t } = useTranslation();
+  const phone = useMediaQuery(PHONE_QUERY);
   const [selectedActivity, setSelectedActivity] = useState(null);
 
   return (
@@ -110,7 +111,7 @@ function UserDashboard({ onRequest, onConnect, onExtend, userName, server, expir
         </Container>
       )}
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "var(--decs-space-m)" }}>
+      <div style={{ display: "grid", gridTemplateColumns: phone ? "minmax(0, 1fr)" : "1fr 1fr", gap: "var(--decs-space-m)" }}>
         <div style={{ background: "var(--decs-surface-container)", border: "1px dashed var(--decs-brand-300)", borderRadius: "var(--decs-radius-container)", padding: "var(--decs-space-xl)", textAlign: "center" }}>
           <div style={{ fontSize: "var(--decs-fs-body-l)", fontWeight: 700, color: "var(--decs-text-heading)" }}>{t("dashboard.needGpuTitle")}</div>
           <div style={{ fontSize: "var(--decs-fs-body-m)", color: "var(--decs-text-secondary)", margin: "6px 0 16px" }}>{t("dashboard.needGpuBody")}</div>

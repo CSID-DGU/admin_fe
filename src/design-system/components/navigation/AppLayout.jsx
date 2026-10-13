@@ -1,5 +1,6 @@
 import React from "react";
 import { TopNavigation } from "./TopNavigation.jsx";
+import { NARROW_QUERY, PHONE_QUERY, useMediaQuery } from "../../hooks/useMediaQuery.js";
 
 /**
  * AppLayout — the app shell: fixed TopNavigation, a left navigation column, a
@@ -21,19 +22,15 @@ export function AppLayout({
   children,
   style,
 }) {
-  const [narrow, setNarrow] = React.useState(() => window.matchMedia("(max-width: 1023px)").matches);
+  const narrow = useMediaQuery(NARROW_QUERY);
+  const phone = useMediaQuery(PHONE_QUERY);
   const [navigationOpen, setNavigationOpen] = React.useState(false);
 
-  React.useEffect(() => {
-    const media = window.matchMedia("(max-width: 1023px)");
-    const update = (event) => { setNarrow(event.matches); if (!event.matches) setNavigationOpen(false); };
-    media.addEventListener("change", update);
-    return () => media.removeEventListener("change", update);
-  }, []);
+  React.useEffect(() => { if (!narrow) setNavigationOpen(false); }, [narrow]);
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%", minHeight: 0, background: "var(--decs-surface-app)", fontFamily: "var(--decs-font-base)", ...style }}>
-      {(identity || utilities) ? <TopNavigation identity={identity} utilities={utilities || []} navigationOpen={navigationOpen} onNavigationToggle={narrow && navigation ? () => setNavigationOpen((open) => !open) : undefined} /> : null}
+      {(identity || utilities) ? <TopNavigation identity={identity} utilities={utilities || []} compact={phone} navigationOpen={navigationOpen} onNavigationToggle={narrow && navigation ? () => setNavigationOpen((open) => !open) : undefined} /> : null}
       <div style={{ display: "flex", flex: 1, minHeight: 0 }}>
         {navigation && (!narrow || navigationOpen) ? (
           <>
@@ -42,7 +39,7 @@ export function AppLayout({
           </>
         ) : null}
         <main style={{ flex: 1, minWidth: 0, overflowY: "auto" }}>
-          <div style={{ maxWidth: contentMaxWidth, margin: "0 auto", padding: "var(--decs-space-xl) var(--decs-space-xxl)", boxSizing: "border-box" }}>
+          <div style={{ maxWidth: contentMaxWidth, margin: "0 auto", padding: phone ? "var(--decs-space-m)" : "var(--decs-space-xl) var(--decs-space-xxl)", boxSizing: "border-box" }}>
             {breadcrumbs ? <div style={{ marginBottom: "var(--decs-space-m)" }}>{breadcrumbs}</div> : null}
             {notifications ? <div style={{ marginBottom: "var(--decs-space-l)" }}>{notifications}</div> : null}
             {children}

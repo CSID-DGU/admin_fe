@@ -5,9 +5,10 @@ import { Icon } from "../icons/Icon.jsx";
 /**
  * TopNavigation — the global top bar: brand identity on the left, utility
  * actions (notifications, density, user menu) on the right.
+ * compact (휴대폰 폭): 아이콘이 있는 항목은 글자를 숨겨 한 줄에 들어가게 한다.
  * utilities: [{ type:"button", text?, iconName?, badge?, onClick } | { type:"menu", text, iconName?, items:[] } | { type:"custom", content:<node> }]
  */
-export function TopNavigation({ identity, utilities = [], navigationOpen, onNavigationToggle, style }) {
+export function TopNavigation({ identity, utilities = [], compact = false, navigationOpen, onNavigationToggle, style }) {
   const { t } = useTranslation();
   const [openMenu, setOpenMenu] = React.useState(null);
 
@@ -19,14 +20,14 @@ export function TopNavigation({ identity, utilities = [], navigationOpen, onNavi
       fontFamily: "var(--decs-font-base)", ...style,
     }}>
       <div style={{ display: "flex", alignItems: "center", minWidth: 0 }}>
-        {onNavigationToggle ? <button onClick={onNavigationToggle} aria-label={navigationOpen ? t("ds.closeMenu") : t("ds.openMenu")} style={{ display: "inline-flex", background: "none", border: "none", color: "var(--decs-text-inverse)", cursor: "pointer", padding: "var(--decs-space-xs)", marginRight: "var(--decs-space-xxs)" }}><Icon name={navigationOpen ? "x-mark" : "bars-3"} size={20} /></button> : null}
+        {onNavigationToggle ? <button onClick={onNavigationToggle} aria-label={navigationOpen ? t("ds.closeMenu") : t("ds.openMenu")} style={{ display: "inline-flex", flexShrink: 0, background: "none", border: "none", color: "var(--decs-text-inverse)", cursor: "pointer", padding: "var(--decs-space-xs)", marginRight: "var(--decs-space-xxs)" }}><Icon name={navigationOpen ? "x-mark" : "bars-3"} size={20} /></button> : null}
         <a href={identity?.href || "#"} onClick={(e) => { if (identity?.onFollow) { e.preventDefault(); identity.onFollow(); } }}
            style={{ display: "flex", alignItems: "center", minWidth: 0, gap: "var(--decs-space-xs)", textDecoration: "none", color: "var(--decs-text-inverse)" }}>
-          {identity?.logo ? <img src={identity.logo} alt="" style={{ height: "22px", width: "auto" }} /> : null}
+          {identity?.logo ? <img src={identity.logo} alt="" style={{ height: "22px", width: "auto", flexShrink: 0 }} /> : null}
           <span title={identity?.title} style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontSize: "var(--decs-fs-heading-s)", fontWeight: "var(--decs-fw-bold)" }}>{identity?.title}</span>
         </a>
       </div>
-      <div style={{ display: "flex", alignItems: "center", gap: "var(--decs-space-xxs)" }}>
+      <div style={{ display: "flex", alignItems: "center", flexShrink: 0, whiteSpace: "nowrap", gap: "var(--decs-space-xxs)" }}>
         {utilities.map((u, i) => u.type === "custom" ? (
           <div key={i} style={{ display: "flex", alignItems: "center" }}>{u.content}</div>
         ) : (
@@ -38,7 +39,7 @@ export function TopNavigation({ identity, utilities = [], navigationOpen, onNavi
               onMouseEnter={(e) => e.currentTarget.style.background = "rgba(255,255,255,0.12)"}
               onMouseLeave={(e) => e.currentTarget.style.background = "none"}>
               {u.iconName ? <Icon name={u.iconName} size={18} /> : null}
-              {u.text ? <span>{u.text}</span> : null}
+              {u.text && !(compact && u.iconName) ? <span>{u.text}</span> : null}
               {u.type === "menu" ? <Icon name="chevron-down" size={14} /> : null}
               {u.badge != null ? <span style={{ position: "absolute", top: "2px", right: "4px", minWidth: "16px", height: "16px", padding: "0 4px", boxSizing: "border-box", borderRadius: "9999px", background: "var(--decs-action-primary)", color: "#fff", fontSize: "10px", fontWeight: "var(--decs-fw-bold)", display: "inline-flex", alignItems: "center", justifyContent: "center" }}>{u.badge}</span> : null}
             </button>
