@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { useDocumentTitle } from "../../hooks/useDocumentTitle";
 import { Alert, Button, FormField, Input } from "../../design-system";
 import { authService } from "../../services/authService";
 import { requestService } from "../../services/requestService";
@@ -16,6 +17,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export default function SignupPage() {
   const { t, i18n } = useTranslation();
+  useDocumentTitle(t("auth.signup"));
   const [step, setStep] = useState(1);
   const [form, setForm] = useState({ email: "", verificationCode: "", password: "", confirmPassword: "", name: "", department: "", studentId: "", phone: "", ubuntuUsername: "", contactEmail: "" });
   const [errors, setErrors] = useState({});

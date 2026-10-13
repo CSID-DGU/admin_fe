@@ -101,11 +101,15 @@ function StatCard({ label, value, sub, accent, onClick }) {
   );
 }
 
+const EXPIRING_SOON_DAYS = 3;
+
 function AdminDashboard({ onOpenContainers, onOpenErrorContainers, onOpenDetail, containers = [], users = [] }) {
   const [gpuLastUpdated, setGpuLastUpdated] = useState(null);
   const running = containers.filter((c) => c.status === "success").length;
   const errored = containers.filter((c) => c.status === "error").length;
-  const expiring = containers.filter((c) => c.status !== "stopped" && c.expires !== "—" && c.expires <= "2026-07-11").length;
+  // 만료일(c.expires)은 UTC 기준 YYYY-MM-DD 문자열이라 기준일도 같은 방식으로 만든다.
+  const expiringBy = new Date(Date.now() + EXPIRING_SOON_DAYS * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+  const expiring = containers.filter((c) => c.status !== "stopped" && c.expires !== "—" && c.expires <= expiringBy).length;
   // 최신순(생성일 내림차순) — createdAt이 없는 항목은 맨 뒤로
   const recentContainers = [...containers].sort((a, b) => {
     const aKey = a.createdAt === "—" ? "" : a.createdAt;
@@ -126,8 +130,8 @@ function AdminDashboard({ onOpenContainers, onOpenErrorContainers, onOpenDetail,
       <div style={{ display: "flex", gap: "var(--decs-space-m)" }}>
         <StatCard label="실행 중 컨테이너" value={running} sub={`전체 ${containers.length}건`} onClick={onOpenContainers} />
         <StatCard label="오류" value={errored} sub="즉시 조치 필요" accent="var(--decs-status-error)" onClick={onOpenErrorContainers} />
-        <StatCard label="만료 임박 (3일)" value={expiring} sub="연장 안내 대상" accent="var(--decs-status-warning)" onClick={onOpenContainers} />
-        <StatCard label="등록 사용자" value={users.length} sub="활성 세션 5" />
+        <StatCard label={`만료 임박 (${EXPIRING_SOON_DAYS}일)`} value={expiring} sub="연장 안내 대상" accent="var(--decs-status-warning)" onClick={onOpenContainers} />
+        <StatCard label="등록 사용자" value={users.length} />
       </div>
 
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1.4fr", gap: "var(--decs-space-l)", alignItems: "start" }}>
