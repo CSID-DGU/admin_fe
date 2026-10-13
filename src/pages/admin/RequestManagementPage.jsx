@@ -30,6 +30,15 @@ import { formAnswerLabel, visibleFormAnswers } from "../../utils/formAnswers";
 import { JobStepsTimeline } from "./JobStepsTimeline";
 import RequestDecisionModal from "../../components/RequestDecisionModal";
 
+// 기간 선택값의 시작 시각. 전체 기간이면 null.
+function periodCutoffOf(period) {
+  const months = PERIOD_OPTIONS.find((p) => p.value === period)?.months;
+  if (!months) return null;
+  const cutoff = new Date();
+  cutoff.setMonth(cutoff.getMonth() - months);
+  return cutoff;
+}
+
 const STATUS_META = {
   PENDING: { type: "pending", label: "대기중" },
   PROCESSING: { type: "in-progress", label: "처리중" },
@@ -64,6 +73,9 @@ const RequestManagementPage = () => {
   const [period, setPeriod] = useState("3M"); // 1M, 3M, 6M, ALL
   const [visibleCount, setVisibleCount] = useState(PAGE_BATCH_SIZE);
   const sentinelRef = useRef(null);
+  // 폴링처럼 오래 살아 있는 콜백에서 불려도 지금 고른 기간으로 조회하도록 ref로 들고 있는다.
+  const periodRef = useRef(period);
+  const fetchSeqRef = useRef(0);
   const [alert, setAlert] = useState(null);
   const [processingRequestId, setProcessingRequestId] = useState(null);
   // 승인·거절 사유 입력 모달: { kind, request, title, defaultComment, warning, clusterOptions, defaultClusterId }
@@ -79,7 +91,8 @@ const RequestManagementPage = () => {
   // 목록에 PROCESSING 상태인 신청서가 있으면(다른 관리자가 처리 중이거나, 내가 승인 처리
   // 중에 페이지를 나갔다가 새로고침해서 돌아온 경우) processingRequestId가 이번 세션에서
   // 클릭한 적 없어도 그 신청서 기준으로 상태 배너/폴링을 이어간다.
-  const processingListRequest = requests.find((r) => r.status === "PROCESSING") || null;
+  // 목록은 고른 기간만 받아 오므로, 그 기간 밖에서 만들어진 신청이 처리 중이어도 놓치지 않게 따로 조회해 둔다.
+  const [processingListRequest, setProcessingListRequest] = useState(null);
 
   // 승인 처리 중(Pod 생성 포함)일 때 진행 단계와 승인 결과를 폴링한다.
   const provisioningTargetRequestId =
@@ -127,10 +140,9 @@ const RequestManagementPage = () => {
       //    기록되고 접근 확인은 그 뒤에 돌기 때문에, ready만 보고 완료로 안내하면 틀릴 수 있다.
       let status = null;
       try {
-        const response = await requestService.getAllRequests();
+        const response = await requestService.getRequest(provisioningTargetRequestId);
         if (cancelled) return;
-        const found = (response.data?.data ?? []).find((r) => r.requestId === provisioningTargetRequestId);
-        status = found?.status ?? null;
+        status = response.data?.data?.status ?? null;
       } catch {
         return;
       }
@@ -166,19 +178,27 @@ const RequestManagementPage = () => {
   }, [provisioningTargetRequestId]);
 
   const fetchRequests = async () => {
+    // 기간을 연달아 바꾸면 먼저 떠난 조회가 늦게 돌아와 새 기간의 목록을 덮을 수 있다. 가장 최근 조회만 반영한다.
+    const seq = ++fetchSeqRef.current;
     setIsLoading(true);
     setAlert(null);
 
     try {
-      const response = await requestService.getAllRequests();
+      const [response, processingResponse] = await Promise.all([
+        requestService.getAllRequests({ createdFrom: periodCutoffOf(periodRef.current) }),
+        requestService.getAllRequests({ statuses: ["PROCESSING"] }),
+      ]);
+      if (seq !== fetchSeqRef.current) return;
 
-      if (response.status === 200) {
+      if (response.status === 200 && processingResponse.status === 200) {
         // API 응답 데이터를 기존 UI에 맞게 변환
         // response.data는 서버 응답이고, response.data.data가 실제 배열
         const requestsArray = response.data?.data ?? [];
         const transformedRequests = requestsArray.map(mapRequestDtoToUiModel);
+        const processing = processingResponse.data?.data?.[0];
 
         setRequests(transformedRequests);
+        setProcessingListRequest(processing ? mapRequestDtoToUiModel(processing) : null);
         setLastUpdated(new Date());
       } else {
         setAlert({
@@ -188,6 +208,7 @@ const RequestManagementPage = () => {
         });
       }
     } catch (error) {
+      if (seq !== fetchSeqRef.current) return;
       console.error("Failed to fetch requests:", error);
       setAlert({
         type: "error",
@@ -195,14 +216,18 @@ const RequestManagementPage = () => {
           "신청서 목록 로딩 중 네트워크 오류가 발생했습니다. 인터넷 연결을 확인하시고 페이지를 새로고침해주세요.",
       });
     } finally {
-      setIsLoading(false);
-      setHasLoadedOnce(true);
+      if (seq === fetchSeqRef.current) {
+        setIsLoading(false);
+        setHasLoadedOnce(true);
+      }
     }
   };
 
+  // 고른 기간의 신청만 받아 온다. 기간을 바꾸면 다시 받는다.
   useEffect(() => {
+    periodRef.current = period;
     fetchRequests();
-  }, []);
+  }, [period]);
 
   // 승인 창의 "배정할 클러스터" 선택란. 번호는 DB 값이라 고정하지 않고 항상 받아 온다.
   // 이름이 겹치는 클러스터(LAB·FARM의 RTX 3090 등)가 있어 서버 구분을 앞에 붙인다.
@@ -215,13 +240,7 @@ const RequestManagementPage = () => {
       .catch(() => setClusterOptions([]));
   }, []);
 
-  const periodCutoff = (() => {
-    const months = PERIOD_OPTIONS.find((p) => p.value === period)?.months;
-    if (!months) return null;
-    const cutoff = new Date();
-    cutoff.setMonth(cutoff.getMonth() - months);
-    return cutoff;
-  })();
+  const periodCutoff = periodCutoffOf(period);
 
   // 상태 탭 개수는 선택된 기간 내에서 집계 — 기간 필터와 별개로 통계가 헷갈리지 않도록
   const requestsInPeriod = periodCutoff

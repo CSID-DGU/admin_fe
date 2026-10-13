@@ -1,5 +1,12 @@
 import apiClient from "./api.js";
 
+// 서버는 시각을 시간대 없이 주고받는다. toISOString()은 UTC로 바꿔 버리므로 화면의 현지 시각 그대로 적는다.
+function toLocalDateTime(date) {
+  const pad = (n) => String(n).padStart(2, "0");
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`
+    + `T${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
+}
+
 // 신청·승인 API. 인증과 공통 오류 처리는 apiClient가 담당합니다.
 export const requestService = {
   createRequest: (data) => apiClient.post("/api/requests", data),
@@ -9,7 +16,14 @@ export const requestService = {
   // 승인 대기·거절 상태인 내 신청을 취소한다. 승인을 기다리는 신청은 한 건만 둘 수 있어, 바꾸려면 취소하고 다시 낸다.
   cancelRequest: (requestId) =>
     apiClient.request(`/api/requests/${encodeURIComponent(requestId)}`, { method: "DELETE" }),
-  getAllRequests: () => apiClient.get("/api/admin/requests"),
+  // statuses(상태 이름 배열)·createdFrom(Date)으로 좁힌다. 둘 다 없으면 모든 상태·전체 기간이다.
+  getAllRequests: ({ statuses, createdFrom } = {}) =>
+    apiClient.get("/api/admin/requests", {
+      status: statuses?.length ? statuses.join(",") : undefined,
+      createdFrom: createdFrom ? toLocalDateTime(createdFrom) : undefined,
+    }),
+  getRequest: (requestId) => apiClient.get(`/api/admin/requests/${encodeURIComponent(requestId)}`),
+  getRequestStatusCounts: () => apiClient.get("/api/admin/requests/status-counts"),
   // 신청의 생성·회수 작업 단계 기록(신청 상세). 관리자 API로만 받는다.
   getJobSteps: (requestId) =>
     apiClient.get(`/api/admin/requests/${encodeURIComponent(requestId)}/job-steps`),

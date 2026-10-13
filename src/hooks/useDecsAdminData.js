@@ -23,17 +23,16 @@ export function useDecsAdminData() {
   const load = useCallback(async () => {
     setError(null);
 
-    const [containersResult, usersResult, requestsResult, changeRequestsResult] = await Promise.allSettled([
+    const [containersResult, usersResult, requestCountsResult, changeRequestsResult] = await Promise.allSettled([
       podService.getActiveContainers(),
       userService.getAllUsers(),
-      requestService.getAllRequests(),
+      requestService.getRequestStatusCounts(),
       requestService.getChangeRequests(),
     ]);
     if (cancelledRef.current) return;
 
-    if (requestsResult.status === "fulfilled") {
-      const requestsArray = getArrayData(requestsResult.value) ?? [];
-      setPendingRequestCount(requestsArray.filter((r) => r.status === "PENDING").length);
+    if (requestCountsResult.status === "fulfilled") {
+      setPendingRequestCount(requestCountsResult.value?.data?.data?.PENDING ?? 0);
     }
     if (changeRequestsResult.status === "fulfilled") {
       const changeRequestsArray = getArrayData(changeRequestsResult.value) ?? [];

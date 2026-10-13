@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 import { Navigate, Route, Routes, useLocation, useNavigate, useParams } from "react-router-dom";
 import { AppLayout, SideNavigation, Flashbar } from "../../../design-system";
 import AdminDashboard from "./AdminDashboard";
@@ -25,7 +25,13 @@ function AdminConsoleApp() {
 
   // 요청 관리 화면에서 승인/거절 처리 후 대시보드로 돌아왔을 때 최신 상태가 바로 보이도록,
   // 대시보드 관련 경로에 진입할 때마다 다시 불러온다.
+  // 처음 열 때는 useDecsAdminData가 이미 한 번 불러오므로 건너뛴다 — 안 그러면 같은 조회가 두 번 나간다.
+  const isFirstRenderRef = useRef(true);
   useEffect(() => {
+    if (isFirstRenderRef.current) {
+      isFirstRenderRef.current = false;
+      return;
+    }
     if (location.pathname === "/admin" || location.pathname.startsWith("/admin/containers")) {
       refetch();
     }
