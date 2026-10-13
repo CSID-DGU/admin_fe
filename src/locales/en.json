@@ -162,8 +162,8 @@
   },
   "wizard": {
     "title": "GPU request",
-    "slackTitle": "Join Slack before requesting",
-    "slackBody": "You must be a member of the Slack workspace to submit a request. Your Slack name must match the name in your profile, and the email you joined Slack with must match your school email or the 'Frequently used email' in account settings.",
+    "slackTitle": "You cannot submit a request: your Slack membership is not confirmed",
+    "slackBody": "Join the Slack workspace and set your Slack name to exactly match the name in your profile. If you joined Slack with an address other than your school email, enter that address as the 'Frequently used email' in account settings.",
     "roleLeader": "Team leader",
     "roleMember": "Team member",
     "teamStep1": "Create a group with 'Create a new shared group' below, then submit this request.",

@@ -3,6 +3,7 @@ import React from "react";
 import { Trans, useTranslation } from "react-i18next";
 import { Wizard, Modal, Cards, FormField, Select, Input, KeyValuePairs, Alert, Container, Header, StatusIndicator, Button, Badge, Table } from "../../../design-system";
 import { requestService } from "../../../services/requestService";
+import { authService } from "../../../services/authService";
 import { toGroupOption } from "../../../utils/groupOption";
 
 const GROUP_NAME_PATTERN = /^[a-z_][a-z0-9_-]*$/;
@@ -51,6 +52,7 @@ function RequestWizard({ onCancel, onDone, gpuOptions: gpuOptionsProp, envOption
   const [portRequests, setPortRequests] = React.useState([]);
   const [portError, setPortError] = React.useState(null);
   const [clusterNoticeStep, setClusterNoticeStep] = React.useState(null);
+  const [slackUnverified, setSlackUnverified] = React.useState(false);
 
   const gpuOptions = React.useMemo(() => gpuOptionsProp ?? [], [gpuOptionsProp]);
   const envOptions = React.useMemo(() => envOptionsProp ?? [], [envOptionsProp]);
@@ -79,6 +81,15 @@ function RequestWizard({ onCancel, onDone, gpuOptions: gpuOptionsProp, envOption
   React.useEffect(() => {
     if (!env && envOptions.length > 0) setEnv(String(envOptions[0].value));
   }, [env, envOptions]);
+
+  // 지금 신청하면 Slack 가입 확인에 걸리는 사람에게만 안내한다. 확인하지 못하면 띄우지 않는다 — 신청할 때 서버가 다시 확인한다.
+  React.useEffect(() => {
+    let cancelled = false;
+    authService.getSlackMembership()
+      .then((status) => { if (!cancelled) setSlackUnverified(status === "NOT_MEMBER"); })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, []);
 
   function validatePeriod() {
     const picked = new Date(`${expiresDate}T00:00:00`);
@@ -436,7 +447,7 @@ function RequestWizard({ onCancel, onDone, gpuOptions: gpuOptionsProp, envOption
   return (
     <div style={{ maxWidth: 940, margin: "0 auto" }}>
       <Header variant="h1">{t("wizard.title")}</Header>
-      <div style={{ marginBottom: "var(--decs-space-m)" }}><Alert type="info" header={t("wizard.slackTitle")}>{t("wizard.slackBody")}</Alert></div>
+      {slackUnverified ? <div style={{ marginBottom: "var(--decs-space-m)" }}><Alert type="warning" header={t("wizard.slackTitle")}>{t("wizard.slackBody")}</Alert></div> : null}
       {error ? <div style={{ marginBottom: "var(--decs-space-m)" }}><Alert type="error">{error}</Alert></div> : null}
       <Container>
         <Wizard steps={steps} activeStepIndex={step} onNavigate={handleNavigate} onCancel={onCancel} onSubmit={submit} submitLabel={t("wizard.submit")} isLoadingNextStep={submitting} />
