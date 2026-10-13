@@ -19,9 +19,9 @@ const REFRESH_INTERVAL_MS = 30_000;
 function GpuServerCard({ server }) {
   const { t } = useTranslation();
   const util = server.gpuUtil ?? 0;
-  // ProgressBar: "success" | "in-progress" | "error"
-  const barStatus = util >= 80 ? "error" : "in-progress";
-  const badgeColor = util >= 80 ? "red" : util >= 50 ? "yellow" : "green";
+  // 사용률은 끝나는 작업이 아니다 — status를 error로 주면 막대와 수치가 사라지므로 색(tone)만 바꾼다.
+  const barTone = util >= 80 ? "error" : util >= 50 ? "warning" : "success";
+  const badgeColor = util >= 80 ? "red" : util >= 50 ? "amber" : "green";
   return (
     <div className="flex flex-col gap-2 p-4 rounded-(--decs-radius-item) border border-(--decs-border-container) bg-(--decs-surface-container)">
       <div className="flex items-center justify-between">
@@ -34,7 +34,7 @@ function GpuServerCard({ server }) {
         value={util}
         label={t("monitoring.gpuUtil")}
         description={`${util}%`}
-        status={barStatus}
+        tone={barTone}
       />
     </div>
   );
