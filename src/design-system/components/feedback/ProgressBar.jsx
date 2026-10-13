@@ -4,14 +4,17 @@ import { useTranslation } from "react-i18next";
 /**
  * ProgressBar — determinate progress for long operations (provisioning, image pull).
  * status: in-progress | success | error changes the fill color via status tokens.
+ * success·error는 작업이 끝났다는 뜻이라 막대 대신 resultText를 보여 준다. 사용률처럼 끝이 없는 값의 색만
+ * 바꾸려면 status는 그대로 두고 tone(in-progress | success | warning | error)을 준다.
  */
 const FILL = {
   "in-progress": "var(--decs-status-in-progress)",
   success: "var(--decs-status-success)",
+  warning: "var(--decs-status-warning)",
   error: "var(--decs-status-error)",
 };
 
-export function ProgressBar({ value = 0, status = "in-progress", label, description, resultText, style }) {
+export function ProgressBar({ value = 0, status = "in-progress", tone, label, description, resultText, style }) {
   const { t } = useTranslation();
   const pct = Math.max(0, Math.min(100, value));
   const done = status !== "in-progress";
@@ -34,7 +37,7 @@ export function ProgressBar({ value = 0, status = "in-progress", label, descript
           aria-label={label || description || t("ds.progress")}
           style={{ height: "4px", borderRadius: "9999px", background: "var(--decs-grey-200)", overflow: "hidden" }}
         >
-          <div style={{ width: pct + "%", height: "100%", background: FILL[status], borderRadius: "9999px", transition: "width var(--decs-motion-slow) var(--decs-easing)" }} />
+          <div style={{ width: pct + "%", height: "100%", background: FILL[tone] || FILL[status], borderRadius: "9999px", transition: "width var(--decs-motion-slow) var(--decs-easing)" }} />
         </div>
       )}
       {description && !done ? (
