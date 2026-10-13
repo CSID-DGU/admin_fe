@@ -86,7 +86,7 @@ function ContainerDetail({ item, onBack, onRefetch }) {
     const poll = async () => {
       try {
         const res = await podService.getProvisioningStatus(c.requestId);
-        if (!cancelled) setMigrationStatus(res?.data ?? null);
+        if (!cancelled) setMigrationStatus(res?.data?.data ?? null);
       } catch {
         // ignore
       } finally {

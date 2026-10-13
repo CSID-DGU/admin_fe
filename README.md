@@ -29,8 +29,8 @@ React 19 + Vite + Tailwind frontend for DGU AI Lab.
 - Docker: `docker build -t ailab-frontend:latest .` then `docker run -d -p 80:80 ailab-frontend:latest`
 - Kubernetes: this repo no longer deploys itself. The admin_infra
   `Deploy Proposed Stack` workflow builds this repo at `fe_ref` into a
-  stack-specific image (it rewrites the `/api/` and `/pod-status/` targets in
-  `nginx.conf` to that stack) and deploys it. The main address is routed to
+  stack-specific image (it rewrites the `/api/` target in `nginx.conf` to that
+  stack) and deploys it. The main address is routed to
   the operation stack by admin_infra-proposed `stack-up.sh`.
 
 ## TLS (self-signed)
