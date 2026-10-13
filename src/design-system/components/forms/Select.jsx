@@ -2,6 +2,7 @@ import React from "react";
 import { useTranslation } from "react-i18next";
 import { createPortal } from "react-dom";
 import { Icon } from "../icons/Icon.jsx";
+import { useFieldControlId } from "./fieldControlId.js";
 
 /**
  * Select — dropdown single-select matching Cloudscape trigger + popover list.
@@ -14,6 +15,7 @@ import { Icon } from "../icons/Icon.jsx";
 export function Select({ options = [], selectedValue, onChange, placeholder: placeholderProp, disabled, invalid, id, ariaLabel, style }) {
   const { t } = useTranslation();
   const placeholder = placeholderProp ?? t("ds.selectPlaceholder");
+  const controlId = useFieldControlId(id, ariaLabel);
   const [open, setOpen] = React.useState(false);
   const [menuRect, setMenuRect] = React.useState(null);
   const ref = React.useRef(null);
@@ -51,7 +53,7 @@ export function Select({ options = [], selectedValue, onChange, placeholder: pla
   return (
     <div ref={ref} style={{ position: "relative", ...style }}>
       <button
-        id={id}
+        id={controlId}
         type="button"
         disabled={disabled}
         aria-label={ariaLabel}

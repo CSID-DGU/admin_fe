@@ -1,10 +1,12 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { useDocumentTitle } from "../../hooks/useDocumentTitle";
 import { Alert, Button, FormField, Input } from "../../design-system";
 
 export default function LoginPage({ onLogin }) {
   const { t, i18n } = useTranslation();
+  useDocumentTitle(t("auth.login"));
   const [form, setForm] = useState({ email: "", password: "" });
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);

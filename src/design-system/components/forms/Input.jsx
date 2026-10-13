@@ -1,5 +1,6 @@
 import React from "react";
 import { Icon } from "../icons/Icon.jsx";
+import { useFieldControlId } from "./fieldControlId.js";
 
 /**
  * Input — single-line text/number input matching Cloudscape. Set `invalid` to
@@ -7,6 +8,7 @@ import { Icon } from "../icons/Icon.jsx";
  * For type="number", `min`/`max`/`step` bound the spinner arrows (typed values still need validation).
  */
 export function Input({ value, onChange, placeholder, type = "text", disabled, invalid, readOnly, iconName, id, ariaLabel, onKeyDown, autoFocus, style, min, max, step }) {
+  const controlId = useFieldControlId(id, ariaLabel);
   const [focus, setFocus] = React.useState(false);
   const borderColor = invalid
     ? "var(--decs-status-error)"
@@ -21,7 +23,7 @@ export function Input({ value, onChange, placeholder, type = "text", disabled, i
         </span>
       ) : null}
       <input
-        id={id}
+        id={controlId}
         type={type}
         min={min}
         max={max}

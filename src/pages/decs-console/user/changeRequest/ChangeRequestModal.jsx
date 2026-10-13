@@ -137,6 +137,7 @@ function ChangeRequestModal({ servers = [], groupOptions = [], initialType, acco
                   onChange={(next) => setValues((prev) => ({ ...prev, [type]: next }))}
                 />
                 <FormField
+                  htmlFor="change-request-reason"
                   label={t("change.reason")}
                   description={t("change.reasonHelp")}
                   constraintText={(
@@ -146,6 +147,7 @@ function ChangeRequestModal({ servers = [], groupOptions = [], initialType, acco
                   )}
                 >
                   <textarea
+                    id="change-request-reason"
                     value={reason}
                     onChange={(event) => { setReason(event.target.value); setError(null); }}
                     rows={5}

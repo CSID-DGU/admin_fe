@@ -210,6 +210,7 @@ function RequestWizard({ onCancel, onDone, gpuOptions: gpuOptionsProp, envOption
       content: (
         <div style={{ maxWidth: 560 }}>
           <FormField
+            htmlFor="request-purpose"
             label={t("wizard.stepPurpose")}
             description={t("wizard.purposeHelp")}
             errorText={stepErrors.purpose}
@@ -220,6 +221,7 @@ function RequestWizard({ onCancel, onDone, gpuOptions: gpuOptionsProp, envOption
             )}
           >
             <textarea
+              id="request-purpose"
               value={purpose}
               onChange={(e) => { setPurpose(e.target.value); setStepErrors((prev) => ({ ...prev, purpose: null })); }}
               rows={6}
@@ -354,7 +356,7 @@ function RequestWizard({ onCancel, onDone, gpuOptions: gpuOptionsProp, envOption
           <FormField label={t("wizard.extraPortsOptional")} errorText={portError} constraintText={t("wizard.extraPortsHelp")}>
             <div style={{ display: "grid", gridTemplateColumns: "150px minmax(0, 1fr) auto", gap: "var(--decs-space-xs)" }}>
               <Input value={portNumber} onChange={(value) => { setPortNumber(value); setPortError(null); }} type="number" min={1} max={65535} step={1} placeholder={t("wizard.portPlaceholder")} invalid={!!portError} />
-              <Input value={portPurpose} onChange={setPortPurpose} placeholder={t("wizard.portPurposePlaceholder")} />
+              <Input value={portPurpose} onChange={setPortPurpose} placeholder={t("wizard.portPurposePlaceholder")} ariaLabel={t("wizard.portPurposePlaceholder")} />
               <Button iconName="plus" onClick={addPort} ariaLabel={t("wizard.addPortAria")}>{t("common.add")}</Button>
             </div>
             {portRequests.length > 0 ? (

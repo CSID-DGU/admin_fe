@@ -6,6 +6,7 @@ import ContainerManagement from "./ContainerManagement";
 import ContainerDetail from "./ContainerDetail";
 import { useDecsAdminData } from "../../../hooks/useDecsAdminData";
 import { useAuth } from "../../../hooks/useAuth";
+import { activeNavText, useDocumentTitle } from "../../../hooks/useDocumentTitle";
 import RequestManagementPage from "../../admin/RequestManagementPage";
 import ChangeRequestManagementPage from "../../admin/ChangeRequestManagementPage";
 import UserManagementPage from "../../admin/UserManagementPage";
@@ -47,6 +48,8 @@ function AdminConsoleApp() {
       ]},
     ],
   };
+
+  useDocumentTitle(activeNavText(nav));
 
   const displayName = user?.name || user?.email || "사용자";
   const utilities = [

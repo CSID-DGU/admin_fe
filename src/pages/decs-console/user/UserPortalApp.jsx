@@ -5,6 +5,7 @@ import UserDashboard from "./UserDashboard";
 import RequestWizard from "./RequestWizard";
 import UserContainerDetail from "./UserContainerDetail";
 import { useAuth } from "../../../hooks/useAuth";
+import { activeNavText, useDocumentTitle } from "../../../hooks/useDocumentTitle";
 import { useDecsUserData } from "../../../hooks/useDecsUserData";
 import { requestService } from "../../../services/requestService";
 import { warningService } from "../../../services/warningService";
@@ -51,6 +52,7 @@ function UserPortalApp() {
       { text: t("shell.account"), href: "/user/account", icon: "user-circle" },
     ],
   };
+  useDocumentTitle(activeNavText(nav));
 
   const utilities = [
     ...(isAdmin ? [{ type: "custom", content: <RoleSwitch current="user" /> }] : []),
