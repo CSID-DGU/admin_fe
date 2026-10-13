@@ -20,6 +20,7 @@ function isTokenExpired(token) {
 
 const SESSION_EXPIRED = "SESSION_EXPIRED";
 const ACCOUNT_DISABLED = "ACCOUNT_DISABLED";
+const SESSION_CHANGED = "SESSION_CHANGED";
 const REFRESH_LOCK_NAME = "decs-token-refresh";
 
 function sessionEndReasonOf(errorCode, message) {
@@ -76,13 +77,22 @@ class ApiClient {
       } catch {
         errorData = null;
       }
+      // 이미 로그아웃했거나 계정을 바꾼 뒤라면 이 거절은 지금 세션과 무관하다 — 세션 만료로 알리지 않는다.
+      const sessionChanged = tokenStorage.getRefreshToken() !== refreshToken;
       const err = new Error(errorData?.message || `HTTP error! status: ${response.status}`);
-      err.status = response.status;
-      err.code = errorData?.code;
+      err.status = sessionChanged ? undefined : response.status;
+      err.code = sessionChanged ? SESSION_CHANGED : errorData?.code;
       throw err;
     }
 
     const data = await response.json();
+    // 갱신을 기다리는 사이 로그아웃했거나 다른 계정으로 로그인했으면 저장소가 달라져 있다. 이때 받은 토큰을
+    // 저장하면 끝낸 세션이 되살아나거나 새 계정의 토큰을 옛 계정 것으로 덮으므로 버린다.
+    if (tokenStorage.getRefreshToken() !== refreshToken) {
+      const err = new Error("갱신하는 사이 로그인 상태가 바뀌어 요청을 중단했습니다.");
+      err.code = SESSION_CHANGED;
+      throw err;
+    }
     tokenStorage.setTokens(data.accessToken, data.refreshToken);
     return data.accessToken;
   }
