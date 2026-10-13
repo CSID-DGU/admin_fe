@@ -125,7 +125,7 @@ const RequestManagementPage = () => {
       let stage = null;
       try {
         const res = await podService.getProvisioningStatus(provisioningTargetRequestId);
-        stage = res?.data ?? null;
+        stage = res?.data?.data ?? null;
         if (cancelled) return;
         if (stage) {
           // config-server가 단계 전환 사이에 message를 잠깐 비운 채 응답할 때가 있다. 그대로 반영하면

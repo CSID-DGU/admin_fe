@@ -51,8 +51,8 @@ export function useDecsAdminData() {
           Promise.allSettled(activeContainers.map((container) =>
             container.podName ? podService.getPod(container.podName) : Promise.resolve(null)
           )),
-          // getProvisioningStatus는 이제 requestId를 받는다(/pod-status/requests/{requestId}/status) —
-          // username을 넘기면 존재하지 않는 경로를 조회해 매번 실패한다. Pod가 아직 생성
+          // getProvisioningStatus는 requestId를 받는다 — username을 넘기면 존재하지 않는 경로를
+          // 조회해 매번 실패한다. Pod가 아직 생성
           // 중이라 getPod가 실패하는 컨테이너는 이 값으로 진행 단계(stage)를 대신 보여주므로,
           // 여기가 계속 깨져 있으면 그런 컨테이너가 전부 "확인 불가"로만 보인다.
           Promise.allSettled(activeContainers.map((container) =>
@@ -64,7 +64,7 @@ export function useDecsAdminData() {
           const result = details[index];
           const statusResult = provisioningStatuses[index];
           const detail = result.status === "fulfilled" ? result.value?.data?.data ?? result.value?.data : null;
-          const provisioning = statusResult.status === "fulfilled" ? statusResult.value?.data : null;
+          const provisioning = statusResult.status === "fulfilled" ? statusResult.value?.data?.data : null;
           // Pod 상세도 프로비저닝 상태도 못 가져오면 그 컨테이너가 실제로 정상인지 전혀 알 수
           // 없다는 뜻이라, "확인 불가"를 조용히 pending으로 묻지 않고 오류로 명시한다.
           const couldNotResolveStatus = container.podName && !detail && (!provisioning || provisioning.stage === "unknown");
