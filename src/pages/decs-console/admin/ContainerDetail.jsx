@@ -296,7 +296,7 @@ function ContainerDetail({ item, onBack, onRefetch }) {
             ),
           },
           ...(c.statusReason ? [{ label: "오류 사유", value: c.statusReason }] : []),
-          { label: "리소스 그룹", value: c.gpu },
+          { label: "GPU", value: c.gpu },
           { label: "노드", value: c.node },
           { label: "이미지", value: c.image },
           { label: "Pod", value: c.podName || "—" },

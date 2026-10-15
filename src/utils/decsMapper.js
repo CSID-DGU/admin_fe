@@ -138,7 +138,10 @@ export function mapAdminContainer(dto) {
     user: dto.ubuntuUsername ?? dto.userName ?? "—",
     userName: dto.userName,
     podName: dto.podName,
-    gpu: dto.resourceGroupId != null ? i18n.t("data.resourceGroup", { id: dto.resourceGroupId }) : "—",
+    // "리소스 그룹 3"처럼 번호만 보이면 어떤 GPU인지 알 수 없다 — 그룹 이름(GPU 종류)과 서버를 보인다.
+    gpu: dto.resourceGroupName
+      ? [dto.resourceGroupName, dto.serverName].filter(Boolean).join(" · ")
+      : dto.resourceGroupId != null ? i18n.t("data.resourceGroup", { id: dto.resourceGroupId }) : "—",
     node: detail.nodeName ?? dto.nodeName ?? "—",
     namespace: detail.namespace ?? "—",
     hostIP: detail.hostIP ?? "—",

@@ -164,7 +164,7 @@ function AdminDashboard({ onOpenContainers, onOpenErrorContainers, onOpenDetail,
               ),
             },
             { id: "user", header: "사용자", cell: (c) => c.user },
-            { id: "gpu", header: "리소스 그룹", cell: (c) => <Badge color="brand">{c.gpu}</Badge> },
+            { id: "gpu", header: "GPU", cell: (c) => <Badge color="brand">{c.gpu}</Badge> },
             { id: "status", header: "상태", cell: (c) => <StatusIndicator type={c.status}>{c.label}</StatusIndicator> },
           ]} />
         </Container>
