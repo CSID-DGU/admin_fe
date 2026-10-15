@@ -60,6 +60,8 @@ export function useDecsAdminData() {
           )),
         ]);
         if (cancelledRef.current) return;
+        // 상태는 저장된 값이 아니라 이 순간 k8s에서 읽은 값이다 — 언제 읽었는지 함께 보여야 오래된 화면을 구분한다.
+        const statusCheckedAt = new Date();
         setContainers(activeContainers.map((container, index) => {
           const result = details[index];
           const statusResult = provisioningStatuses[index];
@@ -77,7 +79,7 @@ export function useDecsAdminData() {
           const status = couldNotResolveStatus
               ? "lookup-failed"
               : detail?.effectiveStatus ?? detail?.status ?? provisioning?.stage;
-          return mapAdminContainer({ ...container, podDetail: detail, status });
+          return { ...mapAdminContainer({ ...container, podDetail: detail, status }), statusCheckedAt };
         }));
       } else {
         hasError = true;

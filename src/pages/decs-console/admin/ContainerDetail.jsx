@@ -2,18 +2,25 @@
 import { useEffect, useState } from "react";
 import {
   Container, Header, KeyValuePairs, Tabs, StatusIndicator, BreadcrumbGroup,
-  Button, Modal, Alert, FormField, Input,
+  Button, Modal, Alert, FormField, Input, Table,
 } from "../../../design-system";
 import { requestService } from "../../../services/requestService";
 import { nodeService } from "../../../services/nodeService";
 import { podService } from "../../../services/podService";
 import RestartContainerModal from "../../../components/RestartContainerModal";
 import { waitForMigrationResult } from "../../../utils/migrationResult";
+import { mapAdminPorts } from "../../../utils/decsMapper";
+import { JobStepsTimeline } from "../../admin/JobStepsTimeline";
 
 // 노드 이름의 클러스터 접두어(farm2 → farm, LAB10 → lab). 노드 표에는 FARM·LAB 두 클러스터가 함께 있고
 // 대소문자도 k8s 노드 이름과 다르다.
 const clusterOf = (name) => (String(name ?? "").match(/^[a-z]+/i)?.[0] ?? "").toLowerCase();
 const sameNode = (a, b) => String(a ?? "").toLowerCase() === String(b ?? "").toLowerCase();
+
+const pad2 = (n) => String(n).padStart(2, "0");
+const formatDateTime = (date) => (date instanceof Date
+  ? `${date.getFullYear()}-${pad2(date.getMonth() + 1)}-${pad2(date.getDate())} ${pad2(date.getHours())}:${pad2(date.getMinutes())}:${pad2(date.getSeconds())}`
+  : "—");
 
 function ContainerDetail({ item, onBack, onRefetch }) {
   const c = item;
@@ -39,6 +46,23 @@ function ContainerDetail({ item, onBack, onRefetch }) {
   const [podEvents, setPodEvents] = useState(null);
   const [eventsLoading, setEventsLoading] = useState(true);
   const [eventsError, setEventsError] = useState(null);
+  const [ports, setPorts] = useState(null);
+  const [portsError, setPortsError] = useState(null);
+  const [refreshing, setRefreshing] = useState(false);
+
+  // 컨테이너 목록 응답에는 포트가 없어 신청 단건(배정된 NodePort 포함)을 따로 읽는다.
+  useEffect(() => {
+    if (c?.requestId == null) return;
+    let cancelled = false;
+    setPorts(null);
+    setPortsError(null);
+    requestService.getRequest(c.requestId).then((res) => {
+      if (!cancelled) setPorts(mapAdminPorts(res.data?.data ?? res.data));
+    }).catch(() => {
+      if (!cancelled) setPortsError("포트 정보를 불러오지 못했습니다.");
+    });
+    return () => { cancelled = true; };
+  }, [c?.requestId]);
 
   useEffect(() => {
     if (!c?.podName) {
@@ -239,11 +263,38 @@ function ContainerDetail({ item, onBack, onRefetch }) {
     }
   };
 
+  const refreshStatus = async () => {
+    setRefreshing(true);
+    try {
+      await onRefetch?.();
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
   const overview = (
     <div style={{ display: "flex", flexDirection: "column", gap: "var(--decs-space-l)" }}>
-      <Container header={<Header variant="h2">스펙</Header>}>
+      <Container header={
+        <Header
+          variant="h2"
+          actions={<Button variant="normal" iconName="arrow-path" loading={refreshing} onClick={refreshStatus}>상태 새로고침</Button>}
+        >
+          스펙
+        </Header>
+      }>
         <KeyValuePairs columns={3} items={[
-          { label: "상태", value: <StatusIndicator type={c.status}>{c.label}</StatusIndicator> },
+          {
+            label: "상태",
+            value: (
+              <div style={{ display: "flex", flexDirection: "column", gap: "var(--decs-space-xxxs)" }}>
+                <StatusIndicator type={c.status}>{c.label}</StatusIndicator>
+                {/* 상태는 이 화면을 불러올 때 k8s에서 바로 읽은 값이다 — 그 시각이 지나면 실제와 다를 수 있다. */}
+                <span style={{ color: "var(--decs-text-secondary)", fontSize: "var(--decs-fs-body-s)" }}>
+                  마지막 확인 {formatDateTime(c.statusCheckedAt)}
+                </span>
+              </div>
+            ),
+          },
           ...(c.statusReason ? [{ label: "오류 사유", value: c.statusReason }] : []),
           { label: "리소스 그룹", value: c.gpu },
           { label: "노드", value: c.node },
@@ -258,6 +309,25 @@ function ContainerDetail({ item, onBack, onRefetch }) {
             ? [{ label: "SSH 접속", value: c.sshCommand, copyable: true, copyText: c.sshCommand }]
             : []),
         ]} />
+      </Container>
+      <Container header={<Header variant="h2" counter={ports ? `(${ports.length})` : undefined}>포트</Header>} disablePadding>
+        {portsError ? (
+          <div style={{ padding: "var(--decs-space-m)" }}><Alert type="error">{portsError}</Alert></div>
+        ) : (
+          <Table
+            density="compact" trackBy="nodePort"
+            loading={ports === null}
+            items={ports ?? []}
+            empty="배정된 포트가 없습니다."
+            columns={[
+              { id: "purpose", header: "용도", cell: (p) => p.purpose },
+              { id: "internal", header: "컨테이너 포트", cell: (p) => p.internalPort },
+              { id: "nodePort", header: "NodePort", cell: (p) => p.nodePort },
+              // 포트 포워딩 대역 밖 NodePort는 클러스터 안에서만 열린다
+              { id: "address", header: "외부 주소", cell: (p) => (p.publicPort != null ? p.address : "외부 미개방") },
+            ]}
+          />
+        )}
       </Container>
     </div>
   );
@@ -352,6 +422,9 @@ function ContainerDetail({ item, onBack, onRefetch }) {
         { id: "overview", label: "개요", content: overview },
         { id: "logs", label: "로그", content: logs },
         { id: "events", label: "이벤트", content: events },
+        ...(c.requestId != null
+          ? [{ id: "jobs", label: "작업 기록", content: <JobStepsTimeline key={c.requestId} requestId={c.requestId} /> }]
+          : []),
       ]} />
 
       <RestartContainerModal

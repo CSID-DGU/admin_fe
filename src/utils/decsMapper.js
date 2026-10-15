@@ -155,6 +155,29 @@ export function mapAdminContainer(dto) {
 }
 
 /**
+ * 관리자 컨테이너 상세의 포트 표. SSH·Jupyter·추가 포트를 모두 같은 줄 모양으로 보인다.
+ * @param {{ podExternalPorts?: Array, resourceGroup?: { serverName?: string } }} dto SaveRequestResponseDTO
+ * @returns {Array<{ purpose: string, internalPort: number, nodePort: number, publicPort: number | null, address: string }>}
+ */
+export function mapAdminPorts(dto) {
+  const endpoint = endpointOf(dto?.resourceGroup?.serverName);
+  return getPodExternalPorts(dto ?? {})
+    .map((port) => {
+      const internalPort = getInternalPort(port);
+      const nodePort = getExternalPort(port);
+      const publicPort = endpoint.toPublicPort(nodePort);
+      return {
+        purpose: String(getUsagePurpose(port) || i18n.t("data.portDefault", { port: internalPort })),
+        internalPort,
+        nodePort,
+        publicPort,
+        address: publicPort != null ? `${endpoint.host}:${publicPort}` : "—",
+      };
+    })
+    .sort((a, b) => a.nodePort - b.nodePort);
+}
+
+/**
  * @param {string} dateStr 만료 일시 문자열
  * @param {Date} now 기준 일시
  * @returns {number}
