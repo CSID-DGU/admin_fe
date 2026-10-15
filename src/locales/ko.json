@@ -101,7 +101,8 @@
     "image-pull-error": "이미지 가져오기 실패",
     "oom-killed": "메모리 초과로 종료됨",
     "evicted": "축출됨",
-    "lookup-failed": "상태 확인 불가"
+    "lookup-failed": "상태 확인 불가",
+    "pod-missing": "Pod 없음"
   },
   "data": {
     "loadFailed": "일부 정보를 불러오지 못했습니다. 새로고침해도 같으면 관리자에게 문의해주세요.",

@@ -33,6 +33,7 @@ const STATUS_MAP = {
   EXPIRING: { type: "in-progress", key: "expiring" },
   DELETED: { type: "stopped", key: "deleted" },
   "lookup-failed": { type: "error", key: "lookup-failed" },
+  "pod-missing": { type: "error", key: "pod-missing" },
 };
 
 function formatDate(dateStr) {
@@ -150,6 +151,8 @@ export function mapAdminContainer(dto) {
     status: status.type,
     label: status.label,
     statusReason: detail.reason ?? null,
+    // admin_be가 k8s에서 상태를 읽은 시각(시간대 없는 현지 시각). 아직 한 번도 못 읽었으면 null
+    statusCheckedAt: dto.statusCheckedAt ? new Date(dto.statusCheckedAt) : null,
     expires: formatDate(dto.expiresAt),
     image: image || "—",
     sshCommand,

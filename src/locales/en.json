@@ -101,7 +101,8 @@
     "image-pull-error": "Image pull failed",
     "oom-killed": "Killed (OOM)",
     "evicted": "Evicted",
-    "lookup-failed": "Status unavailable"
+    "lookup-failed": "Status unavailable",
+    "pod-missing": "Pod missing"
   },
   "data": {
     "loadFailed": "Some information could not be loaded. If refreshing does not help, please contact an administrator.",
