@@ -51,7 +51,11 @@ function ContainerManagement({ onOpenDetail, containers = [] }) {
 
       <Container disablePadding header={
         <div style={{ display: "flex", flexDirection: "column", gap: "var(--decs-space-s)" }}>
-          <Header variant="h2" counter={`(${rows.length})`}>
+          <Header
+            variant="h2" counter={`(${rows.length})`}
+            // 상태는 목록을 불러올 때 k8s에서 한꺼번에 읽는다 — 모든 행이 같은 시각에 확인된 값이다.
+            description={all[0]?.statusCheckedAt ? `상태 마지막 확인 ${all[0].statusCheckedAt.toLocaleString("ko-KR")}` : undefined}
+          >
             컨테이너
           </Header>
           <div style={{ display: "flex", gap: "var(--decs-space-s)" }}>
@@ -93,7 +97,7 @@ function ContainerManagement({ onOpenDetail, containers = [] }) {
               ),
             },
             { id: "user", header: "사용자", sortingField: "user", cell: (c) => c.user },
-            { id: "gpu", header: "리소스 그룹", cell: (c) => <Badge color="brand">{c.gpu}</Badge> },
+            { id: "gpu", header: "GPU", cell: (c) => <Badge color="brand">{c.gpu}</Badge> },
             { id: "node", header: "노드", sortingField: "node", cell: (c) => c.node },
             {
               id: "status",
