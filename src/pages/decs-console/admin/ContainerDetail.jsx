@@ -263,10 +263,14 @@ function ContainerDetail({ item, onBack, onRefetch }) {
     }
   };
 
+  // 평소엔 admin_be가 5분마다 읽어 둔 상태를 보인다. 버튼은 지금 다시 읽게 한 뒤 목록을 새로 받는다.
   const refreshStatus = async () => {
     setRefreshing(true);
     try {
+      await podService.refreshPodStatus();
       await onRefetch?.();
+    } catch (error) {
+      setAlert({ type: "error", message: error.message || "상태를 다시 읽지 못했습니다. 이전 확인 시각의 상태가 그대로 보입니다." });
     } finally {
       setRefreshing(false);
     }
@@ -288,9 +292,9 @@ function ContainerDetail({ item, onBack, onRefetch }) {
             value: (
               <div style={{ display: "flex", flexDirection: "column", gap: "var(--decs-space-xxxs)" }}>
                 <StatusIndicator type={c.status}>{c.label}</StatusIndicator>
-                {/* 상태는 이 화면을 불러올 때 k8s에서 바로 읽은 값이다 — 그 시각이 지나면 실제와 다를 수 있다. */}
+                {/* 상태는 admin_be가 k8s에서 읽어 둔 값이다 — 그 시각 뒤의 변화는 다음 확인(5분마다·새로고침) 때 보인다. */}
                 <span style={{ color: "var(--decs-text-secondary)", fontSize: "var(--decs-fs-body-s)" }}>
-                  마지막 확인 {formatDateTime(c.statusCheckedAt)}
+                  {c.statusCheckedAt ? `마지막 확인 ${formatDateTime(c.statusCheckedAt)} · 5분마다 자동 확인` : "아직 확인 전 · 5분마다 자동 확인"}
                 </span>
               </div>
             ),
