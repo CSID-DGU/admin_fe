@@ -11,7 +11,7 @@ export default function RoleSwitch({ current }) {
   const navigate = useNavigate();
   const { t } = useTranslation();
   return (
-    <div style={{ display: "inline-flex", background: "rgba(255,255,255,0.15)", borderRadius: "9999px", padding: "2px", marginRight: "var(--decs-space-xs)" }}>
+    <div style={{ display: "inline-flex", background: "rgba(255,255,255,0.15)", borderRadius: "9999px", padding: "var(--decs-space-xxxs)", marginRight: "var(--decs-space-xs)" }}>
       {SEGMENTS.map((s) => {
         const active = s.key === current;
         return (
@@ -22,12 +22,12 @@ export default function RoleSwitch({ current }) {
             style={{
               border: 0,
               cursor: active ? "default" : "pointer",
-              padding: "3px 12px",
+              padding: "3px var(--decs-space-s)",
               borderRadius: "9999px",
               fontFamily: "var(--decs-font-base)",
               fontSize: "var(--decs-fs-body-s)",
               fontWeight: active ? "var(--decs-fw-bold)" : "var(--decs-fw-regular)",
-              background: active ? "#fff" : "none",
+              background: active ? "var(--decs-white)" : "none",
               color: active ? "var(--decs-grey-900)" : "rgba(255,255,255,0.85)",
             }}
           >

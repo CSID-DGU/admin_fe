@@ -61,13 +61,13 @@ function GpuUtilPanel({ onUpdated }) {
   }, [fetchMetrics]);
 
   if (error) {
-    return <div style={{ color: "var(--decs-text-secondary)", fontSize: "var(--decs-fs-body-s)", padding: "16px 0", textAlign: "center" }}>{error}</div>;
+    return <div style={{ color: "var(--decs-text-secondary)", fontSize: "var(--decs-fs-body-s)", padding: "var(--decs-space-m) 0", textAlign: "center" }}>{error}</div>;
   }
   if (servers === null) {
     return <StatusIndicator type="loading">지표를 불러오는 중...</StatusIndicator>;
   }
   if (servers.length === 0) {
-    return <div style={{ color: "var(--decs-text-secondary)", fontSize: "var(--decs-fs-body-s)", padding: "16px 0", textAlign: "center" }}>GPU 데이터를 수신하지 못했습니다.</div>;
+    return <div style={{ color: "var(--decs-text-secondary)", fontSize: "var(--decs-fs-body-s)", padding: "var(--decs-space-m) 0", textAlign: "center" }}>GPU 데이터를 수신하지 못했습니다.</div>;
   }
 
   const avgUtil = Math.round(servers.reduce((sum, s) => sum + (s.gpuUtil ?? 0), 0) / servers.length);

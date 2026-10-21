@@ -130,7 +130,7 @@ function ContainerDetail({ item, onBack, onRefetch }) {
         <BreadcrumbGroup items={[{ text: "컨테이너", href: "#" }, { text: "상세" }]} onFollow={(it) => { if (it.href) onBack(); }} />
         <Header variant="h1">컨테이너 상세</Header>
         <Container>
-          <div style={{ color: "var(--decs-text-secondary)", fontSize: "var(--decs-fs-body-s)", padding: "24px 0", textAlign: "center" }}>
+          <div style={{ color: "var(--decs-text-secondary)", fontSize: "var(--decs-fs-body-s)", padding: "var(--decs-space-xl) 0", textAlign: "center" }}>
             컨테이너 데이터를 찾을 수 없습니다.
           </div>
         </Container>
@@ -337,13 +337,13 @@ function ContainerDetail({ item, onBack, onRefetch }) {
   );
 
   const logs = logsLoading ? (
-    <div style={{ color: "var(--decs-text-secondary)", fontSize: "var(--decs-fs-body-s)", padding: "16px 0", textAlign: "center" }}>
+    <div style={{ color: "var(--decs-text-secondary)", fontSize: "var(--decs-fs-body-s)", padding: "var(--decs-space-m) 0", textAlign: "center" }}>
       로그를 불러오는 중...
     </div>
   ) : logsError ? (
     <Alert type="error">{logsError}</Alert>
   ) : !logsText ? (
-    <div style={{ color: "var(--decs-text-secondary)", fontSize: "var(--decs-fs-body-s)", padding: "16px 0", textAlign: "center" }}>
+    <div style={{ color: "var(--decs-text-secondary)", fontSize: "var(--decs-fs-body-s)", padding: "var(--decs-space-m) 0", textAlign: "center" }}>
       표시할 로그 데이터가 없습니다.
     </div>
   ) : (
@@ -358,13 +358,13 @@ function ContainerDetail({ item, onBack, onRefetch }) {
   );
 
   const events = eventsLoading ? (
-    <div style={{ color: "var(--decs-text-secondary)", fontSize: "var(--decs-fs-body-s)", padding: "16px 0", textAlign: "center" }}>
+    <div style={{ color: "var(--decs-text-secondary)", fontSize: "var(--decs-fs-body-s)", padding: "var(--decs-space-m) 0", textAlign: "center" }}>
       이벤트를 불러오는 중...
     </div>
   ) : eventsError ? (
     <Alert type="error">{eventsError}</Alert>
   ) : !podEvents || podEvents.length === 0 ? (
-    <div style={{ color: "var(--decs-text-secondary)", fontSize: "var(--decs-fs-body-s)", padding: "16px 0", textAlign: "center" }}>
+    <div style={{ color: "var(--decs-text-secondary)", fontSize: "var(--decs-fs-body-s)", padding: "var(--decs-space-m) 0", textAlign: "center" }}>
       표시할 이벤트 데이터가 없습니다.
     </div>
   ) : (
@@ -540,7 +540,7 @@ function ContainerDetail({ item, onBack, onRefetch }) {
             <Button
               variant="primary"
               loading={isDeleting}
-              style={{ background: "var(--decs-status-error)", color: "#fff" }}
+              style={{ background: "var(--decs-status-error)", color: "var(--decs-text-on-color)" }}
               onClick={submitDelete}
             >
               삭제

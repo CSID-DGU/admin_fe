@@ -23,7 +23,7 @@ function UserContainerDetail({ onBack, onRestarted, servers = [] }) {
         <Button variant="link" iconName="arrow-left" onClick={onBack}>{t("common.dashboard")}</Button>
         <Header variant="h1">{t("container.title")}</Header>
         <Container>
-          <div style={{ color: "var(--decs-text-secondary)", fontSize: "var(--decs-fs-body-m)", padding: "24px 0", textAlign: "center" }}>
+          <div style={{ color: "var(--decs-text-secondary)", fontSize: "var(--decs-fs-body-m)", padding: "var(--decs-space-xl) 0", textAlign: "center" }}>
             {t("container.empty")}
           </div>
         </Container>
@@ -54,7 +54,7 @@ function UserContainerDetail({ onBack, onRestarted, servers = [] }) {
                 onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") setSelectedId(item.requestId); }}
                 style={{
                   display: "flex", justifyContent: "space-between", alignItems: "center",
-                  padding: "12px 16px", cursor: "pointer",
+                  padding: "var(--decs-space-s) var(--decs-space-m)", cursor: "pointer",
                   borderRadius: "var(--decs-radius-input)",
                   border: item.requestId === server.requestId
                     ? "2px solid var(--decs-brand-300)"
@@ -117,7 +117,7 @@ function UserContainerDetail({ onBack, onRestarted, servers = [] }) {
 
       <div style={{ display: "grid", gridTemplateColumns: phone ? "minmax(0, 1fr)" : "1fr 1fr", gap: "var(--decs-space-m)" }}>
         <Container header={<Header variant="h2">{t("container.usage")}</Header>}>
-          <div style={{ color: "var(--decs-text-secondary)", fontSize: "var(--decs-fs-body-s)", padding: "16px 0", textAlign: "center" }}>
+          <div style={{ color: "var(--decs-text-secondary)", fontSize: "var(--decs-fs-body-s)", padding: "var(--decs-space-m) 0", textAlign: "center" }}>
             {t("container.usageTodo")}
           </div>
         </Container>
