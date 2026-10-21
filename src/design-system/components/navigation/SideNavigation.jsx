@@ -11,6 +11,7 @@ function LinkItem({ item, activeHref, onFollow, depth = 0 }) {
   return (
     <a
       href={item.href}
+      className="decs-hv"
       aria-current={active ? "page" : undefined}
       onClick={(e) => { if (onFollow) { e.preventDefault(); onFollow(item); } }}
       style={{
@@ -20,11 +21,10 @@ function LinkItem({ item, activeHref, onFollow, depth = 0 }) {
         fontSize: "var(--decs-fs-body-m)", lineHeight: "var(--decs-lh-body-m)",
         color: active ? "var(--decs-text-link)" : "var(--decs-text-body)",
         fontWeight: active ? "var(--decs-fw-bold)" : "var(--decs-fw-regular)",
-        background: active ? "var(--decs-surface-selected)" : "transparent",
+        "--hv-bg": active ? "var(--decs-surface-selected)" : "transparent",
+        "--hv-hover": active ? "var(--decs-surface-selected)" : "var(--decs-surface-hover)",
         boxShadow: active ? "inset 2px 0 0 0 var(--decs-action-primary)" : "none",
       }}
-      onMouseEnter={(e) => { if (!active) e.currentTarget.style.background = "var(--decs-surface-hover)"; }}
-      onMouseLeave={(e) => { if (!active) e.currentTarget.style.background = "transparent"; }}
     >
       {item.icon ? <Icon name={item.icon} size={16} /> : null}
       <span title={item.text} style={{ flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{item.text}</span>

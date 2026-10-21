@@ -4,6 +4,17 @@
   outline-offset: 2px;
 }
 
+/* Hover without JS state: callers set --hv-bg / --hv-hover as inline custom properties. */
+.decs-hv {
+  background: var(--hv-bg, transparent);
+}
+.decs-hv:hover:not(:disabled):not([aria-disabled="true"]) {
+  background: var(--hv-hover, var(--hv-bg, transparent));
+}
+.decs-hv-ul:hover:not(:disabled):not([aria-disabled="true"]) {
+  --hv-deco: underline;
+}
+
 @keyframes decs-spin {
   to { transform: rotate(360deg); }
 }

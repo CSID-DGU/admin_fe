@@ -51,7 +51,7 @@ export function Modal({ visible, onDismiss, header, children, footer, size = "me
       onMouseDown={(e) => { if (dismissible && e.target === e.currentTarget) onDismiss?.(); }}
       style={{
         position: "fixed", inset: 0, zIndex: 1000,
-        background: "rgba(0, 7, 22, 0.35)",
+        background: "var(--decs-surface-overlay)",
         display: "flex", alignItems: "flex-start", justifyContent: "center",
         padding: "10vh var(--decs-space-m) var(--decs-space-m)",
         fontFamily: "var(--decs-font-base)",

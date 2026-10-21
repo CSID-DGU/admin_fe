@@ -6,7 +6,7 @@ import React from "react";
  */
 const TINTS = {
   grey:  { bg: "var(--decs-grey-150)", fg: "var(--decs-grey-700)" },
-  blue:  { bg: "#e6f2fd", fg: "var(--decs-blue-700)" },
+  blue:  { bg: "var(--decs-blue-50)", fg: "var(--decs-blue-700)" },
   green: { bg: "var(--decs-status-bg-success)", fg: "var(--decs-status-success)" },
   red:   { bg: "var(--decs-status-bg-error)", fg: "var(--decs-status-error)" },
   amber: { bg: "var(--decs-status-bg-warning)", fg: "var(--decs-status-warning)" },

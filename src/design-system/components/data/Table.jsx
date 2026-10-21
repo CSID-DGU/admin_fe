@@ -85,9 +85,7 @@ export function Table({
             ) : items.map((it) => {
               const isSel = selectedKeys.has(keyOf(it));
               return (
-                <tr key={keyOf(it)} style={{ background: isSel ? "var(--decs-surface-selected)" : "transparent" }}
-                    onMouseEnter={(e) => { if (!isSel) e.currentTarget.style.background = "var(--decs-surface-hover)"; }}
-                    onMouseLeave={(e) => { e.currentTarget.style.background = isSel ? "var(--decs-surface-selected)" : "transparent"; }}>
+                <tr key={keyOf(it)} className="decs-hv" style={{ "--hv-bg": isSel ? "var(--decs-surface-selected)" : "transparent", "--hv-hover": isSel ? "var(--decs-surface-selected)" : "var(--decs-surface-hover)" }}>
                   {selectionType ? (
                     <td style={{ ...cellBase, textAlign: "center" }}>
                       <input type={selectionType === "single" ? "radio" : "checkbox"} checked={isSel} onChange={() => toggleRow(it)} aria-label={t("ds.selectRow")} style={{ accentColor: "var(--decs-action-primary)" }} />

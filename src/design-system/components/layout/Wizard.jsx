@@ -41,7 +41,7 @@ export function Wizard({ steps = [], activeStepIndex = 0, onNavigate, onCancel, 
                 width: "24px", height: "24px", borderRadius: "9999px", flexShrink: 0,
                 fontSize: "var(--decs-fs-body-s)", fontWeight: "var(--decs-fw-bold)",
                 background: current ? "var(--decs-action-primary)" : done ? "var(--decs-status-success)" : "var(--decs-grey-200)",
-                color: current || done ? "#fff" : "var(--decs-text-secondary)",
+                color: current || done ? "var(--decs-text-on-color)" : "var(--decs-text-secondary)",
               }}>
                 {done ? <Icon name="check" size={14} /> : i + 1}
               </span>

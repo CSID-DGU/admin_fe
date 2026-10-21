@@ -87,18 +87,18 @@ export function Select({ options = [], selectedValue, onChange, placeholder: pla
               <button
                 key={o.value}
                 role="option"
+                className="decs-hv"
                 aria-selected={isSel}
                 disabled={o.disabled}
                 onClick={() => { setOpen(false); onChange?.(o.value, o); }}
                 style={{
                   display: "block", width: "100%", textAlign: "left", padding: "var(--decs-space-s) var(--decs-space-m)",
-                  background: isSel ? "var(--decs-surface-selected)" : "none", border: "none",
+                  "--hv-bg": isSel ? "var(--decs-surface-selected)" : "transparent",
+                  "--hv-hover": isSel ? "var(--decs-surface-selected)" : "var(--decs-surface-hover)", border: "none",
                   borderRadius: "var(--decs-radius-badge)", cursor: o.disabled ? "default" : "pointer",
                   fontFamily: "var(--decs-font-base)", fontSize: "var(--decs-fs-body-m)",
                   color: o.disabled ? "var(--decs-text-disabled)" : "var(--decs-text-body)",
                 }}
-                onMouseEnter={(e) => { if (!o.disabled && !isSel) e.currentTarget.style.background = "var(--decs-surface-hover)"; }}
-                onMouseLeave={(e) => { e.currentTarget.style.background = isSel ? "var(--decs-surface-selected)" : "none"; }}
               >
                 <span style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "8px" }}>
                   {o.label}
