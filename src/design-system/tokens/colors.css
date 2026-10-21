@@ -104,6 +104,13 @@
   --decs-status-border-warning: #f2d888;
   --decs-status-border-error: #ffcfcf;
 
+  /* Text/fill on saturated backgrounds, overlays, dark top-nav */
+  --decs-text-on-color: var(--decs-white);
+  --decs-blue-50: #e6f2fd;
+  --decs-surface-overlay: rgba(0, 7, 22, 0.35);
+  --decs-nav-text: rgba(255, 255, 255, 0.9);
+  --decs-nav-hover-bg: rgba(255, 255, 255, 0.12);
+
   /* Focus ring */
   --decs-focus-ring: var(--decs-blue-600);
 }

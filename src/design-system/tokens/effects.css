@@ -8,6 +8,7 @@
   --decs-shadow-sticky: 0 4px 8px 0 rgba(0, 7, 22, 0.10);
 
   /* Motion */
+  --decs-z-dropdown: 1100;       /* above Modal (1000); portaled menus */
   --decs-motion-fast: 90ms;     /* @kind other */
   --decs-motion-moderate: 135ms; /* @kind other */
   --decs-motion-slow: 180ms;    /* @kind other */

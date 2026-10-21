@@ -37,11 +37,10 @@ export function StatusIndicator({ type = "info", children, iconSize = 16, style 
         ...style,
       }}
     >
-      <span style={cfg.spin ? { display: "inline-flex", flexShrink: 0, animation: "decs-spin 1s linear infinite" } : { display: "inline-flex", flexShrink: 0 }}>
+      <span className={cfg.spin ? "decs-spin" : undefined} style={{ display: "inline-flex", flexShrink: 0 }}>
         <Icon name={cfg.icon} size={iconSize} />
       </span>
       <span style={{ color: "var(--decs-text-body)" }}>{statusKey ? t(`status.${statusKey}`) : children}</span>
-      <style>{"@keyframes decs-spin{to{transform:rotate(360deg)}}"}</style>
     </span>
   );
 }

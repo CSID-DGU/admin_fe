@@ -1,4 +1,5 @@
 import React from "react";
+import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
 import { Icon } from "../icons/Icon.jsx";
 import { Button } from "./Button.jsx";
@@ -13,9 +14,14 @@ export function ButtonDropdown({ items = [], children: childrenProp, variant = "
   const children = childrenProp ?? t("ds.actions");
   const [open, setOpen] = React.useState(false);
   const ref = React.useRef(null);
+  const menuRef = React.useRef(null);
 
+  // 메뉴는 body로 포털해 position:fixed로 띄운다 — 테이블(overflow-x:auto)·Container(overflow:hidden) 안에서 잘리지 않게.
   React.useEffect(() => {
-    function onDoc(e) { if (ref.current && !ref.current.contains(e.target)) setOpen(false); }
+    function onDoc(e) {
+      if (ref.current?.contains(e.target) || menuRef.current?.contains(e.target)) return;
+      setOpen(false);
+    }
     document.addEventListener("mousedown", onDoc);
     return () => document.removeEventListener("mousedown", onDoc);
   }, []);
@@ -23,13 +29,28 @@ export function ButtonDropdown({ items = [], children: childrenProp, variant = "
   // 트리거 아래 공간이 부족하고(테이블 마지막 줄 등) 위쪽 공간이 더 넓으면 위로 뒤집어서
   // 연다 — 안 그러면 화면 하단 근처에서 열린 메뉴가 뷰포트 밖으로 잘려나간다.
   const MENU_MAX_HEIGHT = 260;
-  const [openUpward, setOpenUpward] = React.useState(false);
+  const [pos, setPos] = React.useState(null);
   React.useLayoutEffect(() => {
-    if (!open || !ref.current) return;
-    const rect = ref.current.getBoundingClientRect();
-    const spaceBelow = window.innerHeight - rect.bottom;
-    const spaceAbove = rect.top;
-    setOpenUpward(spaceBelow < MENU_MAX_HEIGHT + 4 && spaceAbove > spaceBelow);
+    if (!open || !ref.current) { setPos(null); return; }
+    const place = () => {
+      const rect = ref.current.getBoundingClientRect();
+      const spaceBelow = window.innerHeight - rect.bottom;
+      const upward = spaceBelow < MENU_MAX_HEIGHT + 4 && rect.top > spaceBelow;
+      setPos({
+        right: document.documentElement.clientWidth - rect.right,
+        ...(upward ? { bottom: window.innerHeight - rect.top + 4 } : { top: rect.bottom + 4 }),
+      });
+    };
+    place();
+    // 스크롤·리사이즈 시 트리거에서 떨어지지 않게 닫는다.
+    const close = () => setOpen(false);
+    const closeOnOuterScroll = (e) => { if (!menuRef.current?.contains(e.target)) setOpen(false); };
+    window.addEventListener("resize", close);
+    window.addEventListener("scroll", closeOnOuterScroll, true);
+    return () => {
+      window.removeEventListener("resize", close);
+      window.removeEventListener("scroll", closeOnOuterScroll, true);
+    };
   }, [open]);
 
   return (
@@ -46,13 +67,13 @@ export function ButtonDropdown({ items = [], children: childrenProp, variant = "
           {children}
         </Button>
       )}
-      {open ? (
+      {open && pos ? createPortal(
         <div
+          ref={menuRef}
           role="menu"
           style={{
-            position: "absolute",
-            ...(openUpward ? { bottom: "calc(100% + 4px)" } : { top: "calc(100% + 4px)" }),
-            right: 0,
+            position: "fixed",
+            ...pos,
             minWidth: "180px",
             maxHeight: `${MENU_MAX_HEIGHT}px`,
             overflowY: "auto",
@@ -61,13 +82,14 @@ export function ButtonDropdown({ items = [], children: childrenProp, variant = "
             borderRadius: "var(--decs-radius-item)",
             boxShadow: "var(--decs-shadow-dropdown)",
             padding: "var(--decs-space-xxs)",
-            zIndex: 50,
+            zIndex: "var(--decs-z-dropdown)",
           }}
         >
           {items.map((it, i) => (
             <button
               key={it.id ?? i}
               role="menuitem"
+              className="decs-hv"
               disabled={it.disabled}
               onClick={() => { setOpen(false); (it.onClick || onItemClick)?.(it); }}
               style={{
@@ -77,7 +99,7 @@ export function ButtonDropdown({ items = [], children: childrenProp, variant = "
                 width: "100%",
                 textAlign: "left",
                 padding: "8px 12px",
-                background: "none",
+                "--hv-hover": "var(--decs-surface-hover)",
                 border: "none",
                 borderRadius: "var(--decs-radius-badge)",
                 cursor: it.disabled ? "default" : "pointer",
@@ -85,14 +107,13 @@ export function ButtonDropdown({ items = [], children: childrenProp, variant = "
                 fontSize: "var(--decs-fs-body-m)",
                 color: it.disabled ? "var(--decs-text-disabled)" : it.variant === "danger" ? "var(--decs-status-error)" : "var(--decs-text-body)",
               }}
-              onMouseEnter={(e) => { if (!it.disabled) e.currentTarget.style.background = "var(--decs-surface-hover)"; }}
-              onMouseLeave={(e) => { e.currentTarget.style.background = "none"; }}
             >
               {it.iconName ? <Icon name={it.iconName} size={16} /> : null}
               {it.text}
             </button>
           ))}
-        </div>
+        </div>,
+        document.body
       ) : null}
     </div>
   );

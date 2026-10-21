@@ -6,11 +6,6 @@ import { Icon } from "../icons/Icon.jsx";
  * accent (orange), which is the main thing that makes DECS look like DECS.
  * Variants: primary | normal | link | inline-link | icon.
  */
-function useHover() {
-  const [h, setH] = React.useState(false);
-  return [h, { onMouseEnter: () => setH(true), onMouseLeave: () => setH(false) }];
-}
-
 export function Button({
   variant = "normal",
   children,
@@ -25,7 +20,6 @@ export function Button({
   type = "button",
   style,
 }) {
-  const [hover, hoverProps] = useHover();
   const isDisabled = disabled || loading;
 
   const base = {
@@ -44,36 +38,36 @@ export function Button({
     minHeight: "var(--decs-control-height)",
     width: fullWidth ? "100%" : undefined,
     transition: "background var(--decs-motion-fast) var(--decs-easing), border-color var(--decs-motion-fast) var(--decs-easing)",
-    textDecoration: "none",
+    textDecoration: "var(--hv-deco, none)",
     whiteSpace: "nowrap",
     flexShrink: 0,
   };
 
   const variants = {
     primary: {
-      background: isDisabled ? "var(--decs-grey-200)" : hover ? "var(--decs-action-primary-hover)" : "var(--decs-action-primary)",
+      "--hv-bg": isDisabled ? "var(--decs-grey-200)" : "var(--decs-action-primary)",
+      "--hv-hover": "var(--decs-action-primary-hover)",
       color: isDisabled ? "var(--decs-text-disabled)" : "var(--decs-action-primary-text)",
     },
     normal: {
-      background: isDisabled ? "transparent" : hover ? "var(--decs-action-normal-hover-bg)" : "var(--decs-action-normal-bg)",
+      "--hv-bg": isDisabled ? "transparent" : "var(--decs-action-normal-bg)",
+      "--hv-hover": "var(--decs-action-normal-hover-bg)",
       color: isDisabled ? "var(--decs-text-disabled)" : "var(--decs-action-normal-text)",
       borderColor: isDisabled ? "var(--decs-grey-300)" : "var(--decs-action-normal-border)",
     },
     link: {
-      background: hover && !isDisabled ? "var(--decs-action-normal-hover-bg)" : "transparent",
+      "--hv-hover": "var(--decs-action-normal-hover-bg)",
       color: isDisabled ? "var(--decs-text-disabled)" : "var(--decs-text-link)",
     },
     "inline-link": {
-      background: "transparent",
       color: isDisabled ? "var(--decs-text-disabled)" : "var(--decs-text-link)",
       padding: 0,
       minHeight: 0,
       borderRadius: 0,
       fontWeight: "var(--decs-fw-regular)",
-      textDecoration: hover && !isDisabled ? "underline" : "none",
     },
     icon: {
-      background: hover && !isDisabled ? "var(--decs-surface-hover)" : "transparent",
+      "--hv-hover": "var(--decs-surface-hover)",
       color: isDisabled ? "var(--decs-text-disabled)" : "var(--decs-text-secondary)",
       padding: "var(--decs-space-xs)",
       minHeight: 0,
@@ -84,12 +78,12 @@ export function Button({
   const merged = { ...base, ...(variants[variant] || variants.normal), ...style };
   const Tag = href && !isDisabled ? "a" : "button";
   const icon = loading ? (
-    <span style={{ display: "inline-flex", animation: "decs-spin 1s linear infinite" }}><Icon name="arrow-path" size={16} /></span>
+    <span className="decs-spin" style={{ display: "inline-flex" }}><Icon name="arrow-path" size={16} /></span>
   ) : iconName ? <Icon name={iconName} size={16} /> : null;
 
   return (
     <Tag
-      {...hoverProps}
+      className={variant === "inline-link" ? "decs-hv decs-hv-ul" : "decs-hv"}
       href={href && !isDisabled ? href : undefined}
       onClick={isDisabled ? undefined : onClick}
       disabled={Tag === "button" ? isDisabled : undefined}
@@ -101,7 +95,6 @@ export function Button({
       {iconAlign === "left" && icon}
       {variant === "icon" && !children ? null : children}
       {iconAlign === "right" && icon}
-      <style>{"@keyframes decs-spin{to{transform:rotate(360deg)}}"}</style>
     </Tag>
   );
 }

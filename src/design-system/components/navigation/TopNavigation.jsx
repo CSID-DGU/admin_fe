@@ -32,16 +32,14 @@ export function TopNavigation({ identity, utilities = [], compact = false, navig
           <div key={i} style={{ display: "flex", alignItems: "center" }}>{u.content}</div>
         ) : (
           <div key={i} style={{ position: "relative" }}>
-            <button onClick={() => u.type === "menu" ? setOpenMenu(openMenu === i ? null : i) : u.onClick?.()} aria-label={u.ariaLabel || (typeof u.text === "string" ? u.text : undefined)}
+            <button className="decs-hv" onClick={() => u.type === "menu" ? setOpenMenu(openMenu === i ? null : i) : u.onClick?.()} aria-label={u.ariaLabel || (typeof u.text === "string" ? u.text : undefined)}
               style={{ display: "inline-flex", alignItems: "center", gap: "6px", position: "relative",
-                background: "none", border: "none", color: "rgba(255,255,255,0.9)", cursor: "pointer",
-                padding: "6px 10px", borderRadius: "var(--decs-radius-item)", fontFamily: "var(--decs-font-base)", fontSize: "var(--decs-fs-body-m)" }}
-              onMouseEnter={(e) => e.currentTarget.style.background = "rgba(255,255,255,0.12)"}
-              onMouseLeave={(e) => e.currentTarget.style.background = "none"}>
+                border: "none", color: "var(--decs-nav-text)", cursor: "pointer", "--hv-hover": "var(--decs-nav-hover-bg)",
+                padding: "6px 10px", borderRadius: "var(--decs-radius-item)", fontFamily: "var(--decs-font-base)", fontSize: "var(--decs-fs-body-m)" }}>
               {u.iconName ? <Icon name={u.iconName} size={18} /> : null}
               {u.text && !(compact && u.iconName) ? <span>{u.text}</span> : null}
               {u.type === "menu" ? <Icon name="chevron-down" size={14} /> : null}
-              {u.badge != null ? <span style={{ position: "absolute", top: "2px", right: "4px", minWidth: "16px", height: "16px", padding: "0 4px", boxSizing: "border-box", borderRadius: "9999px", background: "var(--decs-action-primary)", color: "#fff", fontSize: "10px", fontWeight: "var(--decs-fw-bold)", display: "inline-flex", alignItems: "center", justifyContent: "center" }}>{u.badge}</span> : null}
+              {u.badge != null ? <span style={{ position: "absolute", top: "2px", right: "4px", minWidth: "16px", height: "16px", padding: "0 4px", boxSizing: "border-box", borderRadius: "9999px", background: "var(--decs-action-primary)", color: "var(--decs-text-on-color)", fontSize: "10px", fontWeight: "var(--decs-fw-bold)", display: "inline-flex", alignItems: "center", justifyContent: "center" }}>{u.badge}</span> : null}
             </button>
             {u.type === "menu" && openMenu === i ? (
               <div style={{ position: "absolute", top: "calc(100% + 4px)", right: 0, minWidth: 180, background: "var(--decs-surface-container)", color: "var(--decs-text-body)", border: "1px solid var(--decs-border-container)", borderRadius: "var(--decs-radius-container)", boxShadow: "var(--decs-shadow-container)", padding: "var(--decs-space-xxs)", zIndex: 20 }}>

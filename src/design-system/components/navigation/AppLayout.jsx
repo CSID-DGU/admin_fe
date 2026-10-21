@@ -34,7 +34,7 @@ export function AppLayout({
       <div style={{ display: "flex", flex: 1, minHeight: 0 }}>
         {navigation && (!narrow || navigationOpen) ? (
           <>
-            {narrow ? <div onClick={() => setNavigationOpen(false)} style={{ position: "fixed", inset: "48px 0 0", zIndex: 30, background: "rgba(0, 7, 22, 0.35)" }} /> : null}
+            {narrow ? <div onClick={() => setNavigationOpen(false)} style={{ position: "fixed", inset: "48px 0 0", zIndex: 30, background: "var(--decs-surface-overlay)" }} /> : null}
             <div onClick={() => narrow && setNavigationOpen(false)} style={narrow ? { position: "fixed", top: "48px", bottom: 0, left: 0, zIndex: 31, width: navigationWidth, overflow: "hidden" } : { width: navigationWidth, flexShrink: 0, height: "100%", overflow: "hidden" }}>{navigation}</div>
           </>
         ) : null}

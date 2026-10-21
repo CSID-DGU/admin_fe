@@ -105,7 +105,7 @@ function UserDashboard({ onRequest, onConnect, onExtend, userName, server, expir
         <BigStatus onConnect={onConnect} onExtend={onExtend} server={server} />
       ) : (
         <Container>
-          <div style={{ color: "var(--decs-text-secondary)", fontSize: "var(--decs-fs-body-m)", padding: "24px 0", textAlign: "center" }}>
+          <div style={{ color: "var(--decs-text-secondary)", fontSize: "var(--decs-fs-body-m)", padding: "var(--decs-space-xl) 0", textAlign: "center" }}>
             {t("dashboard.empty")}
           </div>
         </Container>
@@ -114,12 +114,12 @@ function UserDashboard({ onRequest, onConnect, onExtend, userName, server, expir
       <div style={{ display: "grid", gridTemplateColumns: phone ? "minmax(0, 1fr)" : "1fr 1fr", gap: "var(--decs-space-m)" }}>
         <div style={{ background: "var(--decs-surface-container)", border: "1px dashed var(--decs-brand-300)", borderRadius: "var(--decs-radius-container)", padding: "var(--decs-space-xl)", textAlign: "center" }}>
           <div style={{ fontSize: "var(--decs-fs-body-l)", fontWeight: 700, color: "var(--decs-text-heading)" }}>{t("dashboard.needGpuTitle")}</div>
-          <div style={{ fontSize: "var(--decs-fs-body-m)", color: "var(--decs-text-secondary)", margin: "6px 0 16px" }}>{t("dashboard.needGpuBody")}</div>
+          <div style={{ fontSize: "var(--decs-fs-body-m)", color: "var(--decs-text-secondary)", margin: "6px 0 var(--decs-space-m)" }}>{t("dashboard.needGpuBody")}</div>
           <Button variant="primary" iconName="plus" onClick={onRequest}>{t("dashboard.requestGpu")}</Button>
         </div>
         <Container header={<Header variant="h2">{t("dashboard.recentActivity")}</Header>}>
           {activities.length === 0 ? (
-            <div style={{ color: "var(--decs-text-secondary)", fontSize: "var(--decs-fs-body-s)", padding: "8px 0" }}>
+            <div style={{ color: "var(--decs-text-secondary)", fontSize: "var(--decs-fs-body-s)", padding: "var(--decs-space-xs) 0" }}>
               {t("dashboard.noActivity")}
             </div>
           ) : (
@@ -136,7 +136,7 @@ function UserDashboard({ onRequest, onConnect, onExtend, userName, server, expir
                   }}
                 >
                   <div>
-                    <div style={{ fontSize: "var(--decs-fs-body-s)", color: "var(--decs-text-inactive)", marginBottom: "2px" }}>{activity.label}</div>
+                    <div style={{ fontSize: "var(--decs-fs-body-s)", color: "var(--decs-text-inactive)", marginBottom: "var(--decs-space-xxxs)" }}>{activity.label}</div>
                     <div style={{ fontSize: "var(--decs-fs-body-m)", color: "var(--decs-text-body)" }}>{activity.value}</div>
                   </div>
                   <span style={{ color: "var(--decs-text-secondary)", fontSize: "var(--decs-fs-body-s)" }}>{t("dashboard.more")}</span>

@@ -58,7 +58,7 @@ export function Cards({
           >
             {selectable ? (
               <span style={{ position: "absolute", top: "var(--decs-space-m)", right: "var(--decs-space-m)", width: "20px", height: "20px", borderRadius: selectionType === "single" ? "9999px" : "6px", border: `1.5px solid ${isSel ? "var(--decs-action-primary)" : "var(--decs-grey-400)"}`, background: isSel ? "var(--decs-action-primary)" : "transparent", display: "inline-flex", alignItems: "center", justifyContent: "center" }}>
-                {isSel ? <Icon name="check" size={14} color="#fff" /> : null}
+                {isSel ? <Icon name="check" size={14} color="var(--decs-text-on-color)" /> : null}
               </span>
             ) : null}
             {cardDefinition.header ? (

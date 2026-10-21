@@ -7,6 +7,7 @@ import { Icon } from "../icons/Icon.jsx";
  * Pass footer actions via `footer` (usually Cancel + primary/danger button).
  */
 let modalIdCounter = 0;
+const FOCUSABLE = 'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
 export function Modal({ visible, onDismiss, header, children, footer, size = "medium", style, dismissible = true }) {
   const titleId = React.useRef(`decs-modal-title-${++modalIdCounter}`).current;
@@ -18,12 +19,29 @@ export function Modal({ visible, onDismiss, header, children, footer, size = "me
   // 포커스가 다이얼로그 컨테이너로 다시 뺏겨서 한 글자씩만 입력되는 버그가 생긴다.
   React.useEffect(() => {
     if (!visible) return;
+    const opener = document.activeElement;
     dialogRef.current?.focus();
+    return () => { if (opener instanceof HTMLElement && opener.isConnected) opener.focus(); };
   }, [visible]);
 
   React.useEffect(() => {
-    if (!visible || !dismissible) return;
-    const onKeyDown = (e) => { if (e.key === "Escape") onDismiss?.(); };
+    if (!visible) return;
+    const onKeyDown = (e) => {
+      if (e.key === "Escape" && dismissible) { onDismiss?.(); return; }
+      if (e.key !== "Tab") return;
+      // 다이얼로그 안에서 열린 포털 메뉴(ButtonDropdown 등) 안의 Tab은 건드리지 않는다.
+      if (e.target instanceof Element && e.target.closest('[role="menu"]')) return;
+      const dialog = dialogRef.current;
+      if (!dialog) return;
+      const focusable = [...dialog.querySelectorAll(FOCUSABLE)].filter((el) => el.offsetParent !== null);
+      if (focusable.length === 0) { e.preventDefault(); dialog.focus(); return; }
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      const active = document.activeElement;
+      if (e.shiftKey && (active === first || active === dialog)) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && active === last) { e.preventDefault(); first.focus(); }
+      else if (!dialog.contains(active)) { e.preventDefault(); first.focus(); }
+    };
     document.addEventListener("keydown", onKeyDown);
     return () => document.removeEventListener("keydown", onKeyDown);
   }, [visible, dismissible, onDismiss]);
@@ -35,7 +53,7 @@ export function Modal({ visible, onDismiss, header, children, footer, size = "me
       onMouseDown={(e) => { if (dismissible && e.target === e.currentTarget) onDismiss?.(); }}
       style={{
         position: "fixed", inset: 0, zIndex: 1000,
-        background: "rgba(0, 7, 22, 0.35)",
+        background: "var(--decs-surface-overlay)",
         display: "flex", alignItems: "flex-start", justifyContent: "center",
         padding: "10vh var(--decs-space-m) var(--decs-space-m)",
         fontFamily: "var(--decs-font-base)",

@@ -1,0 +1,34 @@
+/* DECS — Global base rules (focus ring, spinner, reduced motion). Token-driven. */
+:focus-visible {
+  outline: 2px solid var(--decs-focus-ring);
+  outline-offset: 2px;
+}
+
+/* Hover without JS state: callers set --hv-bg / --hv-hover as inline custom properties. */
+.decs-hv {
+  background: var(--hv-bg, transparent);
+}
+.decs-hv:hover:not(:disabled):not([aria-disabled="true"]) {
+  background: var(--hv-hover, var(--hv-bg, transparent));
+}
+.decs-hv-ul:hover:not(:disabled):not([aria-disabled="true"]) {
+  --hv-deco: underline;
+}
+
+@keyframes decs-spin {
+  to { transform: rotate(360deg); }
+}
+.decs-spin {
+  animation: decs-spin 1s linear infinite;
+}
+
+/* Keep state feedback (spinner still turns, just slowly); drop other motion. */
+@media (prefers-reduced-motion: reduce) {
+  .decs-spin {
+    animation-duration: 3s;
+  }
+  *, *::before, *::after {
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

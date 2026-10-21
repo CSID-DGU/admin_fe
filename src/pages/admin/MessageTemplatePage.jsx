@@ -267,7 +267,7 @@ const MessageTemplatePage = () => {
             <Button onClick={() => setResetTarget(null)} disabled={saving}>취소</Button>
             <Button
               variant="primary"
-              style={{ background: 'var(--decs-status-error)', color: '#fff' }}
+              style={{ background: 'var(--decs-status-error)', color: 'var(--decs-text-on-color)' }}
               loading={saving}
               onClick={() => handleReset(resetTarget)}
             >

@@ -206,7 +206,7 @@ function RequestWizard({ onCancel, onDone, gpuOptions: gpuOptionsProp, envOption
           <div style={{ color: "var(--decs-status-success)", display: "flex", justifyContent: "center", marginBottom: 12 }}>
             <StatusIndicator type="success"><span style={{ fontSize: "var(--decs-fs-body-l)", fontWeight: 700 }}>{t("wizard.doneTitle")}</span></StatusIndicator>
           </div>
-          <p style={{ color: "var(--decs-text-secondary)", fontSize: "var(--decs-fs-body-m)", maxWidth: 420, margin: "0 auto 20px" }}>
+          <p style={{ color: "var(--decs-text-secondary)", fontSize: "var(--decs-fs-body-m)", maxWidth: 420, margin: "0 auto var(--decs-space-l)" }}>
             {t("wizard.doneBody")}
           </p>
           <Button variant="primary" onClick={onDone}>{t("portal.viewRequests")}</Button>
@@ -239,7 +239,7 @@ function RequestWizard({ onCancel, onDone, gpuOptions: gpuOptionsProp, envOption
               maxLength={PURPOSE_MAX_LENGTH}
               placeholder={t("wizard.purposeExample")}
               style={{
-                width: "100%", padding: "8px 12px", fontSize: "var(--decs-fs-body-m)",
+                width: "100%", padding: "var(--decs-space-xs) var(--decs-space-s)", fontSize: "var(--decs-fs-body-m)",
                 background: "var(--decs-surface-input)", color: "var(--decs-text-body)",
                 borderRadius: "var(--decs-radius-input)",
                 border: `1px solid ${stepErrors.purpose ? "var(--decs-status-error)" : "var(--decs-border-input)"}`,
