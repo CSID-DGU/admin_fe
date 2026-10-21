@@ -37,18 +37,19 @@ export function ButtonDropdown({ items = [], children: childrenProp, variant = "
       const spaceBelow = window.innerHeight - rect.bottom;
       const upward = spaceBelow < MENU_MAX_HEIGHT + 4 && rect.top > spaceBelow;
       setPos({
-        right: window.innerWidth - rect.right,
+        right: document.documentElement.clientWidth - rect.right,
         ...(upward ? { bottom: window.innerHeight - rect.top + 4 } : { top: rect.bottom + 4 }),
       });
     };
     place();
     // 스크롤·리사이즈 시 트리거에서 떨어지지 않게 닫는다.
     const close = () => setOpen(false);
+    const closeOnOuterScroll = (e) => { if (!menuRef.current?.contains(e.target)) setOpen(false); };
     window.addEventListener("resize", close);
-    window.addEventListener("scroll", close, true);
+    window.addEventListener("scroll", closeOnOuterScroll, true);
     return () => {
       window.removeEventListener("resize", close);
-      window.removeEventListener("scroll", close, true);
+      window.removeEventListener("scroll", closeOnOuterScroll, true);
     };
   }, [open]);
 
@@ -81,7 +82,7 @@ export function ButtonDropdown({ items = [], children: childrenProp, variant = "
             borderRadius: "var(--decs-radius-item)",
             boxShadow: "var(--decs-shadow-dropdown)",
             padding: "var(--decs-space-xxs)",
-            zIndex: 1100,
+            zIndex: "var(--decs-z-dropdown)",
           }}
         >
           {items.map((it, i) => (

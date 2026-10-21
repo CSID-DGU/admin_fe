@@ -29,9 +29,11 @@ export function Modal({ visible, onDismiss, header, children, footer, size = "me
     const onKeyDown = (e) => {
       if (e.key === "Escape" && dismissible) { onDismiss?.(); return; }
       if (e.key !== "Tab") return;
+      // 다이얼로그 안에서 열린 포털 메뉴(ButtonDropdown 등) 안의 Tab은 건드리지 않는다.
+      if (e.target instanceof Element && e.target.closest('[role="menu"]')) return;
       const dialog = dialogRef.current;
       if (!dialog) return;
-      const focusable = dialog.querySelectorAll(FOCUSABLE);
+      const focusable = [...dialog.querySelectorAll(FOCUSABLE)].filter((el) => el.offsetParent !== null);
       if (focusable.length === 0) { e.preventDefault(); dialog.focus(); return; }
       const first = focusable[0];
       const last = focusable[focusable.length - 1];
