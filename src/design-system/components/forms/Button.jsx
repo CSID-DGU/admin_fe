@@ -84,7 +84,7 @@ export function Button({
   const merged = { ...base, ...(variants[variant] || variants.normal), ...style };
   const Tag = href && !isDisabled ? "a" : "button";
   const icon = loading ? (
-    <span style={{ display: "inline-flex", animation: "decs-spin 1s linear infinite" }}><Icon name="arrow-path" size={16} /></span>
+    <span className="decs-spin" style={{ display: "inline-flex" }}><Icon name="arrow-path" size={16} /></span>
   ) : iconName ? <Icon name={iconName} size={16} /> : null;
 
   return (
@@ -101,7 +101,6 @@ export function Button({
       {iconAlign === "left" && icon}
       {variant === "icon" && !children ? null : children}
       {iconAlign === "right" && icon}
-      <style>{"@keyframes decs-spin{to{transform:rotate(360deg)}}"}</style>
     </Tag>
   );
 }

@@ -29,7 +29,7 @@ function FlashItem({ type = "info", header, content, dismissible, onDismiss }) {
         fontFamily: "var(--decs-font-base)",
       }}
     >
-      <span style={{ color: c.fg, flexShrink: 0, marginTop: "1px", display: "inline-flex", animation: c.spin ? "decs-spin 1s linear infinite" : "none" }}>
+      <span className={c.spin ? "decs-spin" : undefined} style={{ color: c.fg, flexShrink: 0, marginTop: "1px", display: "inline-flex" }}>
         <Icon name={c.icon} size={18} />
       </span>
       <div style={{ flex: 1, minWidth: 0, fontSize: "var(--decs-fs-body-m)", lineHeight: "var(--decs-lh-body-m)" }}>
@@ -49,7 +49,6 @@ export function Flashbar({ items = [], style }) {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "var(--decs-space-xs)", ...style }}>
       {items.map((it, i) => <FlashItem key={it.id ?? i} {...it} />)}
-      <style>{"@keyframes decs-spin{to{transform:rotate(360deg)}}"}</style>
     </div>
   );
 }
