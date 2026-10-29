@@ -75,7 +75,7 @@ export function Select({ options = [], selectedValue, onChange, placeholder: pla
         <Icon name="chevron-down" size={16} color="var(--decs-text-secondary)" />
       </button>
       {open && menuRect ? createPortal(
-        <div ref={menuRef} role="listbox" style={{
+        <div ref={menuRef} className="decs-enter-pop" role="listbox" style={{
           position: "fixed", top: menuRect.bottom + 4, left: menuRect.left, width: menuRect.width, zIndex: 1000,
           background: "var(--decs-white)", border: "1px solid var(--decs-border-divider)",
           borderRadius: "var(--decs-radius-item)", boxShadow: "var(--decs-shadow-dropdown)",

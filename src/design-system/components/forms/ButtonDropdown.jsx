@@ -70,6 +70,7 @@ export function ButtonDropdown({ items = [], children: childrenProp, variant = "
       {open && pos ? createPortal(
         <div
           ref={menuRef}
+          className="decs-enter-pop"
           role="menu"
           style={{
             position: "fixed",

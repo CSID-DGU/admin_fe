@@ -114,7 +114,7 @@ function UserDashboard({ onRequest, onConnect, onExtend, userName, server, expir
       <div style={{ display: "grid", gridTemplateColumns: phone ? "minmax(0, 1fr)" : "1fr 1fr", gap: "var(--decs-space-m)" }}>
         <div style={{ background: "var(--decs-surface-container)", border: "1px dashed var(--decs-brand-300)", borderRadius: "var(--decs-radius-container)", padding: "var(--decs-space-xl)", textAlign: "center" }}>
           <div style={{ fontSize: "var(--decs-fs-body-l)", fontWeight: 700, color: "var(--decs-text-heading)" }}>{t("dashboard.needGpuTitle")}</div>
-          <div style={{ fontSize: "var(--decs-fs-body-m)", color: "var(--decs-text-secondary)", margin: "6px 0 var(--decs-space-m)" }}>{t("dashboard.needGpuBody")}</div>
+          <div style={{ fontSize: "var(--decs-fs-body-m)", color: "var(--decs-text-secondary)", margin: "var(--decs-space-xxs) 0 var(--decs-space-m)" }}>{t("dashboard.needGpuBody")}</div>
           <Button variant="primary" iconName="plus" onClick={onRequest}>{t("dashboard.requestGpu")}</Button>
         </div>
         <Container header={<Header variant="h2">{t("dashboard.recentActivity")}</Header>}>

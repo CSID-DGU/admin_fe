@@ -16,7 +16,7 @@ export function TopNavigation({ identity, utilities = [], compact = false, navig
     <header style={{
       display: "flex", alignItems: "center", justifyContent: "space-between",
       height: "48px", padding: "0 var(--decs-space-m)",
-      background: "var(--decs-grey-900)", color: "#fff",
+      background: "var(--decs-grey-900)", color: "var(--decs-text-inverse)",
       fontFamily: "var(--decs-font-base)", ...style,
     }}>
       <div style={{ display: "flex", alignItems: "center", minWidth: 0 }}>
@@ -42,7 +42,7 @@ export function TopNavigation({ identity, utilities = [], compact = false, navig
               {u.badge != null ? <span style={{ position: "absolute", top: "2px", right: "4px", minWidth: "16px", height: "16px", padding: "0 4px", boxSizing: "border-box", borderRadius: "9999px", background: "var(--decs-action-primary)", color: "var(--decs-text-on-color)", fontSize: "10px", fontWeight: "var(--decs-fw-bold)", display: "inline-flex", alignItems: "center", justifyContent: "center" }}>{u.badge}</span> : null}
             </button>
             {u.type === "menu" && openMenu === i ? (
-              <div style={{ position: "absolute", top: "calc(100% + 4px)", right: 0, minWidth: 180, background: "var(--decs-surface-container)", color: "var(--decs-text-body)", border: "1px solid var(--decs-border-container)", borderRadius: "var(--decs-radius-container)", boxShadow: "var(--decs-shadow-container)", padding: "var(--decs-space-xxs)", zIndex: 20 }}>
+              <div className="decs-enter-pop" style={{ position: "absolute", top: "calc(100% + 4px)", right: 0, minWidth: 180, background: "var(--decs-surface-container)", color: "var(--decs-text-body)", border: "1px solid var(--decs-border-container)", borderRadius: "var(--decs-radius-container)", boxShadow: "var(--decs-shadow-container)", padding: "var(--decs-space-xxs)", zIndex: 20 }}>
                 {(u.items || []).map((item, j) => item.type === "divider" ? (
                   <div key={j} style={{ height: 1, background: "var(--decs-border-divider)", margin: "var(--decs-space-xxs) 0" }} />
                 ) : (
