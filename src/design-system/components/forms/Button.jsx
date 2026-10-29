@@ -37,7 +37,7 @@ export function Button({
     padding: "var(--decs-space-xs) var(--decs-space-l)",
     minHeight: "var(--decs-control-height)",
     width: fullWidth ? "100%" : undefined,
-    transition: "background var(--decs-motion-fast) var(--decs-easing), border-color var(--decs-motion-fast) var(--decs-easing)",
+    transition: "background var(--decs-motion-fast) var(--decs-easing), border-color var(--decs-motion-fast) var(--decs-easing), transform var(--decs-motion-fast) var(--decs-easing)",
     textDecoration: "var(--hv-deco, none)",
     whiteSpace: "nowrap",
     flexShrink: 0,

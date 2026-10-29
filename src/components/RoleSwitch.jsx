@@ -22,7 +22,7 @@ export default function RoleSwitch({ current }) {
             style={{
               border: 0,
               cursor: active ? "default" : "pointer",
-              padding: "3px var(--decs-space-s)",
+              padding: "var(--decs-space-xxxs) var(--decs-space-s)",
               borderRadius: "9999px",
               fontFamily: "var(--decs-font-base)",
               fontSize: "var(--decs-fs-body-s)",

@@ -8,12 +8,25 @@
 .decs-hv {
   background: var(--hv-bg, transparent);
 }
-.decs-hv:hover:not(:disabled):not([aria-disabled="true"]) {
-  background: var(--hv-hover, var(--hv-bg, transparent));
+@media (hover: hover) and (pointer: fine) {
+  .decs-hv:hover:not(:disabled):not([aria-disabled="true"]) {
+    background: var(--hv-hover, var(--hv-bg, transparent));
+  }
+  .decs-hv-ul:hover:not(:disabled):not([aria-disabled="true"]) {
+    --hv-deco: underline;
+  }
 }
-.decs-hv-ul:hover:not(:disabled):not([aria-disabled="true"]) {
-  --hv-deco: underline;
+.decs-hv:not(.decs-hv-ul):active:not(:disabled):not([aria-disabled="true"]) {
+  transform: scale(0.97);
 }
+
+/* Entrances: occasional surfaces only, ease-out, never from scale(0). Exit stays instant. */
+@keyframes decs-fade-in { from { opacity: 0; } }
+@keyframes decs-modal-in { from { opacity: 0; transform: translateY(-8px) scale(0.97); } }
+@keyframes decs-pop-in { from { opacity: 0; transform: scale(0.97); } }
+.decs-enter-fade { animation: decs-fade-in 150ms cubic-bezier(0.23, 1, 0.32, 1); }
+.decs-enter-modal { animation: decs-modal-in 200ms cubic-bezier(0.23, 1, 0.32, 1); }
+.decs-enter-pop { animation: decs-pop-in 120ms cubic-bezier(0.23, 1, 0.32, 1); transform-origin: top; }
 
 @keyframes decs-spin {
   to { transform: rotate(360deg); }
@@ -26,6 +39,9 @@
 @media (prefers-reduced-motion: reduce) {
   .decs-spin {
     animation-duration: 3s;
+  }
+  .decs-enter-modal, .decs-enter-pop {
+    animation-name: decs-fade-in;
   }
   *, *::before, *::after {
     transition-duration: 0.01ms !important;

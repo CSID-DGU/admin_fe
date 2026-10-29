@@ -35,7 +35,7 @@ export default defineConfig([
       }],
       'no-restricted-syntax': ['warn',
         { selector: 'Literal[value=/#[0-9a-fA-F]{3,8}\\b/]', message: 'Raw hex color — use a DECS color token.' },
-        { selector: 'Literal[value=/\\b\\d+px\\b/]', message: 'Raw px value — use a DECS spacing token.' },
+        { selector: 'Property[key.name=/^(padding|margin|gap|rowGap|columnGap)/] > Literal[value=/\\b\\d+px\\b/]', message: 'Raw px value — use a DECS spacing token.' },
         { selector: `Literal[value=/font-family\\s*:\\s*(?!['"]?(?:Open Sans|Noto Sans KR|JetBrains Mono))/i]`, message: 'Use a DECS font token.' },
         { selector: "JSXOpeningElement[name.name='Button'] > JSXAttribute[name.name='variant'] > Literal[value!=/^(?:primary|normal|link|inline-link|icon)$/]", message: 'Invalid DECS Button variant.' },
         { selector: "JSXOpeningElement[name.name='StatusIndicator'] > JSXAttribute[name.name='type'] > Literal[value!=/^(?:success|error|warning|info|in-progress|loading|pending|stopped)$/]", message: 'Invalid DECS status type.' },

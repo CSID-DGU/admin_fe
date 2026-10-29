@@ -50,6 +50,7 @@ export function Modal({ visible, onDismiss, header, children, footer, size = "me
   const widths = { small: "400px", medium: "600px", large: "800px" };
   return (
     <div
+      className="decs-enter-fade"
       onMouseDown={(e) => { if (dismissible && e.target === e.currentTarget) onDismiss?.(); }}
       style={{
         position: "fixed", inset: 0, zIndex: 1000,
@@ -61,6 +62,7 @@ export function Modal({ visible, onDismiss, header, children, footer, size = "me
     >
       <div
         ref={dialogRef}
+        className="decs-enter-modal"
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
