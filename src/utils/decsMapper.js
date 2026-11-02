@@ -134,6 +134,8 @@ export function mapAdminContainer(dto) {
     id: String(dto.requestId ?? dto.podName ?? dto.ubuntuUsername ?? dto.userId),
     requestId: dto.requestId,
     test: dto.test === true,
+    // 화면이 "기다리는 중"과 "끝"을 가르는 데 쓴다(PENDING·PROCESSING·pod-missing 등).
+    rawStatus: dto.status,
     // 계정 회수(DELETE /api/admin/users/{userId}/ubuntu-account)가 사용자 번호로 대상을 정한다.
     userId: dto.userId,
     name: dto.ubuntuUsername ?? dto.userName ?? "—",
