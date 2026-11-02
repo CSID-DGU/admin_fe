@@ -84,6 +84,7 @@
     "resourceMonitoring": "Resource monitoring",
     "images": "Images",
     "templates": "Message templates",
+    "testPods": "Test Pods",
     "account": "Account"
   },
   "status": {
