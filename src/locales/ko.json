@@ -84,6 +84,7 @@
     "resourceMonitoring": "리소스 모니터링",
     "images": "이미지",
     "templates": "메시지 템플릿",
+    "testPods": "테스트 Pod",
     "account": "계정 설정"
   },
   "status": {
