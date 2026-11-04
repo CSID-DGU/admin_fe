@@ -329,7 +329,7 @@
     "image": "Container image",
     "imageKeep": "Keep current image",
     "imageKeepHelp": "Pick another image to recreate the container with it.",
-    "imageChangeHelp": "The container is recreated with the selected image. Changes installed on the previous image cannot be carried over and are reset; if it succeeds, this container's image is changed.",
+    "imageChangeHelp": "The container is recreated with the selected image. Changes installed on the previous image cannot be carried over and are reset; if it succeeds, this container's image is changed. The SSH host key also changes, so users may see a host-key warning when connecting.",
     "keepChanges": "Keep installed changes",
     "keepChangesHelp": "Keeps packages installed and settings changed outside your home folder. If turned off, the container is reset to its original state.",
     "stagesAria": "Restart progress",
