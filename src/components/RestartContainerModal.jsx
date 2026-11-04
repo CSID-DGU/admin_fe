@@ -1,8 +1,8 @@
 // 컨테이너 재시작 확인 모달. 관리자 콘솔과 사용자 포털이 함께 쓴다 — 어떤 API로 시작하고 결과를 읽는지만
-// start·fetchLatest로 받는다. 재시작은 현재 서버에서 컨테이너를 새로 만드는 작업이라 실행 중이던 프로세스는 모두 강제 종료된다.
+// start·fetchLatest로 받는다. images(관리자만)를 주면 이미지를 골라 바꿔 다시 만들 수 있다 — start(keepChanges, imageId). 재시작은 현재 서버에서 컨테이너를 새로 만드는 작업이라 실행 중이던 프로세스는 모두 강제 종료된다.
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Modal, Button, Alert } from "../design-system";
+import { Modal, Button, Alert, FormField, Select } from "../design-system";
 import { waitForMigrationResult, describeRestartResult, restartStages } from "../utils/migrationResult";
 
 const STAGE_MARK = { done: "✓", active: "●", waiting: "○" };
@@ -12,9 +12,15 @@ const STAGE_COLOR = {
   waiting: "var(--decs-text-inactive)",
 };
 
-function RestartContainerModal({ visible, title, start, fetchLatest, onDismiss, onDone }) {
+const KEEP_IMAGE = "keep";
+
+function RestartContainerModal({ visible, title, start, fetchLatest, onDismiss, onDone, images }) {
   const { t } = useTranslation();
-  const [keepChanges, setKeepChanges] = useState(true);
+  const [keepChangesChoice, setKeepChanges] = useState(true);
+  const [imageChoice, setImageChoice] = useState(KEEP_IMAGE);
+  // 이미지를 바꾸면 옛 이미지 위에 쌓인 변경분을 이어 줄 수 없다.
+  const changingImage = imageChoice !== KEEP_IMAGE;
+  const keepChanges = keepChangesChoice && !changingImage;
   const [running, setRunning] = useState(false);
   const [error, setError] = useState(null);
   const [completedSteps, setCompletedSteps] = useState([]);
@@ -23,6 +29,7 @@ function RestartContainerModal({ visible, title, start, fetchLatest, onDismiss, 
   useEffect(() => {
     if (visible) {
       setKeepChanges(true);
+      setImageChoice(KEEP_IMAGE);
       setError(null);
     }
   }, [visible]);
@@ -36,7 +43,7 @@ function RestartContainerModal({ visible, title, start, fetchLatest, onDismiss, 
     setError(null);
     setCompletedSteps([]);
     try {
-      await start(keepChanges);
+      await start(keepChanges, changingImage ? imageChoice : undefined);
       onDone(describeRestartResult(await waitForMigrationResult(fetchLatest, {
         onProgress: (latest) => setCompletedSteps(latest.completedSteps ?? []),
       })));
@@ -68,12 +75,25 @@ function RestartContainerModal({ visible, title, start, fetchLatest, onDismiss, 
         <Alert type="warning" header={t("restart.warnTitle")}>
           {t("restart.warnBody")}
         </Alert>
+        {images?.length ? (
+          <FormField label={t("restart.image")} description={changingImage ? t("restart.imageChangeHelp") : t("restart.imageKeepHelp")}>
+            <Select
+              selectedValue={imageChoice}
+              onChange={setImageChoice}
+              disabled={running}
+              options={[
+                { value: KEEP_IMAGE, label: t("restart.imageKeep") },
+                ...images.map((i) => ({ value: i.imageId, label: `${i.imageName}:${i.imageVersion}`, description: i.cudaVersion ? `CUDA ${i.cudaVersion}` : undefined })),
+              ]}
+            />
+          </FormField>
+        ) : null}
         <label style={{ display: "flex", alignItems: "flex-start", gap: "var(--decs-space-xs)", cursor: running ? "default" : "pointer" }}>
           <input
             type="checkbox"
             checked={keepChanges}
             onChange={(event) => setKeepChanges(event.target.checked)}
-            disabled={running}
+            disabled={running || changingImage}
           />
           <span>
             <span style={{ fontWeight: 600, color: "var(--decs-text-heading)" }}>{t("restart.keepChanges")}</span>

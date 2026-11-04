@@ -63,9 +63,13 @@ export const requestService = {
     apiClient.get(`/api/admin/requests/${encodeURIComponent(requestId)}/migrations/latest`),
 
   // 재시작은 현재 노드에서 컨테이너를 다시 만드는 작업이다. 마이그레이션처럼 작업만 등록하고 202로 돌아온다.
-  // keepChanges가 false면 설치한 내용을 버리고 기본 이미지로 초기화한다.
-  restartContainer: (requestId, keepChanges) =>
-    apiClient.post(`/api/admin/requests/${encodeURIComponent(requestId)}/restarts`, { keepChanges }),
+  // keepChanges가 false면 설치한 내용을 버리고 기본 이미지로 초기화한다. imageId를 주면(관리자만) 그 이미지로 바꿔
+  // 다시 만든다 — 이때는 변경분을 이어 줄 수 없어 keepChanges를 false로 보낸다.
+  restartContainer: (requestId, keepChanges, imageId) =>
+    apiClient.post(`/api/admin/requests/${encodeURIComponent(requestId)}/restarts`, {
+      keepChanges,
+      ...(imageId != null && { imageId }),
+    }),
   restartMyContainer: (requestId, keepChanges) =>
     apiClient.post(`/api/requests/${encodeURIComponent(requestId)}/restarts`, { keepChanges }),
   getMyLatestRestart: (requestId) =>
