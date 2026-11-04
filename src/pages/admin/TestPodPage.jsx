@@ -133,7 +133,9 @@ export default function TestPodPage({ containers, onRefetch, onOpenDetail }) {
         <Table
           density="compact" trackBy="id" items={tests} empty="테스트 Pod가 없습니다."
           columns={[
-            { id: "req", header: "신청", cell: (c) => <a href="#" onClick={(e) => { e.preventDefault(); onOpenDetail(c); }} style={{ color: "var(--decs-text-link)" }}>#{c.requestId}</a> },
+            { id: "req", header: "신청", cell: (c) => (c.rawStatus === "PENDING" || c.rawStatus === "PROCESSING"
+              ? <span>#{c.requestId}</span> // 아직 컨테이너가 없어 상세 화면이 없다
+              : <a href="#" onClick={(e) => { e.preventDefault(); onOpenDetail(c); }} style={{ color: "var(--decs-text-link)" }}>#{c.requestId}</a>) },
             { id: "node", header: "노드", cell: (c) => c.node },
             { id: "gpu", header: "GPU", cell: (c) => <Badge color="brand">{c.gpu}</Badge> },
             { id: "image", header: "이미지", cell: (c) => c.image },

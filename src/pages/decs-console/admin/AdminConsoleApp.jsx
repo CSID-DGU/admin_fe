@@ -22,7 +22,7 @@ function AdminConsoleApp() {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
   const { t, i18n } = useTranslation();
-  const { containers, users, pendingRequestCount, pendingChangeRequestCount, error, refetch } = useDecsAdminData();
+  const { containers, waitingTests, users, pendingRequestCount, pendingChangeRequestCount, error, refetch } = useDecsAdminData();
 
   // 요청 관리 화면에서 승인/거절 처리 후 대시보드로 돌아왔을 때 최신 상태가 바로 보이도록,
   // 대시보드 관련 경로에 진입할 때마다 다시 불러온다.
@@ -91,7 +91,7 @@ function AdminConsoleApp() {
           <Route path="users" element={<UserManagementPage />} />
           <Route path="images" element={<ImageManagementPage />} />
           <Route path="message-templates" element={<MessageTemplatePage />} />
-          <Route path="test-pods" element={<TestPodPage containers={containers ?? []} onRefetch={refetch} onOpenDetail={(c) => navigate(`/admin/containers/${c.id}`)} />} />
+          <Route path="test-pods" element={<TestPodPage containers={[...(containers ?? []), ...waitingTests]} onRefetch={refetch} onOpenDetail={(c) => navigate(`/admin/containers/${c.id}`)} />} />
           <Route path="*" element={<Navigate to="/admin" replace />} />
         </Routes>
       </AppLayout>

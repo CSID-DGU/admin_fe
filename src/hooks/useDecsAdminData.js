@@ -24,6 +24,8 @@ function containerStatusOf(container) {
 
 export function useDecsAdminData() {
   const [containers, setContainers] = useState(undefined);
+  // 아직 Pod가 없는 대기·생성 중 테스트 신청. 컨테이너 목록·대시보드 개수에 섞이지 않게 따로 둔다.
+  const [waitingTests, setWaitingTests] = useState([]);
   const [users, setUsers] = useState(undefined);
   const [pendingRequestCount, setPendingRequestCount] = useState(0);
   const [pendingChangeRequestCount, setPendingChangeRequestCount] = useState(0);
@@ -58,11 +60,14 @@ export function useDecsAdminData() {
       const activeContainers = getArrayData(containersResult.value);
       if (activeContainers) {
         // Pod 상태는 목록 응답에 이미 들어 있다(admin_be가 주기적으로 읽어 둔 값) — Pod마다 따로 묻지 않는다.
-        setContainers(activeContainers.map((container) => mapAdminContainer({
+        const mapped = activeContainers.map((container) => mapAdminContainer({
           ...container,
           podDetail: container.pod,
           status: containerStatusOf(container),
-        })));
+        }));
+        const isWaitingTest = (c) => c.test && (c.rawStatus === "PENDING" || c.rawStatus === "PROCESSING");
+        setContainers(mapped.filter((c) => !isWaitingTest(c)));
+        setWaitingTests(mapped.filter(isWaitingTest));
       } else {
         hasError = true;
         failureDetails.push("컨테이너 목록");
@@ -99,5 +104,5 @@ export function useDecsAdminData() {
     };
   }, [load]);
 
-  return { containers, users, pendingRequestCount, pendingChangeRequestCount, error, refetch: load };
+  return { containers, waitingTests, users, pendingRequestCount, pendingChangeRequestCount, error, refetch: load };
 }
