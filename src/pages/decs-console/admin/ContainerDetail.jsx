@@ -7,6 +7,7 @@ import {
 import { requestService } from "../../../services/requestService";
 import { nodeService } from "../../../services/nodeService";
 import { podService } from "../../../services/podService";
+import { getImages } from "../../../services/imageService";
 import RestartContainerModal from "../../../components/RestartContainerModal";
 import { waitForMigrationResult } from "../../../utils/migrationResult";
 import { mapAdminPorts } from "../../../utils/decsMapper";
@@ -36,6 +37,18 @@ function ContainerDetail({ item, onBack, onRefetch }) {
   const [isMigrating, setIsMigrating] = useState(false);
   const [migrationStatus, setMigrationStatus] = useState(null);
   const [restartOpen, setRestartOpen] = useState(false);
+  const [restartImages, setRestartImages] = useState([]);
+  // 재시작 창이 열릴 때 바꿀 수 있는 이미지 목록을 읽는다. 지금 쓰는 이미지는 "유지" 항목과 같아 뺀다.
+  useEffect(() => {
+    if (!restartOpen) return;
+    let cancelled = false;
+    getImages().then((res) => {
+      if (cancelled || !res.success) return;
+      const list = res.data?.data ?? res.data ?? [];
+      setRestartImages(list.filter((i) => `${i.imageName}:${i.imageVersion}` !== c?.image));
+    });
+    return () => { cancelled = true; };
+  }, [restartOpen, c?.image]);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState(null);
@@ -434,7 +447,8 @@ function ContainerDetail({ item, onBack, onRefetch }) {
       <RestartContainerModal
         visible={restartOpen}
         title={`${c.userName ?? c.name} (${c.name})`}
-        start={(keepChanges) => requestService.restartContainer(c.requestId, keepChanges)}
+        images={restartImages}
+        start={(keepChanges, imageId) => requestService.restartContainer(c.requestId, keepChanges, imageId)}
         // 재시작은 현재 노드에서 다시 만드는 마이그레이션 작업이라 결과도 마지막 마이그레이션 결과로 읽는다
         fetchLatest={() => requestService.getLatestMigration(c.requestId)}
         onDismiss={() => setRestartOpen(false)}
