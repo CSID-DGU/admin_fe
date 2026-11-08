@@ -97,7 +97,7 @@ function ContainerManagement({ onOpenDetail, containers = [] }) {
               ),
             },
             { id: "user", header: "사용자", sortingField: "user", cell: (c) => c.user },
-            { id: "gpu", header: "GPU", cell: (c) => <Badge color="brand">{c.gpu}</Badge> },
+            { id: "gpu", header: "GPU", cell: (c) => <Badge color="brand" style={{ maxWidth: "none" }}>{c.gpu}</Badge> },
             { id: "node", header: "노드", sortingField: "node", cell: (c) => c.node },
             {
               id: "status",

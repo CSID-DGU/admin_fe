@@ -139,7 +139,8 @@ export function mapAdminContainer(dto) {
     // 계정 회수(DELETE /api/admin/users/{userId}/ubuntu-account)가 사용자 번호로 대상을 정한다.
     userId: dto.userId,
     name: dto.ubuntuUsername ?? dto.userName ?? "—",
-    user: dto.ubuntuUsername ?? dto.userName ?? "—",
+    // 이름 열은 우분투 유저네임, 사용자 열은 회원 이름(User.name)이다. 둘 다 유저네임이면 같은 값이 두 번 보인다.
+    user: dto.userName ?? "—",
     userName: dto.userName,
     podName: dto.podName,
     // "리소스 그룹 3"처럼 번호만 보이면 어떤 GPU인지 알 수 없다 — 그룹 이름(GPU 종류)과 서버를 보인다.

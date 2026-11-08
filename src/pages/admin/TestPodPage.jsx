@@ -137,7 +137,7 @@ export default function TestPodPage({ containers, onRefetch, onOpenDetail }) {
               ? <span>#{c.requestId}</span> // 아직 컨테이너가 없어 상세 화면이 없다
               : <a href="#" onClick={(e) => { e.preventDefault(); onOpenDetail(c); }} style={{ color: "var(--decs-text-link)" }}>#{c.requestId}</a>) },
             { id: "node", header: "노드", cell: (c) => c.node },
-            { id: "gpu", header: "GPU", cell: (c) => <Badge color="brand">{c.gpu}</Badge> },
+            { id: "gpu", header: "GPU", cell: (c) => <Badge color="brand" style={{ maxWidth: "none" }}>{c.gpu}</Badge> },
             { id: "image", header: "이미지", cell: (c) => c.image },
             { id: "status", header: "상태", cell: (c) => (c.rawStatus === "pod-missing" && watching
               ? <StatusIndicator type="in-progress">확인 중</StatusIndicator>
