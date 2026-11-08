@@ -38,7 +38,7 @@ function UserPortalApp() {
   }, []);
 
   const nav = {
-    header: { text: "DECS", href: "/user" },
+    header: { text: "Provi", href: "/user" },
     activeHref: getActiveHref(location.pathname),
     onFollow: (it) => navigate(it.href),
     items: [

@@ -153,7 +153,7 @@ const RequestManagementPage = () => {
       } else if (status === "PENDING") {
         await finish({
           type: "error",
-          message: `승인 처리가 실패해 신청이 대기중으로 되돌아갔습니다${reason ? ` (원인: ${reason})` : ""}. 원인을 확인한 뒤 다시 승인해주세요.`,
+          message: `승인 처리가 실패해 신청이 대기중으로 되돌아갔습니다${reason ? ` (원인: ${reason})` : ""}. 원인을 확인한 뒤 다시 승인하시기 바랍니다.`,
         });
       } else if (status === "DENIED") {
         await finish({ type: "warning", message: "승인 처리 중에 신청이 거절되었습니다." });
@@ -162,7 +162,7 @@ const RequestManagementPage = () => {
         if (failedWhileProcessing >= 3) {
           await finish({
             type: "warning",
-            message: `자동으로 복구되지 않아 관리자 확인이 필요합니다${reason ? ` (원인: ${reason})` : ""}. 신청은 처리중으로 남아 있고 만들어진 컨테이너·계정은 정리되지 않았으니, 다시 승인하지 말고 상태를 확인해주세요.`,
+            message: `자동으로 복구되지 않아 관리자 확인이 필요합니다${reason ? ` (원인: ${reason})` : ""}. 신청은 처리중으로 남아 있고 만들어진 컨테이너·계정은 정리되지 않았으니, 다시 승인하지 말고 상태를 확인하시기 바랍니다.`,
           });
         }
       } else {
@@ -204,7 +204,7 @@ const RequestManagementPage = () => {
         setAlert({
           type: "error",
           message:
-            "신청서 목록을 불러올 수 없습니다. 서버 상태를 확인하시거나 관리자에게 문의해주세요.",
+            "신청서 목록을 불러올 수 없습니다. 서버 상태를 확인하시거나 관리자에게 문의하시기 바랍니다.",
         });
       }
     } catch (error) {
@@ -213,7 +213,7 @@ const RequestManagementPage = () => {
       setAlert({
         type: "error",
         message:
-          "신청서 목록 로딩 중 네트워크 오류가 발생했습니다. 인터넷 연결을 확인하시고 페이지를 새로고침해주세요.",
+          "신청서 목록 로딩 중 네트워크 오류가 발생했습니다. 인터넷 연결을 확인하시고 페이지를 새로고침하시기 바랍니다.",
       });
     } finally {
       if (seq === fetchSeqRef.current) {
@@ -349,7 +349,7 @@ const RequestManagementPage = () => {
         setAlert({
           type: "error",
           message:
-            "신청서 처리 중 오류가 발생했습니다. 네트워크 연결을 확인하시거나 잠시 후 다시 시도해주세요.",
+            "신청서 처리 중 오류가 발생했습니다. 네트워크 연결을 확인하시거나 잠시 후 다시 시도하시기 바랍니다.",
         });
       }
     } catch (error) {
@@ -364,19 +364,19 @@ const RequestManagementPage = () => {
         setAlert({
           type: "error",
           message:
-            "처리 상태가 바뀌어 요청을 완료하지 못했습니다. 목록을 새로고침해 현재 상태를 확인해주세요.",
+            "처리 상태가 바뀌어 요청을 완료하지 못했습니다. 목록을 새로고침해 현재 상태를 확인하시기 바랍니다.",
         });
       } else if (error.name === "TimeoutError" || error.name === "AbortError") {
         setAlert({
           type: "warning",
-          message: "승인 응답 시간이 초과되었습니다. 재시도하기 전에 목록을 새로고침해 실제 처리 상태를 확인해주세요.",
+          message: "승인 응답 시간이 초과되었습니다. 재시도하기 전에 목록을 새로고침해 실제 처리 상태를 확인하시기 바랍니다.",
         });
       } else {
         setAlert({
           type: "error",
           message: error.status
             ? `신청서 처리에 실패했습니다. ${error.message}`
-            : "서버와 연결할 수 없습니다. 네트워크를 확인하고 잠시 후 다시 시도해주세요.",
+            : "서버와 연결할 수 없습니다. 네트워크를 확인하고 잠시 후 다시 시도하시기 바랍니다.",
         });
       }
     } finally {
@@ -439,7 +439,7 @@ const RequestManagementPage = () => {
       : filter === "DENIED"
       ? "거절된"
       : "삭제된"
-  } 신청서가 없습니다. 다른 상태나 기간을 확인해보세요.`;
+  } 신청서가 없습니다. 다른 상태나 기간을 확인하시기 바랍니다.`;
 
   const columns = [
     {

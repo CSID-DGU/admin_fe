@@ -28,7 +28,7 @@ const PasswordResetModal = ({ user, onDismiss, onDone }) => {
       const response = await userService.resetUserPassword(user.userId, password);
       onDone(user, response.data?.data?.status);
     } catch (e) {
-      setError(e.message || "비밀번호를 초기화하지 못했어요. 잠시 후 다시 시도해 주세요.");
+      setError(e.message || "비밀번호를 초기화하지 못했습니다. 잠시 후 다시 시도하시기 바랍니다.");
     } finally {
       setSaving(false);
     }
@@ -54,9 +54,9 @@ const PasswordResetModal = ({ user, onDismiss, onDone }) => {
       <div style={{ display: "flex", flexDirection: "column", gap: "var(--decs-space-m)" }}>
         {error && <Alert type="error">{error}</Alert>}
         <Alert type="warning">
-          웹 로그인과 SSH(Ubuntu 계정) 비밀번호가 함께 바뀌어요. 실행 중인 컨테이너에 반영한 뒤 적용되므로
-          잠시 걸릴 수 있고, 적용되면 사용자의 기존 로그인은 끊겨요. 새 비밀번호는 메일로 가지 않으니 사용자에게
-          직접 전달해 주세요.
+          웹 로그인과 SSH(Ubuntu 계정) 비밀번호가 함께 바뀝니다. 실행 중인 컨테이너에 반영한 뒤 적용되므로
+          잠시 걸릴 수 있고, 적용되면 사용자의 기존 로그인은 끊깁니다. 새 비밀번호는 메일로 가지 않으니 사용자에게
+          직접 전달하시기 바랍니다.
         </Alert>
         <FormField label="새 비밀번호" errorText={errors.password} constraintText={newPasswordHelp()} htmlFor="reset-password">
           <Input

@@ -125,7 +125,7 @@ function AdminDashboard({ onOpenContainers, onOpenErrorContainers, onOpenDetail,
 
       {errored > 0 ? (
         <Alert type="error" header={`컨테이너 ${errored}건에 오류가 있습니다`} action={<Button variant="normal" onClick={onOpenErrorContainers}>확인</Button>}>
-          desired-state와 observed-state 불일치가 감지되었습니다. 상세에서 이벤트 로그를 확인하세요.
+          desired-state와 observed-state 불일치가 감지되었습니다. 상세에서 이벤트 로그를 확인하시기 바랍니다.
         </Alert>
       ) : null}
 

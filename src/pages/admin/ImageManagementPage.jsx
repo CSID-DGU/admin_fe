@@ -66,7 +66,7 @@ const ImageManagementPage = () => {
     if (!formData.imageName || !formData.imageVersion || !formData.cudaVersion || !formData.description) {
       setAlert({
         type: 'error',
-        message: '모든 필드를 입력해주세요.'
+        message: '모든 필드를 입력하시기 바랍니다.'
       });
       return;
     }
@@ -208,7 +208,7 @@ const ImageManagementPage = () => {
                 id="image-description"
                 value={formData.description}
                 onChange={handleFieldChange('description')}
-                placeholder="이미지에 대한 설명을 입력하세요"
+                placeholder="이미지에 대한 설명"
               />
             </FormField>
             <div style={{ display: 'flex', gap: 'var(--decs-space-s)' }}>

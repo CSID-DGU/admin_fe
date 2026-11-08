@@ -110,8 +110,8 @@ export const AuthProvider = ({ children }) => {
       return {
         success: false,
         error: error.code === "ACCOUNT_DISABLED"
-          ? "계정이 비활성화되었습니다. 관리자에게 문의하세요."
-          : "이메일 또는 비밀번호가 올바르지 않습니다. 입력하신 정보를 다시 확인해주세요.",
+          ? "계정이 비활성화되었습니다. 관리자에게 문의하시기 바랍니다."
+          : "이메일 또는 비밀번호가 올바르지 않습니다. 입력하신 정보를 다시 확인하시기 바랍니다.",
       };
     }
   };
@@ -132,7 +132,7 @@ export const AuthProvider = ({ children }) => {
       console.error("User update failed:", error);
       return {
         success: false,
-        error: "사용자 정보를 업데이트할 수 없습니다. 다시 시도해주세요.",
+        error: "사용자 정보를 업데이트할 수 없습니다. 다시 시도하시기 바랍니다.",
       };
     }
   };
@@ -157,12 +157,12 @@ export const AuthProvider = ({ children }) => {
     <AuthContext.Provider value={value}>
       {children}
       <Modal visible={showSessionExpiredModal} onDismiss={handleSessionExpiredConfirm} header={sessionEndReason === "ACCOUNT_DISABLED" ? "계정 비활성화" : "다시 로그인이 필요합니다"} size="small" footer={<Button variant="primary" onClick={handleSessionExpiredConfirm}>{sessionEndReason === "ACCOUNT_DISABLED" ? "확인" : t("auth.login")}</Button>}>
-        {sessionEndReason === "ACCOUNT_DISABLED" ? "계정이 비활성화되었습니다. 관리자에게 문의하세요." : "보안 업데이트 또는 세션 만료로 로그인이 해제되었습니다. 다시 로그인해주세요."}
+        {sessionEndReason === "ACCOUNT_DISABLED" ? "계정이 비활성화되었습니다. 관리자에게 문의하시기 바랍니다." : "보안 업데이트 또는 세션 만료로 로그인이 해제되었습니다. 다시 로그인하시기 바랍니다."}
       </Modal>
       <Modal visible={needsUbuntuUsername} dismissible={false} header="Ubuntu 유저네임 등록이 필요합니다" size="medium">
         <p style={{ marginTop: 0 }}>
-          컨테이너 신청과 SSH 접속에 쓰이는 Ubuntu 유저네임이 아직 없어요. 등록해야 서비스를 계속 이용할 수 있어요.
-          한 번 등록하면 바꿀 수 없으니 신중하게 정해주세요.
+          컨테이너 신청과 SSH 접속에 쓰이는 Ubuntu 유저네임이 아직 없습니다. 등록해야 서비스를 계속 이용할 수 있습니다.
+          한 번 등록하면 변경할 수 없으니 신중하게 정하시기 바랍니다.
         </p>
         <UbuntuUsernameRegisterForm formId="mandatory-ubuntu-username" autoFocus />
       </Modal>

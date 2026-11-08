@@ -15,12 +15,12 @@ export default function LoginPage({ onLogin }) {
   const change = (name, value) => { setForm((current) => ({ ...current, [name]: value })); setErrors((current) => ({ ...current, [name]: "" })); };
   const submit = async (event) => {
     event.preventDefault();
-    const next = { email: !form.email ? "이메일을 입력해주세요." : !form.email.includes("@") ? "올바른 이메일 형식을 입력해주세요." : "", password: form.password ? "" : "비밀번호를 입력해주세요." };
+    const next = { email: !form.email ? "이메일을 입력하시기 바랍니다." : !form.email.includes("@") ? "올바른 이메일 형식을 입력하시기 바랍니다." : "", password: form.password ? "" : "비밀번호를 입력하시기 바랍니다." };
     setErrors(next);
     if (next.email || next.password) return;
     setLoading(true); setAlert("");
     try { const result = await onLogin(form); if (!result.success) setAlert(result.error); }
-    catch { setAlert("로그인 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요."); }
+    catch { setAlert("로그인 중 오류가 발생했습니다. 잠시 후 다시 시도하시기 바랍니다."); }
     finally { setLoading(false); }
   };
 

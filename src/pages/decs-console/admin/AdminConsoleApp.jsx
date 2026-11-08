@@ -39,7 +39,7 @@ function AdminConsoleApp() {
   }, [location.pathname, refetch]);
 
   const nav = {
-    header: { text: "DECS Admin", href: "/admin" },
+    header: { text: "Provi Admin", href: "/admin" },
     activeHref: getActiveHref(location.pathname),
     onFollow: (it) => navigate(it.href),
     items: [

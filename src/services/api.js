@@ -60,7 +60,7 @@ class ApiClient {
 
     const refreshToken = tokenStorage.getRefreshToken();
     if (!refreshToken) {
-      const err = new Error("리프레시 토큰이 없습니다. 다시 로그인해주세요.");
+      const err = new Error("리프레시 토큰이 없습니다. 다시 로그인하시기 바랍니다.");
       err.status = 401;
       throw err;
     }
@@ -104,7 +104,7 @@ class ApiClient {
     } catch (error) {
       if (error.status === 401) {
         sessionEventManager.triggerSessionExpired(sessionEndReasonOf(error.code, error.message));
-        const err = new Error("세션이 만료되었습니다. 다시 로그인해주세요.");
+        const err = new Error("세션이 만료되었습니다. 다시 로그인하시기 바랍니다.");
         err.status = 401;
         err.code = "TOKEN_EXPIRED";
         throw err;

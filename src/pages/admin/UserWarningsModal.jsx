@@ -59,11 +59,11 @@ const UserWarningsModal = ({ user, onDismiss }) => {
   const handleConfirm = async () => {
     const trimmed = reason.trim();
     if (!trimmed) {
-      setReasonError("사유를 입력해 주세요.");
+      setReasonError("사유를 입력하시기 바랍니다.");
       return;
     }
     if (trimmed.length > REASON_MAX) {
-      setReasonError(`사유는 ${REASON_MAX}자 이내로 입력해 주세요.`);
+      setReasonError(`사유는 ${REASON_MAX}자 이내로 입력하시기 바랍니다.`);
       return;
     }
     try {
@@ -73,7 +73,7 @@ const UserWarningsModal = ({ user, onDismiss }) => {
       setStatus(await ACTIONS[pending.kind].run(user.userId, trimmed, pending.warning));
       setPending(null);
     } catch (e) {
-      setError(e.message || "처리하지 못했습니다. 잠시 후 다시 시도해 주세요.");
+      setError(e.message || "처리하지 못했습니다. 잠시 후 다시 시도하시기 바랍니다.");
     } finally {
       setSaving(false);
     }
