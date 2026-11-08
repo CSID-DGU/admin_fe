@@ -300,6 +300,8 @@ function ContainerDetail({ item, onBack, onRefetch }) {
         </Header>
       }>
         <KeyValuePairs columns={3} items={[
+          // 제목은 우분투 유저네임이라 누구의 컨테이너인지는 회원 이름으로 따로 보인다(목록의 사용자 열과 같은 값).
+          { label: "사용자", value: c.user },
           {
             label: "상태",
             value: (

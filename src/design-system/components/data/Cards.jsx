@@ -57,7 +57,8 @@ export function Cards({
             }}
           >
             {selectable ? (
-              <span style={{ position: "absolute", top: "var(--decs-space-m)", right: "var(--decs-space-m)", width: "20px", height: "20px", borderRadius: selectionType === "single" ? "9999px" : "6px", border: `1.5px solid ${isSel ? "var(--decs-action-primary)" : "var(--decs-grey-400)"}`, background: isSel ? "var(--decs-action-primary)" : "transparent", display: "inline-flex", alignItems: "center", justifyContent: "center" }}>
+              // 원(20px)의 세로 중심을 제목 첫 줄의 세로 중심에 맞춘다
+              <span style={{ position: "absolute", top: "calc(var(--decs-space-l) + (var(--decs-lh-heading-s) - 20px) / 2)", right: "var(--decs-space-m)", width: "20px", height: "20px", borderRadius: selectionType === "single" ? "9999px" : "6px", border: `1.5px solid ${isSel ? "var(--decs-action-primary)" : "var(--decs-grey-400)"}`, background: isSel ? "var(--decs-action-primary)" : "transparent", display: "inline-flex", alignItems: "center", justifyContent: "center" }}>
                 {isSel ? <Icon name="check" size={14} color="var(--decs-text-on-color)" /> : null}
               </span>
             ) : null}

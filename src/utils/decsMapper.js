@@ -136,10 +136,13 @@ export function mapAdminContainer(dto) {
     test: dto.test === true,
     // 화면이 "기다리는 중"과 "끝"을 가르는 데 쓴다(PENDING·PROCESSING·pod-missing 등).
     rawStatus: dto.status,
+    // 신청 상태. 재시작·이동·회수는 FULFILLED에서만 시작할 수 있다(그 밖이면 admin_be가 409로 거절).
+    requestStatus: dto.requestStatus ?? null,
     // 계정 회수(DELETE /api/admin/users/{userId}/ubuntu-account)가 사용자 번호로 대상을 정한다.
     userId: dto.userId,
     name: dto.ubuntuUsername ?? dto.userName ?? "—",
-    user: dto.ubuntuUsername ?? dto.userName ?? "—",
+    // 이름 열은 우분투 유저네임, 사용자 열은 회원 이름(User.name)이다. 둘 다 유저네임이면 같은 값이 두 번 보인다.
+    user: dto.userName ?? "—",
     userName: dto.userName,
     podName: dto.podName,
     // "리소스 그룹 3"처럼 번호만 보이면 어떤 GPU인지 알 수 없다 — 그룹 이름(GPU 종류)과 서버를 보인다.
