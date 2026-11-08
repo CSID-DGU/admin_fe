@@ -115,6 +115,7 @@
     "myServerBadge": "내 서버 · {{name}}",
     "groupPending": "{{name}} (승인 시 생성)",
     "portDefault": "포트 {{port}}",
+    "sshPort": "SSH {{port}}",
     "resourceGroup": "리소스 그룹 {{id}}",
     "formAnswerTeamInfo": "팀 프로젝트 정보 (그룹 이름·팀원 이름)"
   },

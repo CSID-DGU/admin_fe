@@ -203,7 +203,7 @@ export function daysLeft(dateStr, now = new Date()) {
 
 /**
  * @param {{ requestId: string | number, podExternalPorts?: Array, pod_external_ports?: Array, expiresAt: string, resourceGroupId: string | number, resourceGroup?: { resourceGroupName?: string }, imageName?: string, imageVersion?: string, ubuntuUsername?: string, status: string }} dto SaveRequestResponseDTO
- * @returns {{ id: string | number, gpuName: string, statusType: string, statusLabel: string, expiresAt: string, daysLeft: number, serverAddress: string, sshCommand: string, jupyterUrl: string, image: string }}
+ * @returns {{ id: string | number, gpuName: string, statusType: string, statusLabel: string, expiresAt: string, daysLeft: number, serverAddress: string, sshCommand: string, sshPort: number | null, jupyterUrl: string, image: string }}
  */
 export function mapUserServer(dto) {
   const status = mapPodStatus(dto.status);
@@ -238,6 +238,8 @@ export function mapUserServer(dto) {
     daysLeft: daysLeft(dto.expiresAt),
     serverAddress: sshCommand,
     sshCommand,
+    // 접속 명령에 들어가는 번호(공인 포트, 없으면 NodePort). 아직 배정 전이면 null
+    sshPort: sshPublicPort ?? sshPort ?? null,
     jupyterUrl,
     image: [dto.imageName, dto.imageVersion].filter(Boolean).join(":")
       || dto.containerImage?.imageName

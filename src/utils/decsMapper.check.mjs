@@ -20,6 +20,8 @@ const vm = mapUserServer({
   ],
 });
 assert.equal(vm.sshCommand, "ssh dongmin0204@210.94.179.19 -p 9307");
+// 화면에 따로 보이는 SSH 포트는 접속 명령의 번호와 같아야 한다
+assert.equal(vm.sshPort, 9307);
 assert.equal(vm.jupyterUrl, "http://210.94.179.19:9308");
 // noVNC만 브라우저 주소를 준다. 일반 추가 포트는 주소만(url=null) 안내한다.
 assert.deepEqual(
@@ -36,5 +38,7 @@ const outOfBand = mapUserServer({
   pod_external_ports: [{ internalPort: 6080, externalPort: 30120, usagePurpose: "novnc" }],
 });
 assert.equal(outOfBand.extraPorts[0].reachable, false);
+// SSH 포트가 아직 없으면 null — 화면은 SSH 배지를 빼고 서버만 보인다
+assert.equal(outOfBand.sshPort, null);
 
 console.log("decsMapper check ok");
