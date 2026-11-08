@@ -1,11 +1,15 @@
 // ContainerManagement — Table + 검색/필터 + 행 상세 + 무한 스크롤
 import React from "react";
 import { useLocation } from "react-router-dom";
-import { Table, Header, Container, StatusIndicator, Badge, Button, Input, Select } from "../../../design-system";
+import { useTranslation } from "react-i18next";
+import { Table, Header, Container, StatusIndicator, Badge, Button, Input, Select, Modal, Alert } from "../../../design-system";
+import { requestService } from "../../../services/requestService";
+import { restartEach } from "../../../utils/bulkRestart";
 
 const BATCH_SIZE = 10;
 
-function ContainerManagement({ onOpenDetail, containers = [] }) {
+function ContainerManagement({ onOpenDetail, onRefetch, containers = [] }) {
+  const { t } = useTranslation();
   const location = useLocation();
   const all = containers;
   const [q, setQ] = React.useState("");
@@ -14,6 +18,12 @@ function ContainerManagement({ onOpenDetail, containers = [] }) {
   const [sort, setSort] = React.useState({ col: null, desc: false });
   const [visibleCount, setVisibleCount] = React.useState(BATCH_SIZE);
   const sentinelRef = React.useRef(null);
+  const [selected, setSelected] = React.useState([]);
+  const [bulkOpen, setBulkOpen] = React.useState(false);
+  const [keepChanges, setKeepChanges] = React.useState(true);
+  const [running, setRunning] = React.useState(false);
+  const [failures, setFailures] = React.useState(null); // null: 아직 실행 전, 배열: 실행 결과(실패 목록)
+  const [okCount, setOkCount] = React.useState(0);
 
   // 한 사용자가 컨테이너를 여러 개 가질 수 있어 이름·사용자만으로는 구분되지 않는다 — 신청 번호와
   // Pod 이름으로도 찾을 수 있게 한다.
@@ -31,7 +41,25 @@ function ContainerManagement({ onOpenDetail, containers = [] }) {
 
   React.useEffect(() => {
     setVisibleCount(BATCH_SIZE);
+    setSelected([]);
   }, [q, statusFilter, sort.col, sort.desc]);
+
+  // 신청 번호가 없는 행(승인 대기 테스트 등)은 재시작 대상이 아니다.
+  const restartable = selected.filter((c) => c.requestId != null);
+
+  const openBulk = () => { setKeepChanges(true); setFailures(null); setBulkOpen(true); };
+  const closeBulk = () => { if (!running) { setBulkOpen(false); if (failures) setSelected([]); } };
+  const runBulk = async () => {
+    setRunning(true);
+    try {
+      const results = await restartEach(restartable, (c) => requestService.restartContainer(c.requestId, keepChanges));
+      setOkCount(results.filter((r) => r.ok).length);
+      setFailures(results.filter((r) => !r.ok));
+      onRefetch?.();
+    } finally {
+      setRunning(false);
+    }
+  };
 
   React.useEffect(() => {
     const sentinel = sentinelRef.current;
@@ -53,6 +81,7 @@ function ContainerManagement({ onOpenDetail, containers = [] }) {
         <div style={{ display: "flex", flexDirection: "column", gap: "var(--decs-space-s)" }}>
           <Header
             variant="h2" counter={`(${rows.length})`}
+            actions={<Button variant="normal" disabled={restartable.length === 0} onClick={openBulk}>{`선택 재시작 (${restartable.length})`}</Button>}
             // 상태는 admin_be가 5분마다 한꺼번에 읽어 둔 값이다 — 모든 행이 같은 시각에 확인된 값이다.
             description={all[0]?.statusCheckedAt ? `상태 마지막 확인 ${all[0].statusCheckedAt.toLocaleString("ko-KR")} · 5분마다 자동 확인` : undefined}
           >
@@ -77,6 +106,7 @@ function ContainerManagement({ onOpenDetail, containers = [] }) {
       }>
         <Table
           density="compact" trackBy="id"
+          selectionType="multi" selectedItems={selected} onSelectionChange={setSelected}
           sortingColumn={sort.col} sortingDescending={sort.desc}
           onSortingChange={({ sortingColumn, sortingDescending }) => setSort({ col: sortingColumn, desc: sortingDescending })}
           items={pageRows}
@@ -118,6 +148,51 @@ function ContainerManagement({ onOpenDetail, containers = [] }) {
           ) : null}
         />
       </Container>
+
+      <Modal
+        visible={bulkOpen}
+        onDismiss={closeBulk}
+        header={`컨테이너 ${restartable.length}개 재시작`}
+        footer={failures ? (
+          <Button variant="primary" onClick={closeBulk}>닫기</Button>
+        ) : (
+          <>
+            <Button variant="normal" disabled={running} onClick={closeBulk}>취소</Button>
+            <Button variant="primary" loading={running} onClick={runBulk}>재시작</Button>
+          </>
+        )}
+      >
+        <div style={{ display: "flex", flexDirection: "column", gap: "var(--decs-space-m)" }}>
+          {failures ? (
+            <>
+              <Alert type={failures.length === 0 ? "success" : "warning"}>
+                {`${okCount}건 재시작을 시작했습니다.${failures.length ? ` ${failures.length}건은 시작하지 못했습니다.` : ""} 끝나기까지 몇 분 걸리며, 진행 상황은 목록의 상태에서 확인합니다.`}
+              </Alert>
+              {failures.map(({ item, error }) => (
+                <div key={item.id}>
+                  <strong>{item.user} ({item.name}) · 신청 #{item.requestId}</strong>
+                  <div style={{ color: "var(--decs-status-error)" }}>{error?.status === 409 ? t("restart.errConflict") : (error?.message || t("restart.errFailed"))}</div>
+                </div>
+              ))}
+            </>
+          ) : (
+            <>
+              <Alert type="warning" header={t("restart.warnTitle")}>{t("restart.warnBody")}</Alert>
+              <ul style={{ margin: 0, paddingLeft: "var(--decs-space-l)", maxHeight: 200, overflowY: "auto" }}>
+                {restartable.map((c) => <li key={c.id}>{c.user} ({c.name}) · 신청 #{c.requestId}</li>)}
+              </ul>
+              <label style={{ display: "flex", alignItems: "flex-start", gap: "var(--decs-space-xs)" }}>
+                <input type="checkbox" checked={keepChanges} onChange={(e) => setKeepChanges(e.target.checked)} disabled={running} />
+                <span>
+                  <span style={{ fontWeight: 600, color: "var(--decs-text-heading)" }}>{t("restart.keepChanges")}</span>
+                  <span style={{ display: "block", color: "var(--decs-text-secondary)", fontSize: "var(--decs-fs-body-s)" }}>{t("restart.keepChangesHelp")}</span>
+                </span>
+              </label>
+              {running ? <div style={{ color: "var(--decs-text-secondary)" }}>요청을 보내는 중입니다. 이 창을 닫지 말고 기다려 주시기 바랍니다.</div> : null}
+            </>
+          )}
+        </div>
+      </Modal>
     </div>
   );
 }
