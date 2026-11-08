@@ -6,7 +6,7 @@ register("data:text/javascript," +
   "export function load(u,c,n){return u.endsWith('.json')?n(u,{...c,importAttributes:{type:'json'}}):n(u,c)}");
 
 const assert = (await import("node:assert")).default;
-const { mapUserServer } = await import("./decsMapper.js");
+const { mapUserServer, mapAdminContainer } = await import("./decsMapper.js");
 
 // 신청 때 요청한 포트(portMappings)가 차 있어도 실제 배정된 NodePort로 접속 정보를 만든다
 const vm = mapUserServer({
@@ -40,5 +40,11 @@ const outOfBand = mapUserServer({
 assert.equal(outOfBand.extraPorts[0].reachable, false);
 // SSH 포트가 아직 없으면 null — 화면은 SSH 배지를 빼고 서버만 보인다
 assert.equal(outOfBand.sshPort, null);
+
+// 관리자 목록의 사용자 열은 실명, 이름 열은 유저네임
+const admin = mapAdminContainer({ requestId: 1, userId: 2, userName: "홍길동", ubuntuUsername: "gildong", status: "FULFILLED" });
+assert.equal(admin.user, "홍길동");
+assert.equal(admin.name, "gildong");
+assert.equal(mapAdminContainer({ requestId: 2, ubuntuUsername: "u", status: "FULFILLED" }).user, "u");
 
 console.log("decsMapper check ok");

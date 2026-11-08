@@ -84,7 +84,7 @@ function AdminConsoleApp() {
         {error && (location.pathname === "/admin" || location.pathname.startsWith("/admin/containers")) ? <div style={{ marginBottom: "var(--decs-space-m)" }}><Flashbar items={[{ id: "decs-admin-data", type: "warning", header: error, dismissible: false }]} /></div> : null}
         <Routes>
           <Route index element={<AdminDashboard onOpenContainers={() => navigate("/admin/containers")} onOpenErrorContainers={() => navigate("/admin/containers", { state: { statusFilter: "error" } })} onOpenDetail={(c) => navigate(`/admin/containers/${c.id}`)} containers={containers ?? []} users={users ?? []} />} />
-          <Route path="containers" element={<ContainerManagement onOpenDetail={(c) => navigate(`/admin/containers/${c.id}`)} containers={containers ?? []} />} />
+          <Route path="containers" element={<ContainerManagement onOpenDetail={(c) => navigate(`/admin/containers/${c.id}`)} onRefetch={refetch} containers={containers ?? []} />} />
           <Route path="containers/:containerId" element={<ContainerDetailRoute containers={containers ?? []} onRefetch={refetch} />} />
           <Route path="requests" element={<RequestManagementPage />} />
           <Route path="change-requests" element={<ChangeRequestManagementPage />} />

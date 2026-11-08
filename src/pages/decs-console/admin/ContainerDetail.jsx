@@ -313,6 +313,7 @@ function ContainerDetail({ item, onBack, onRefetch }) {
             ),
           },
           ...(c.statusReason ? [{ label: "오류 사유", value: c.statusReason }] : []),
+          { label: "사용자", value: c.userName ?? "—" },
           { label: "GPU", value: c.gpu },
           { label: "노드", value: c.node },
           { label: "이미지", value: c.image },
