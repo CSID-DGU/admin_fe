@@ -16,7 +16,8 @@
     --hv-deco: underline;
   }
 }
-.decs-hv:not(.decs-hv-ul):active:not(:disabled):not([aria-disabled="true"]) {
+/* 눌림 축소는 버튼용이다. 표 행은 줄어들면 작은 체크박스가 눌린 사이에 밀려 클릭이 빗나간다(decs-hv-flat). */
+.decs-hv:not(.decs-hv-ul):not(.decs-hv-flat):active:not(:disabled):not([aria-disabled="true"]) {
   transform: scale(0.97);
 }
 
