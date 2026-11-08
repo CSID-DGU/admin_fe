@@ -28,7 +28,8 @@ export function FormField({ label, description, constraintText, errorText, secon
       {invalid ? (
         <div role="alert" style={{ fontSize: "var(--decs-fs-body-s)", color: "var(--decs-status-error)", marginTop: "var(--decs-space-xxs)" }}>{errorText}</div>
       ) : constraintText ? (
-        <div style={{ fontSize: "var(--decs-fs-body-s)", color: "var(--decs-text-secondary)", marginTop: "var(--decs-space-xxs)" }}>{constraintText}</div>
+        // 문구 안의 줄바꿈(\n)을 그대로 보여 준다(예시를 다음 줄에 둘 때)
+        <div style={{ fontSize: "var(--decs-fs-body-s)", color: "var(--decs-text-secondary)", marginTop: "var(--decs-space-xxs)", whiteSpace: "pre-line" }}>{constraintText}</div>
       ) : null}
     </div>
     </FieldControlIdContext.Provider>

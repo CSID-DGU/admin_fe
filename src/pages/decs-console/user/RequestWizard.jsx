@@ -18,6 +18,11 @@ const TEAM_STEPS = [
   { role: "leader", textKey: "wizard.teamStep2" },
   { role: "member", textKey: "wizard.teamStep3" },
 ];
+// 서버 카드에 보일 이용 대상·목적. 키는 서버 이름(serverName)을 대문자로 바꾼 값이다.
+const SERVER_DESC_KEYS = {
+  LAB: ["wizard.serverLabWho", "wizard.serverLabUse"],
+  FARM: ["wizard.serverFarmWho", "wizard.serverFarmUse"],
+};
 
 function toLocalDateInput(date) {
   const offset = date.getTimezoneOffset() * 60_000;
@@ -128,8 +133,8 @@ function RequestWizard({ onCancel, onDone, gpuOptions: gpuOptionsProp, envOption
   function handleNavigate(nextStep) {
     setError(null);
     if (!validateStep(nextStep)) return;
-    // 서버 선택을 넘어갈 때 다른 클러스터 배정 가능성을 먼저 안내한다
-    if (step === 1 && nextStep > step) {
+    // GPU 선택을 마치고 사용 기간으로 넘어갈 때 다른 클러스터 배정 가능성을 먼저 안내한다
+    if (step === 2 && nextStep > step) {
       setClusterNoticeStep(nextStep);
       return;
     }
@@ -267,7 +272,16 @@ function RequestWizard({ onCancel, onDone, gpuOptions: gpuOptionsProp, envOption
               setStepErrors((prev) => ({ ...prev, server: null, gpu: null }));
             }}
             items={serverOptions}
-            cardDefinition={{ header: (o) => o.title }}
+            cardDefinition={{
+              header: (o) => o.title,
+              sections: [{
+                id: "d",
+                content: (o) => {
+                  const lines = SERVER_DESC_KEYS[o.id.toUpperCase()];
+                  return lines ? lines.map((key) => <div key={key}>{t(key)}</div>) : null;
+                },
+              }],
+            }}
           />
         </FormField>
       ) : <Alert type="info">{t("wizard.noServer")}</Alert>,
