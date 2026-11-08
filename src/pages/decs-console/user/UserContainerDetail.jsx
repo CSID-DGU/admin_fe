@@ -35,9 +35,9 @@ function UserContainerDetail({ onBack, onRestarted, servers = [] }) {
     <div style={{ maxWidth: 820, margin: "0 auto", display: "flex", flexDirection: "column", gap: "var(--decs-space-l)" }}>
       <div>
         <Button variant="link" iconName="arrow-left" onClick={onBack}>{t("common.dashboard")}</Button>
-        <Header variant="h1">{t("container.title")}</Header>
-        {/* 고른 컨테이너의 리소스 그룹·서버·계정·SSH 포트. 상태도 그 컨테이너의 것이라 같은 줄에 둔다 */}
-        <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 8 }}>
+        {/* 페이지 제목("내 컨테이너")은 왼쪽 메뉴와 겹쳐 두지 않는다. 고른 컨테이너의 리소스 그룹·서버·계정·SSH 포트와
+            그 컨테이너의 상태를 한 줄에 둔다 */}
+        <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 8, marginTop: "var(--decs-space-xs)" }}>
           <Badge color="green">{server.resourceGroupName}</Badge>
           {server.serverName ? <Badge color="brand">{server.serverName}</Badge> : null}
           <Badge color="grey">{server.ubuntuUsername}</Badge>
