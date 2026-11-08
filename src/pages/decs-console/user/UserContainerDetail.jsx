@@ -38,10 +38,10 @@ function UserContainerDetail({ onBack, onRestarted, servers = [] }) {
         <Header variant="h1">{t("container.title")}</Header>
         {/* 고른 컨테이너의 리소스 그룹·서버·계정·SSH 포트. 상태도 그 컨테이너의 것이라 같은 줄에 둔다 */}
         <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 8 }}>
-          <Badge color="grey">{server.resourceGroupName}</Badge>
+          <Badge color="green">{server.resourceGroupName}</Badge>
           {server.serverName ? <Badge color="brand">{server.serverName}</Badge> : null}
           <Badge color="grey">{server.ubuntuUsername}</Badge>
-          {server.sshPort != null ? <Badge color="grey">{t("data.sshPort", { port: server.sshPort })}</Badge> : null}
+          {server.sshPort != null ? <Badge color="blue">{t("data.sshPort", { port: server.sshPort })}</Badge> : null}
           <StatusIndicator type={server.statusType}>{server.statusLabel}</StatusIndicator>
         </div>
       </div>
