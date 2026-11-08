@@ -68,7 +68,7 @@
     "ubuntuUsernameHelp": "The account name you use to SSH into your containers. Every container you get uses this name, and it cannot be changed after signup."
   },
   "shell": {
-    "adminTitle": "DECS Admin Console",
+    "adminTitle": "Provi Admin Console",
     "userTitle": "DGU GPU Portal",
     "dashboard": "Dashboard",
     "containers": "Containers",
