@@ -116,6 +116,7 @@
     "myServerBadge": "My server · {{name}}",
     "groupPending": "{{name}} (created on approval)",
     "portDefault": "Port {{port}}",
+    "sshPort": "SSH {{port}}",
     "resourceGroup": "Resource group {{id}}",
     "formAnswerTeamInfo": "Team project information (group name and member names)"
   },

@@ -35,10 +35,14 @@ function UserContainerDetail({ onBack, onRestarted, servers = [] }) {
     <div style={{ maxWidth: 820, margin: "0 auto", display: "flex", flexDirection: "column", gap: "var(--decs-space-l)" }}>
       <div>
         <Button variant="link" iconName="arrow-left" onClick={onBack}>{t("common.dashboard")}</Button>
-        <Header variant="h1" actions={<StatusIndicator type={server.statusType}>{server.statusLabel}</StatusIndicator>}>{server.jobTitle}</Header>
-        <div style={{ display: "flex", gap: 8 }}>
-          <Badge color="brand">{server.gpuName}</Badge>
+        <Header variant="h1">{t("container.title")}</Header>
+        {/* 고른 컨테이너의 리소스 그룹·서버·계정·SSH 포트. 상태도 그 컨테이너의 것이라 같은 줄에 둔다 */}
+        <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 8 }}>
+          <Badge color="green">{server.resourceGroupName}</Badge>
+          {server.serverName ? <Badge color="brand">{server.serverName}</Badge> : null}
           <Badge color="grey">{server.ubuntuUsername}</Badge>
+          {server.sshPort != null ? <Badge color="blue">{t("data.sshPort", { port: server.sshPort })}</Badge> : null}
+          <StatusIndicator type={server.statusType}>{server.statusLabel}</StatusIndicator>
         </div>
       </div>
 
@@ -62,12 +66,10 @@ function UserContainerDetail({ onBack, onRestarted, servers = [] }) {
                 }}
               >
                 <div>
-                  {/* 내 컨테이너 전부 같은 우분투 유저네임을 쓰므로(웹 계정당 하나로 고정),
-                      그걸 제목으로 쓰면 여러 개일 때 전혀 구분이 안 된다 — 신청 시 적어낸
-                      사용 목적을 대신 쓴다. */}
+                  {/* 제목은 서버와 SSH 포트(useDecsUserData의 jobTitle) — 컨테이너마다 다른 값은 포트뿐이다 */}
                   <div style={{ fontWeight: 600, color: "var(--decs-text-heading)" }}>{item.jobTitle}</div>
                   <div style={{ fontSize: "var(--decs-fs-body-s)", color: "var(--decs-text-secondary)" }}>
-                    {item.gpuName}{item.gpuSpec ? ` · ${item.gpuSpec}` : ""} · {item.expiresText}
+                    {item.resourceGroupName} · {item.expiresText}
                   </div>
                 </div>
                 <StatusIndicator type={item.statusType}>{item.statusLabel}</StatusIndicator>

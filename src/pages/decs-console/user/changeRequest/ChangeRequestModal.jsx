@@ -121,7 +121,7 @@ function ChangeRequestModal({ servers = [], groupOptions = [], initialType, acco
                   options={servers.map((item) => ({
                     value: String(item.requestId),
                     label: item.jobTitle,
-                    description: `${item.gpuName} · ${item.expiresText}`,
+                    description: `${item.resourceGroupName} · ${item.expiresText}`,
                   }))}
                 />
               </FormField>
