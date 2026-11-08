@@ -6,6 +6,8 @@ import { Icon } from "../icons/Icon.jsx";
  * Table — the admin surface's primary component. Dense, sortable, selectable.
  * columns: [{ id, header, cell:(item)=>node, width, sortingField, minWidth }]
  * density: "compact" (admin default) | "comfortable" (user views).
+ * isItemDisabled(item): 참이면 그 행은 고를 수 없다(체크박스 비활성, 전체 선택에서도 빠진다). 문자열을 돌려주면
+ * 그 문구를 체크박스에 마우스를 올렸을 때 보이는 이유로 쓴다.
  */
 export function Table({
   columns = [],
@@ -14,6 +16,7 @@ export function Table({
   selectionType,           // undefined | "single" | "multi"
   selectedItems = [],
   onSelectionChange,
+  isItemDisabled,
   trackBy = "id",
   sortingColumn,
   sortingDescending = false,
@@ -29,16 +32,18 @@ export function Table({
   const padX = density === "compact" ? "var(--decs-density-compact-cell-x)" : "var(--decs-density-comfortable-cell-x)";
   const keyOf = (it) => it[trackBy];
   const selectedKeys = new Set(selectedItems.map(keyOf));
-  const allSelected = items.length > 0 && items.every((it) => selectedKeys.has(keyOf(it)));
+  const disabledOf = (it) => !!isItemDisabled?.(it);
+  const selectableItems = items.filter((it) => !disabledOf(it));
+  const allSelected = selectableItems.length > 0 && selectableItems.every((it) => selectedKeys.has(keyOf(it)));
 
   function toggleRow(it) {
-    if (!onSelectionChange) return;
+    if (!onSelectionChange || disabledOf(it)) return;
     if (selectionType === "single") return onSelectionChange([it]);
     const has = selectedKeys.has(keyOf(it));
     onSelectionChange(has ? selectedItems.filter((s) => keyOf(s) !== keyOf(it)) : [...selectedItems, it]);
   }
   function toggleAll() {
-    onSelectionChange?.(allSelected ? [] : [...items]);
+    onSelectionChange?.(allSelected ? [] : selectableItems);
   }
   function clickSort(col) {
     if (!col.sortingField || !onSortingChange) return;
@@ -58,7 +63,7 @@ export function Table({
               {selectionType ? (
                 <th style={{ ...cellBase, width: "40px", background: "var(--decs-surface-sunken)" }}>
                   {selectionType === "multi" ? (
-                    <input type="checkbox" checked={allSelected} onChange={toggleAll} aria-label={t("ds.selectAll")} style={{ accentColor: "var(--decs-action-primary)" }} />
+                    <input type="checkbox" checked={allSelected} disabled={selectableItems.length === 0} onChange={toggleAll} aria-label={t("ds.selectAll")} style={{ accentColor: "var(--decs-action-primary)" }} />
                   ) : null}
                 </th>
               ) : null}
@@ -84,11 +89,13 @@ export function Table({
               <tr><td colSpan={columns.length + (selectionType ? 1 : 0)} style={{ ...cellBase, textAlign: "center", padding: "var(--decs-space-xxl)", color: "var(--decs-text-secondary)" }}>{loading ? t("ds.loading") : empty || t("ds.empty")}</td></tr>
             ) : items.map((it) => {
               const isSel = selectedKeys.has(keyOf(it));
+              const disabled = disabledOf(it);
+              const disabledReason = disabled ? isItemDisabled(it) : null;
               return (
                 <tr key={keyOf(it)} className="decs-hv" style={{ "--hv-bg": isSel ? "var(--decs-surface-selected)" : "transparent", "--hv-hover": isSel ? "var(--decs-surface-selected)" : "var(--decs-surface-hover)" }}>
                   {selectionType ? (
                     <td style={{ ...cellBase, textAlign: "center" }}>
-                      <input type={selectionType === "single" ? "radio" : "checkbox"} checked={isSel} onChange={() => toggleRow(it)} aria-label={t("ds.selectRow")} style={{ accentColor: "var(--decs-action-primary)" }} />
+                      <input type={selectionType === "single" ? "radio" : "checkbox"} checked={isSel} disabled={disabled} title={typeof disabledReason === "string" ? disabledReason : undefined} onChange={() => toggleRow(it)} aria-label={t("ds.selectRow")} style={{ accentColor: "var(--decs-action-primary)" }} />
                     </td>
                   ) : null}
                   {columns.map((col) => (

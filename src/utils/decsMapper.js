@@ -136,6 +136,8 @@ export function mapAdminContainer(dto) {
     test: dto.test === true,
     // 화면이 "기다리는 중"과 "끝"을 가르는 데 쓴다(PENDING·PROCESSING·pod-missing 등).
     rawStatus: dto.status,
+    // 신청 상태. 재시작·이동·회수는 FULFILLED에서만 시작할 수 있다(그 밖이면 admin_be가 409로 거절).
+    requestStatus: dto.requestStatus ?? null,
     // 계정 회수(DELETE /api/admin/users/{userId}/ubuntu-account)가 사용자 번호로 대상을 정한다.
     userId: dto.userId,
     name: dto.ubuntuUsername ?? dto.userName ?? "—",

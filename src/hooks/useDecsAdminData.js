@@ -62,6 +62,8 @@ export function useDecsAdminData() {
         // Pod 상태는 목록 응답에 이미 들어 있다(admin_be가 주기적으로 읽어 둔 값) — Pod마다 따로 묻지 않는다.
         const mapped = activeContainers.map((container) => mapAdminContainer({
           ...container,
+          // status는 아래에서 Pod 상태로 덮이므로 신청 상태(FULFILLED·MIGRATING·EXPIRING 등)를 따로 넘긴다.
+          requestStatus: container.status,
           podDetail: container.pod,
           status: containerStatusOf(container),
         }));
