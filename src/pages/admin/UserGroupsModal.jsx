@@ -45,7 +45,7 @@ const UserGroupsModal = ({ user, onDismiss }) => {
       if (operation?.status === "FAILED") {
         setError("그룹에서 빼지 못했습니다. 다시 누르면 이어서 처리합니다.");
       } else if (operation?.status === "PROCESSING") {
-        setError("반영에 시간이 걸리고 있습니다. 잠시 뒤에 다시 열어 확인해 주세요.");
+        setError("반영에 시간이 걸리고 있습니다. 잠시 뒤에 다시 열어 확인하시기 바랍니다.");
       }
     } catch (e) {
       setError(`그룹에서 빼지 못했습니다: ${e.message}`);

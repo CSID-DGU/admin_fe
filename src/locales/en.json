@@ -198,7 +198,6 @@
     "stepPeriodDesc": "Choose how long you need it. You can extend it any time before it ends.",
     "endDate": "End date",
     "endDateHelp": "The container is removed after this date. You can choose a date within one year from today.",
-    "periodTip": "Two weeks is usually enough. Longer periods may take longer to approve.",
     "stepEnv": "Environment",
     "stepEnvDesc": "Choose an environment and, if needed, add shared groups and ports.",
     "envHelp": "If unsure, keep the default selection.",

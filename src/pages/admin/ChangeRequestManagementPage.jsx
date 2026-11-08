@@ -144,7 +144,7 @@ const ChangeRequestManagementPage = () => {
           setAlert({
             type: "error",
             message:
-              "변경 요청 목록을 불러올 수 없습니다. 서버 상태를 확인하시거나 관리자에게 문의해주세요.",
+              "변경 요청 목록을 불러올 수 없습니다. 서버 상태를 확인하시거나 관리자에게 문의하시기 바랍니다.",
           });
         }
       } catch (error) {
@@ -153,7 +153,7 @@ const ChangeRequestManagementPage = () => {
         if (!quiet) setAlert({
           type: "error",
           message:
-            "변경 요청 목록 로딩 중 네트워크 오류가 발생했습니다. 인터넷 연결을 확인하시고 페이지를 새로고침해주세요.",
+            "변경 요청 목록 로딩 중 네트워크 오류가 발생했습니다. 인터넷 연결을 확인하시고 페이지를 새로고침하시기 바랍니다.",
         });
       } finally {
         if (!quiet) setIsLoading(false);
@@ -313,13 +313,13 @@ const ChangeRequestManagementPage = () => {
       } else if (response.status === 409) {
         setAlert({
           type: "error",
-          message: "이미 처리된 변경 요청입니다. 페이지를 새로고침하여 최신 상태를 확인해주세요.",
+          message: "이미 처리된 변경 요청입니다. 페이지를 새로고침하여 최신 상태를 확인하시기 바랍니다.",
         });
       } else {
         setAlert({
           type: "error",
           message:
-            "변경 요청 처리 중 오류가 발생했습니다. 네트워크 연결을 확인하시거나 잠시 후 다시 시도해주세요.",
+            "변경 요청 처리 중 오류가 발생했습니다. 네트워크 연결을 확인하시거나 잠시 후 다시 시도하시기 바랍니다.",
         });
       }
     } catch (error) {
@@ -329,19 +329,19 @@ const ChangeRequestManagementPage = () => {
       if (error.status === 409 || (error.message && error.message.includes("409"))) {
         setAlert({
           type: "error",
-          message: "이미 처리된 변경 요청입니다. 페이지를 새로고침해주세요.",
+          message: "이미 처리된 변경 요청입니다. 페이지를 새로고침하시기 바랍니다.",
         });
       } else if (error.message && error.message.includes("이미 처리된 신청입니다")) {
         setAlert({
           type: "error",
-          message: "이미 다른 관리자에 의해 처리된 변경 요청입니다. 페이지를 새로고침해주세요.",
+          message: "이미 다른 관리자에 의해 처리된 변경 요청입니다. 페이지를 새로고침하시기 바랍니다.",
         });
       } else {
         setAlert({
           type: "error",
           message: error.status
             ? `변경 요청 처리에 실패했습니다. ${error.message}`
-            : "서버와 연결할 수 없습니다. 네트워크를 확인하고 잠시 후 다시 시도해주세요.",
+            : "서버와 연결할 수 없습니다. 네트워크를 확인하고 잠시 후 다시 시도하시기 바랍니다.",
         });
       }
     } finally {
@@ -392,7 +392,7 @@ const ChangeRequestManagementPage = () => {
             : filter === "FULFILLED"
             ? "승인된"
             : "거절된"
-        } 변경 요청이 없습니다. 다른 상태의 변경 요청을 확인해보세요.`;
+        } 변경 요청이 없습니다. 다른 상태의 변경 요청을 확인하시기 바랍니다.`;
 
   const columns = [
     {

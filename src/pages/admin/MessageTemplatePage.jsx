@@ -57,7 +57,7 @@ const MessageTemplatePage = () => {
   const handleUpdate = async () => {
     if (!editing || saving) return;
     if (!editing.value.trim()) {
-      setAlert({ type: 'error', message: '메시지 내용을 입력해주세요.' });
+      setAlert({ type: 'error', message: '메시지 내용을 입력하시기 바랍니다.' });
       return;
     }
     setSaving(true);

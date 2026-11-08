@@ -195,7 +195,7 @@ function ContainerDetail({ item, onBack, onRefetch }) {
     const nodes = selectedNodes;
 
     if (nodes.length === 0) {
-      setMigrateFormError("후보 노드를 하나 이상 선택하세요.");
+      setMigrateFormError("후보 노드를 하나 이상 선택하시기 바랍니다.");
       return;
     }
 
@@ -203,7 +203,7 @@ function ContainerDetail({ item, onBack, onRefetch }) {
     if (!migrateForce && migrateRatioInput.trim() !== "") {
       const parsed = Number(migrateRatioInput.trim());
       if (Number.isNaN(parsed)) {
-        setMigrateFormError("최소 개선 비율은 숫자로 입력하세요.");
+        setMigrateFormError("최소 개선 비율은 숫자로 입력하시기 바랍니다.");
         return;
       }
       minImprovementRatio = parsed;
@@ -220,7 +220,7 @@ function ContainerDetail({ item, onBack, onRefetch }) {
       const result = await waitForMigrationResult(() => requestService.getLatestMigration(c.requestId));
 
       if (!result) {
-        setAlert({ type: "warning", message: "마이그레이션이 아직 끝나지 않았습니다. 잠시 뒤 목록을 새로고침해 확인해주세요." });
+        setAlert({ type: "warning", message: "마이그레이션이 아직 끝나지 않았습니다. 잠시 뒤 목록을 새로고침해 확인하시기 바랍니다." });
       } else if (result.phase === "SUCCESS" && result.status === "migrated") {
         setAlert({
           type: "success",
@@ -234,7 +234,7 @@ function ContainerDetail({ item, onBack, onRefetch }) {
           message: `마이그레이션을 건너뛰었습니다: ${SKIP_REASONS[result.reason] ?? result.reason ?? "옮길 이유가 없습니다."}`,
         });
       } else if (result.phase === "UNKNOWN") {
-        setAlert({ type: "warning", message: "마이그레이션 결과를 확인할 수 없습니다. 관리자 알림을 확인하고 Pod 상태를 점검해주세요." });
+        setAlert({ type: "warning", message: "마이그레이션 결과를 확인할 수 없습니다. 관리자 알림을 확인하고 Pod 상태를 점검하시기 바랍니다." });
       } else {
         setAlert({
           type: "error",
@@ -477,7 +477,7 @@ function ContainerDetail({ item, onBack, onRefetch }) {
           </Alert>
           <FormField
             label="후보 노드"
-            description="마이그레이션을 시도할 노드를 하나 이상 선택하세요 (현재 노드 포함 가능)."
+            description="마이그레이션을 시도할 노드를 하나 이상 선택하시기 바랍니다 (현재 노드 포함 가능)."
             errorText={migrateFormError}
           >
             {nodesLoading ? (

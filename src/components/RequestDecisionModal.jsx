@@ -47,7 +47,7 @@ function RequestDecisionModal({ decision, submitting = false, onCancel, onConfir
               selectedValue={clusterId}
               onChange={setClusterId}
               options={decision.clusterOptions}
-              placeholder={decision.clusterOptions.length > 0 ? "클러스터를 선택하세요" : "선택할 클러스터 없음"}
+              placeholder={decision.clusterOptions.length > 0 ? "클러스터 선택" : "선택할 클러스터 없음"}
               disabled={submitting || decision.clusterOptions.length === 0}
               ariaLabel="배정할 클러스터"
             />
@@ -55,7 +55,7 @@ function RequestDecisionModal({ decision, submitting = false, onCancel, onConfir
         ) : null}
         {/* 이미지·클러스터 짝은 서버가 검사하지 않는다(resource_group_images 미사용) */}
         {decision.clusterOptions && clusterId !== decision.defaultClusterId ? (
-          <Alert type="warning">신청자가 고른 클러스터와 다릅니다. 신청한 이미지가 이 클러스터의 GPU에서 도는지 확인해 주세요. 시스템은 이미지와 클러스터의 짝을 검사하지 않습니다.</Alert>
+          <Alert type="warning">신청자가 고른 클러스터와 다릅니다. 신청한 이미지가 이 클러스터의 GPU에서 도는지 확인하시기 바랍니다. 시스템은 이미지와 클러스터의 짝을 검사하지 않습니다.</Alert>
         ) : null}
         <FormField htmlFor="request-decision-comment" label={copy.label} constraintText="입력한 내용이 신청자에게 그대로 전달됩니다. 비우면 기본 문구로 보냅니다.">
           <textarea

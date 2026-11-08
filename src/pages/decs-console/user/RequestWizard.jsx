@@ -296,7 +296,6 @@ function RequestWizard({ onCancel, onDone, gpuOptions: gpuOptionsProp, envOption
               invalid={!!stepErrors.period}
             />
           </FormField>
-          <Alert type="info">{t("wizard.periodTip")}</Alert>
         </div>
       ),
     },

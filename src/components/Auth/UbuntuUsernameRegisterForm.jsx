@@ -8,9 +8,9 @@ import { useAuth } from "../../hooks/useAuth";
 // 등록 폼이라, 서버가 허용하는 값 규칙과 반드시 일치해야 한다.
 // 계정 이름은 쿠버네티스 자원 이름(Secret 등)에도 들어가 밑줄을 쓸 수 없고, 리눅스 계정 이름 상한은 32자다.
 const UBUNTU_USERNAME_PATTERN = /^(?!(?:root|admin|nobody|daemon|bin|sys|ubuntu|svmanager|ailab-krb5)$)[a-z][a-z0-9-]{1,30}[a-z0-9]$/;
-const UBUNTU_USERNAME_FORMAT_ERROR = "소문자로 시작하고 소문자·숫자·하이픈(-)만 사용해 3~32자로 입력해주세요. 끝은 소문자나 숫자여야 하고, 시스템 계정 이름은 쓸 수 없습니다.";
+const UBUNTU_USERNAME_FORMAT_ERROR = "소문자로 시작하고 소문자·숫자·하이픈(-)만 사용해 3~32자로 입력하시기 바랍니다. 끝은 소문자나 숫자여야 하고, 시스템 계정 이름은 쓸 수 없습니다.";
 const UBUNTU_USERNAME_TAKEN_ERROR = "이미 사용 중인 Ubuntu 사용자명입니다.";
-const UBUNTU_USERNAME_CHECK_FAILED_ERROR = "사용자명 중복 확인에 실패했습니다. 잠시 후 다시 시도해주세요.";
+const UBUNTU_USERNAME_CHECK_FAILED_ERROR = "사용자명 중복 확인에 실패했습니다. 잠시 후 다시 시도하시기 바랍니다.";
 
 // AccountPage(마이페이지)의 1회성 필드와 로그인 직후 강제 모달이 이 컴포넌트를 함께 쓴다 —
 // 검증 규칙이 두 곳에서 어긋나면 한쪽에서만 통과되는 값이 생기므로 반드시 하나로 유지한다.
@@ -50,17 +50,17 @@ export function UbuntuUsernameRegisterForm({ onSuccess, formId, autoFocus = fals
   const usernameError = fieldError || usernameFormatError || usernameTakenError;
   const usernameConstraint =
     usernameStatus === "checking"
-      ? "사용 가능 여부를 확인하는 중이에요."
+      ? "사용 가능 여부를 확인하는 중입니다."
       : usernameStatus === "available"
-      ? "사용할 수 있는 이름이에요."
+      ? "사용할 수 있는 이름입니다."
       : usernameStatus === "failed"
       ? UBUNTU_USERNAME_CHECK_FAILED_ERROR
-      : "컨테이너 SSH 접속·홈 디렉터리에 쓰이는 이름이에요. 한 번 등록하면 바꿀 수 없어요.";
+      : "컨테이너 SSH 접속·홈 디렉터리에 쓰이는 이름입니다. 한 번 등록하면 변경할 수 없습니다.";
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!value) {
-      setFieldError("유저네임을 입력해주세요.");
+      setFieldError("유저네임을 입력하시기 바랍니다.");
       return;
     }
     if (!UBUNTU_USERNAME_PATTERN.test(value)) {

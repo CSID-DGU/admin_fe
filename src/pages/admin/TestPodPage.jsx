@@ -81,14 +81,14 @@ export default function TestPodPage({ containers, onRefetch, onOpenDetail }) {
 
   const submit = async () => {
     const ports = parsePorts(portText);
-    if (imageId == null) return setAlert({ type: "error", message: "이미지를 선택하세요." });
-    if (selected.length === 0) return setAlert({ type: "error", message: "노드를 하나 이상 선택하세요." });
-    if (ports === null) return setAlert({ type: "error", message: `포트는 1~65535 정수를 ${MAX_PORTS}개까지 쉼표로 구분해 입력하세요.` });
+    if (imageId == null) return setAlert({ type: "error", message: "이미지를 선택하시기 바랍니다." });
+    if (selected.length === 0) return setAlert({ type: "error", message: "노드를 하나 이상 선택하시기 바랍니다." });
+    if (ports === null) return setAlert({ type: "error", message: `포트는 1~65535 정수를 ${MAX_PORTS}개까지 쉼표로 구분해 입력하시기 바랍니다.` });
     setBusy(true);
     try {
       const res = await testPodService.create({ imageId, nodeIds: selected, internalPorts: ports });
       const ids = unwrap(res);
-      setAlert({ type: "success", message: `테스트 Pod ${Array.isArray(ids) ? ids.length : selected.length}개 생성을 시작했습니다. 아래 목록에서 진행을 확인하세요.` });
+      setAlert({ type: "success", message: `테스트 Pod ${Array.isArray(ids) ? ids.length : selected.length}개 생성을 시작했습니다. 아래 목록에서 진행을 확인하시기 바랍니다.` });
       setWatchUntil(Date.now() + WATCH_MS);
       onRefetch();
     } catch (e) {
