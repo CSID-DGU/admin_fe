@@ -108,7 +108,7 @@ function UserDashboard({ onRequest, onConnect, onExtend, userName, server, expir
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "var(--decs-space-m)" }}>
             <div>
               <div style={{ fontSize: "var(--decs-fs-body-s)", color: "var(--decs-text-inactive)", marginBottom: "var(--decs-space-xxxs)" }}>{t("dashboard.pendingTitle")}</div>
-              <div style={{ fontSize: "var(--decs-fs-body-l)", fontWeight: 700, color: "var(--decs-text-heading)" }}>{pendingSummaryParts(pendingRequest).join(" · ")}</div>
+              <div style={{ fontSize: "var(--decs-fs-body-l)", fontWeight: 700, color: "var(--decs-text-heading)" }}>{pendingSummaryParts(pendingRequest).map((part, i) => <span key={i}>{i > 0 ? " · " : null}<span style={{ whiteSpace: "nowrap" }}>{part}</span></span>)}</div>
             </div>
             <Button variant="primary" onClick={onViewRequests}>{t("dashboard.viewRequests")}</Button>
           </div>
