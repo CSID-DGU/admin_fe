@@ -129,6 +129,12 @@
     "viewRequests": "View my requests",
     "changeAlreadyPending": "A change request of this type is already under review."
   },
+  "expiry": {
+    "today": "Expires today",
+    "past_one": "Expired ({{count}} day ago)",
+    "past_other": "Expired ({{count}} days ago)",
+    "retention": "When it expires, files outside your home directory are deleted, and your home directory is kept for a set period before deletion. The deletion date is announced by email."
+  },
   "dashboard": {
     "detailTitle": "Request details",
     "status": "Status",
@@ -148,13 +154,18 @@
     "description": "Check your GPU usage and recent activity.",
     "expiryHeader_one": "Your usage period expires in {{count}} day",
     "expiryHeader_other": "Your usage period expires in {{count}} days",
+    "expiryHeaderToday": "Your usage period expires today",
+    "expiryHeaderPast_one": "Your usage period has expired ({{count}} day ago)",
+    "expiryHeaderPast_other": "Your usage period has expired ({{count}} days ago)",
     "extendShort": "Extend",
-    "expiryBody": "When it expires, the container stops and unsaved work may be lost. Extend it in advance.",
+    "expiryBody": "When it expires, files outside your home directory are deleted, and your home directory is kept for a set period before deletion. The deletion date is announced by email.",
     "suspendedHeader": "Your account is suspended until {{until}}",
     "suspendedBody": "You have {{count}} warning(s), so container access (SSH, Jupyter, extra ports) is blocked. While suspended you cannot submit requests, change requests, or restart. Your containers, running jobs, and files are untouched, and the same ports work again once the suspension ends.",
     "warningHeader_one": "You have {{count}} warning",
     "warningHeader_other": "You have {{count}} warnings",
     "warningBody": "One more warning suspends container access for {{days}} days.",
+    "pendingTitle": "Request awaiting approval",
+    "viewRequests": "View request status",
     "empty": "You have not requested a GPU yet. Once you do, it will appear here.",
     "needGpuTitle": "Request a GPU",
     "needGpuBody": "Describe what you will use it for, then choose a server, GPU and usage period.",
@@ -246,7 +257,11 @@
     "errSubmit": "The request could not be submitted. Please try again shortly.",
     "submit": "Submit request",
     "clusterNoticeTitle": "You may be assigned to a different server",
-    "clusterNoticeBody": "If the selected server is busy, the administrator may assign you to another server based on your purpose."
+    "clusterNoticeBody": "If the selected server is busy, the administrator may assign you to another server based on your purpose.",
+    "leaveTitle": "Leave this request?",
+    "leaveBody": "What you have entered will be lost. Do you want to cancel?",
+    "leaveKeep": "Keep editing",
+    "leaveConfirm": "Cancel and leave"
   },
   "container": {
     "errExtendDate": "Choose a date later than the current end date.",
