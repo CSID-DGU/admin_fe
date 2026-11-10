@@ -1,7 +1,7 @@
 // UserContainerDetail — 접속·상태 이해 (친절한 문구 + 복사 가능한 접속 정보)
 import { useState } from "react";
 import { Trans, useTranslation } from "react-i18next";
-import { Container, Header, KeyValuePairs, StatusIndicator, Button, Alert, ExpandableSection, Badge, Modal, PHONE_QUERY, useMediaQuery } from "../../../design-system";
+import { Container, Header, KeyValuePairs, StatusIndicator, Button, Alert, ExpandableSection, Badge, Modal } from "../../../design-system";
 import MyGpuUsage from "../../../components/MyGpuUsage";
 import RestartContainerModal from "../../../components/RestartContainerModal";
 import { requestService } from "../../../services/requestService";
