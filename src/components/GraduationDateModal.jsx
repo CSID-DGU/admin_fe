@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Alert, Button, FormField, Input, Modal } from "../design-system";
+import { Button, FormField, Input, Modal } from "../design-system";
 import { useAuth } from "../hooks/useAuth";
 import { authService } from "../services/authService";
 
@@ -82,7 +82,6 @@ export default function GraduationDateModal() {
         <FormField label={t("auth.expectedGraduationDate")} errorText={error} constraintText={t("graduationModal.help")} htmlFor="graduation-modal-date">
           <Input id="graduation-modal-date" type="date" min={todayIso()} value={date} onChange={(value) => { setDate(value); setError(""); }} invalid={!!error} />
         </FormField>
-        <Alert type="info">{t("auth.expectedGraduationDateHelp")}</Alert>
       </div>
     </Modal>
   );
