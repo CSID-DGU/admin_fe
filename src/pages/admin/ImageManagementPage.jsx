@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { getImages, createImage } from '../../services/imageService';
+import { podService } from '../../services/podService';
 import {
   Alert,
   Badge,
@@ -13,6 +14,8 @@ import {
 
 const ImageManagementPage = () => {
   const [images, setImages] = useState([]);
+  // 이미지(이름:버전)별 사용 중 컨테이너 수. 못 불러오면 null — 0으로 보이면 안 쓰는 이미지로 오해한다.
+  const [usageCounts, setUsageCounts] = useState(null);
   const [loading, setLoading] = useState(false);
   const [lastUpdated, setLastUpdated] = useState(null);
   const [alert, setAlert] = useState(null);
@@ -28,7 +31,24 @@ const ImageManagementPage = () => {
     fetchImages();
   }, []);
 
+  const fetchUsageCounts = async () => {
+    try {
+      const res = await podService.getActiveContainers(false); // 대기 중 테스트 신청은 아직 이미지를 쓰지 않는다
+      const list = Array.isArray(res?.data?.data) ? res.data.data : null;
+      if (!list) return setUsageCounts(null);
+      const counts = {};
+      list.forEach((c) => {
+        const key = `${c.imageName}:${c.imageVersion}`;
+        counts[key] = (counts[key] ?? 0) + 1;
+      });
+      setUsageCounts(counts);
+    } catch {
+      setUsageCounts(null);
+    }
+  };
+
   const fetchImages = async () => {
+    fetchUsageCounts();
     setLoading(true);
     try {
       const result = await getImages();
@@ -131,6 +151,11 @@ const ImageManagementPage = () => {
       id: 'cudaVersion',
       header: 'CUDA 버전',
       cell: (image) => <Badge color="green">CUDA {image.cudaVersion}</Badge>,
+    },
+    {
+      id: 'inUse',
+      header: '사용 중 컨테이너',
+      cell: (image) => (usageCounts ? usageCounts[`${image.imageName}:${image.imageVersion}`] ?? 0 : '-'),
     },
     { id: 'description', header: '설명', minWidth: '200px', cell: (image) => image.description },
     {

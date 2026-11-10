@@ -1,7 +1,8 @@
 // UserContainerDetail — 접속·상태 이해 (친절한 문구 + 복사 가능한 접속 정보)
 import { useState } from "react";
 import { Trans, useTranslation } from "react-i18next";
-import { Container, Header, KeyValuePairs, StatusIndicator, Button, Alert, ExpandableSection, Badge, PHONE_QUERY, useMediaQuery } from "../../../design-system";
+import { Container, Header, KeyValuePairs, StatusIndicator, Button, Alert, ExpandableSection, Badge } from "../../../design-system";
+import MyGpuUsage from "../../../components/MyGpuUsage";
 import RestartContainerModal from "../../../components/RestartContainerModal";
 import { requestService } from "../../../services/requestService";
 
@@ -10,7 +11,6 @@ const CONTACT_FORM_URL = "https://forms.gle/nACaxj2UeJF56V2i7";
 // 기간 연장·그룹 추가·포트 변경은 여기서 내지 않는다 — 사이드바의 변경 요청 화면 한 곳에서 낸다.
 function UserContainerDetail({ onBack, onRestarted, servers = [] }) {
   const { t } = useTranslation();
-  const phone = useMediaQuery(PHONE_QUERY);
   const [selectedId, setSelectedId] = useState(null);
   const [restartOpen, setRestartOpen] = useState(false);
   const [restartNotice, setRestartNotice] = useState(null);
@@ -117,17 +117,14 @@ function UserContainerDetail({ onBack, onRestarted, servers = [] }) {
         ) : null}
       </Container>
 
-      <div style={{ display: "grid", gridTemplateColumns: phone ? "minmax(0, 1fr)" : "1fr 1fr", gap: "var(--decs-space-m)" }}>
-        <Container header={<Header variant="h2">{t("container.usage")}</Header>}>
-          <div style={{ color: "var(--decs-text-secondary)", fontSize: "var(--decs-fs-body-s)", padding: "var(--decs-space-m) 0", textAlign: "center" }}>
-            {t("container.usageTodo")}
-          </div>
-        </Container>
-        <Container header={<Header variant="h2">{t("container.period")}</Header>}>
-          <div style={{ fontSize: "var(--decs-fs-heading-xl)", fontWeight: 700, color: "var(--decs-text-heading)" }}>{t("container.daysLeft", { count: server.daysLeft })}</div>
-          <div style={{ color: "var(--decs-text-secondary)", fontSize: "var(--decs-fs-body-m)", marginTop: 4 }}>{server.expiresText}</div>
-        </Container>
-      </div>
+      <Container header={<Header variant="h2" description={t("container.usageDesc")}>{t("container.usage")}</Header>}>
+        <MyGpuUsage key={server.requestId} requestId={server.requestId} />
+      </Container>
+
+      <Container header={<Header variant="h2">{t("container.period")}</Header>}>
+        <div style={{ fontSize: "var(--decs-fs-heading-xl)", fontWeight: 700, color: "var(--decs-text-heading)" }}>{t("container.daysLeft", { count: server.daysLeft })}</div>
+        <div style={{ color: "var(--decs-text-secondary)", fontSize: "var(--decs-fs-body-m)", marginTop: 4 }}>{server.expiresText}</div>
+      </Container>
 
       <Container header={<Header variant="h2" description={t("container.groupsDesc")}>{t("container.groups")}</Header>}>
         {(server.groups ?? []).length > 0 ? (
