@@ -117,9 +117,7 @@ function UserContainerDetail({ onBack, onRestarted, servers = [] }) {
         ) : null}
       </Container>
 
-      <Container header={<Header variant="h2" description={t("container.usageDesc")}>{t("container.usage")}</Header>}>
-        <MyGpuUsage key={server.requestId} requestId={server.requestId} />
-      </Container>
+      <MyGpuUsage key={server.requestId} requestId={server.requestId} running={server.statusType === "success"} />
 
       <Container header={<Header variant="h2">{t("container.period")}</Header>}>
         <div style={{ fontSize: "var(--decs-fs-heading-xl)", fontWeight: 700, color: "var(--decs-text-heading)" }}>{t("container.daysLeft", { count: server.daysLeft })}</div>
