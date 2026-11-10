@@ -102,5 +102,8 @@ export const requestService = {
     apiClient.get(`/api/groups/operations/${encodeURIComponent(operationId)}`),
   getDashboardServers: (status = "ALL") =>
     apiClient.get("/api/dashboard/me/servers", { status }),
+  // 내 서버의 GPU별 사용률·메모리·내 프로세스. 다른 사용자는 사람 수와 메모리 합계만 온다.
+  getMyGpuUsage: (requestId) =>
+    apiClient.get(`/api/dashboard/me/servers/${encodeURIComponent(requestId)}/gpus`),
   getApprovedRequests: () => apiClient.get("/api/requests/my/approved"),
 };
