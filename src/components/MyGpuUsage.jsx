@@ -84,42 +84,43 @@ function MyGpuUsage({ requestId, running = true }) {
   return (
     <Container header={header}>
       {failed ? <Alert type="warning">{t("container.usageStale")}</Alert> : null}
-      <div style={{ display: "flex", flexDirection: "column", gap: "var(--decs-space-m)" }}>
+      {!processesAvailable ? <div style={{ ...small, marginBottom: "var(--decs-space-m)" }}>{t("container.gpuProcessesUnavailable")}</div> : null}
+      {/* GPU마다 한 줄을 차지하지 않고 타일로 모아 여러 GPU가 한 화면에 들어오게 한다 */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 136px), 1fr))", gap: "var(--decs-space-s)" }}>
         {gpus.map((gpu) => {
           const total = num(gpu.memoryTotalMiB);
           const memPct = total > 0 ? Math.round((num(gpu.memoryUsedMiB) / total) * 100) : 0;
           const util = Math.round(num(gpu.utilizationPercent));
           const mine = Array.isArray(gpu.myProcesses) ? gpu.myProcesses : [];
+          const others = !processesAvailable ? null : num(gpu.otherUserCount) > 0
+            ? t("container.gpuOthers", { count: num(gpu.otherUserCount), memory: formatMiB(gpu.otherMemoryMiB) })
+            : num(gpu.otherMemoryMiB) > 0 ? t("container.gpuOthersMemoryOnly", { memory: formatMiB(gpu.otherMemoryMiB) }) : null;
           return (
-            <div key={`${gpu.index}-${gpu.modelName}`} style={{ display: "flex", flexDirection: "column", gap: "var(--decs-space-xs)", paddingBottom: "var(--decs-space-m)", borderBottom: "1px solid var(--decs-border-container)" }}>
-              <div style={{ fontWeight: 600, color: "var(--decs-text-heading)" }}>
-                {t("container.gpuTitle", { index: gpu.index })} <span style={small}>{gpu.modelName}</span>
+            <div key={`${gpu.index}-${gpu.modelName}`} style={{ display: "flex", flexDirection: "column", gap: "var(--decs-space-xs)", minWidth: 0, padding: "var(--decs-space-s)", border: "1px solid var(--decs-border-container)", borderRadius: "var(--decs-radius-item)" }}>
+              <div style={{ fontWeight: 600, color: "var(--decs-text-heading)", overflowWrap: "anywhere" }}>
+                {t("container.gpuTitle", { index: gpu.index })} <span style={{ ...small, fontWeight: 400 }}>{gpu.modelName}</span>
               </div>
-              <ProgressBar value={util} tone={toneOf(util)} label={t("container.gpuUtil", { value: util })} />
+              <ProgressBar value={util} tone={toneOf(util)} label={t("container.gpuUtil")} />
               <ProgressBar
                 value={memPct}
                 tone={toneOf(memPct)}
                 label={t("container.gpuMemory", { used: formatMiB(gpu.memoryUsedMiB), total: formatMiB(total) })}
               />
-              <div style={{ ...small, marginTop: "var(--decs-space-xxs)" }}>{t("container.gpuMine")}</div>
-              {!processesAvailable ? (
-                <div style={small}>{t("container.gpuProcessesUnavailable")}</div>
-              ) : mine.length === 0 ? (
+              {others ? <div style={small}>{others}</div> : null}
+              {!processesAvailable ? null : mine.length === 0 ? (
                 <div style={small}>{t("container.gpuNoMine")}</div>
               ) : (
-                <ul style={{ margin: 0, paddingLeft: "var(--decs-space-l)", fontSize: "var(--decs-fs-body-s)" }}>
-                  {mine.map((proc, i) => (
-                    <li key={`${proc.name}-${proc.elapsedSeconds}-${i}`}>
-                      {t("container.gpuProc", { name: proc.name ?? "", elapsed: formatElapsed(t, proc.elapsedSeconds), memory: formatMiB(proc.memoryMiB) })}
-                    </li>
-                  ))}
-                </ul>
+                <details>
+                  <summary style={{ ...small, cursor: "pointer" }}>{t("container.gpuMine", { count: mine.length })}</summary>
+                  <ul style={{ margin: "var(--decs-space-xxs) 0 0", paddingLeft: "var(--decs-space-l)", fontSize: "var(--decs-fs-body-s)" }}>
+                    {mine.map((proc, i) => (
+                      <li key={`${proc.name}-${proc.elapsedSeconds}-${i}`} style={{ overflowWrap: "anywhere" }}>
+                        {t("container.gpuProc", { name: proc.name ?? "", elapsed: formatElapsed(t, proc.elapsedSeconds), memory: formatMiB(proc.memoryMiB) })}
+                      </li>
+                    ))}
+                  </ul>
+                </details>
               )}
-              {!processesAvailable ? null : num(gpu.otherUserCount) > 0 ? (
-                <div style={small}>{t("container.gpuOthers", { count: num(gpu.otherUserCount), memory: formatMiB(gpu.otherMemoryMiB) })}</div>
-              ) : num(gpu.otherMemoryMiB) > 0 ? (
-                <div style={small}>{t("container.gpuOthersMemoryOnly", { memory: formatMiB(gpu.otherMemoryMiB) })}</div>
-              ) : null}
             </div>
           );
         })}
