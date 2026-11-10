@@ -162,7 +162,7 @@ export const authService = {
       return response;
     } catch (error) {
       if (error.status) throw error; // API 에러는 status 보존 위해 원본 유지
-      throw new Error(error.message || "우분투 유저네임 등록에 실패했습니다.");
+      throw new Error(error.message || "서버 계정 이름 등록에 실패했습니다.");
     }
   },
 };
