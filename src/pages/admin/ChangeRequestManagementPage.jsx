@@ -13,6 +13,8 @@ import {
   KeyValuePairs,
 } from "../../design-system";
 import { requestService } from "../../services/requestService";
+import { toGroupOption } from "../../utils/groupOption";
+import { formatGroupValue } from "../../utils/groupValue";
 import RequestDecisionModal from "../../components/RequestDecisionModal";
 
 const STATUS_META = {
@@ -49,6 +51,8 @@ const renderStatus = (status) => {
 const ChangeRequestManagementPage = () => {
   const [changeRequests, setChangeRequests] = useState([]);
   const [, setAllRequests] = useState([]);
+  // GID를 그룹명으로 보이기 위한 목록. 불러오지 못하면 "GID n"으로 표시한다.
+  const [groupOptions, setGroupOptions] = useState([]);
   const [selectedChangeRequest, setSelectedChangeRequest] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [lastUpdated, setLastUpdated] = useState(null);
@@ -162,6 +166,13 @@ const ChangeRequestManagementPage = () => {
 
   useEffect(() => {
     fetchData();
+    requestService
+      .getGroups()
+      .then((res) => {
+        const list = res?.status === 200 && Array.isArray(res.data?.data) ? res.data.data : [];
+        setGroupOptions(list.map(toGroupOption));
+      })
+      .catch(() => {});
   }, []);
 
   const hasProcessing = changeRequests.some((r) => r.status === "PROCESSING");
@@ -238,10 +249,7 @@ const ChangeRequestManagementPage = () => {
       }
       return value;
     } else if (changeType === "GROUP") {
-      if (Array.isArray(value)) {
-        return value.join(", ");
-      }
-      return value;
+      return formatGroupValue(value, groupOptions);
     } else if (changeType === "PORT") {
       if (Array.isArray(value)) {
         if (value.length === 0) {

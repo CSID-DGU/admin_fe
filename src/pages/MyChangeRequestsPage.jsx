@@ -13,6 +13,7 @@ import {
   Tabs,
 } from "../design-system";
 import { requestService } from "../services/requestService";
+import { formatGroupValue } from "../utils/groupValue";
 import ChangeRequestModal from "./decs-console/user/changeRequest/ChangeRequestModal";
 
 // 변경 요청을 내는 곳은 이 화면 하나다. 대시보드의 연장 버튼은 location.state.extend로 넘어와 기간 연장 창을 바로 연다.
@@ -178,10 +179,7 @@ const MyChangeRequestsPage = ({ servers = [], groupOptions = [], accountEmail, l
       }
       return value;
     } else if (changeType === "GROUP") {
-      if (Array.isArray(value)) {
-        return value.join(", ");
-      }
-      return value;
+      return formatGroupValue(value, groupOptions);
     } else if (changeType === "PORT") {
       if (Array.isArray(value)) {
         if (value.length === 0) {
