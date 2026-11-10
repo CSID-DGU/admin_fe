@@ -1,4 +1,5 @@
 import i18n from "../i18n";
+import { daysLeft, expiryState, localDate } from "./expiry";
 import { PUBLIC_HOST, endpointOf, toPublicPort } from "./publicEndpoint";
 
 const STATUS_MAP = {
@@ -37,12 +38,7 @@ const STATUS_MAP = {
 };
 
 function formatDate(dateStr) {
-  if (!dateStr) return "—";
-
-  const date = new Date(dateStr);
-  if (Number.isNaN(date.getTime())) return "—";
-
-  return date.toISOString().slice(0, 10);
+  return localDate(dateStr || null) ?? "—";
 }
 
 function getPodExternalPorts(dto) {
@@ -187,19 +183,15 @@ export function mapAdminPorts(dto) {
     .sort((a, b) => a.nodePort - b.nodePort);
 }
 
-/**
- * @param {string} dateStr 만료 일시 문자열
- * @param {Date} now 기준 일시
- * @returns {number}
- */
-export function daysLeft(dateStr, now = new Date()) {
-  const expiresAt = new Date(dateStr);
-  if (Number.isNaN(expiresAt.getTime())) {
-    return 0;
-  }
+export { daysLeft, expiryState } from "./expiry";
 
-  const diffMs = expiresAt.getTime() - now.getTime();
-  return Math.max(0, Math.ceil(diffMs / 86400000));
+/** 남은 일수 표시 문구. 오늘·지남은 공통 문구, 그 외는 호출처 키(count)를 쓴다. */
+export function daysLeftLabel(days, key) {
+  if (days == null) return "—";
+  const state = expiryState(days);
+  if (state === "today") return i18n.t("expiry.today");
+  if (state === "past") return i18n.t("expiry.past", { count: -days });
+  return i18n.t(key, { count: days });
 }
 
 /**

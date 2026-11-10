@@ -2,6 +2,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { Container, Header, StatusIndicator, Badge, Button, Table, Alert, ProgressBar, PHONE_QUERY, useMediaQuery } from "../../../design-system";
 import { monitoringService } from "../../../services/grafanaService";
+import { localDate } from "../../../utils/expiry";
 
 const GPU_METRICS_REFRESH_MS = 30_000;
 
@@ -109,9 +110,13 @@ function AdminDashboard({ onOpenContainers, onOpenErrorContainers, onOpenDetail,
   const [gpuLastUpdated, setGpuLastUpdated] = useState(null);
   const running = containers.filter((c) => c.status === "success").length;
   const errored = containers.filter((c) => c.status === "error").length;
-  // 만료일(c.expires)은 UTC 기준 YYYY-MM-DD 문자열이라 기준일도 같은 방식으로 만든다.
-  const expiringBy = new Date(Date.now() + EXPIRING_SOON_DAYS * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
-  const expiring = containers.filter((c) => c.status !== "stopped" && c.expires !== "—" && c.expires <= expiringBy).length;
+  // 만료일(c.expires)은 로컬 기준 YYYY-MM-DD 문자열이라 기준일도 같은 방식으로 만든다.
+  const now = new Date();
+  const today = localDate(now);
+  const expiringBy = localDate(new Date(now.getFullYear(), now.getMonth(), now.getDate() + EXPIRING_SOON_DAYS));
+  const live = containers.filter((c) => c.status !== "stopped" && c.expires !== "—");
+  const expiring = live.filter((c) => c.expires >= today && c.expires <= expiringBy).length;
+  const expired = live.filter((c) => c.expires < today).length;
   // 최신순(생성일 내림차순) — createdAt이 없는 항목은 맨 뒤로
   const recentContainers = [...containers].sort((a, b) => {
     const aKey = a.createdAt === "—" ? "" : a.createdAt;
@@ -132,7 +137,7 @@ function AdminDashboard({ onOpenContainers, onOpenErrorContainers, onOpenDetail,
       <div style={{ display: "grid", gridTemplateColumns: phone ? "repeat(2, minmax(0, 1fr))" : "repeat(4, minmax(0, 1fr))", gap: "var(--decs-space-m)" }}>
         <StatCard label="실행 중 컨테이너" value={running} sub={`전체 ${containers.length}건`} onClick={onOpenContainers} />
         <StatCard label="오류" value={errored} sub="즉시 조치 필요" accent="var(--decs-status-error)" onClick={onOpenErrorContainers} />
-        <StatCard label={`만료 임박 (${EXPIRING_SOON_DAYS}일)`} value={expiring} sub="연장 안내 대상" accent="var(--decs-status-warning)" onClick={onOpenContainers} />
+        <StatCard label={`만료 임박 (${EXPIRING_SOON_DAYS}일)`} value={expiring} sub={expired > 0 ? `만료 지남 ${expired}건` : "연장 안내 대상"} accent="var(--decs-status-warning)" onClick={onOpenContainers} />
         <StatCard label="등록 사용자" value={users.length} />
       </div>
 
