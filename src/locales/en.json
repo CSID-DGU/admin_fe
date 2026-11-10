@@ -85,7 +85,8 @@
     "images": "Images",
     "templates": "Message templates",
     "testPods": "Test Pods",
-    "account": "Account"
+    "account": "Account",
+    "gpuUsage": "GPU usage"
   },
   "status": {
     "running": "Running",
@@ -562,5 +563,38 @@
     "clusterStatus": "Cluster status",
     "gpuUtilDesc": "Live average GPU utilization per FARM server.",
     "noGpuData": "No GPU data was received."
+  },
+  "gpuUsage": {
+    "nav": "GPU usage",
+    "title": "GPU usage",
+    "desc": "GPU utilization per node and usage per user. Refreshes every 30 seconds.",
+    "node": "Node",
+    "allNodes": "All nodes",
+    "sumNodes": "Nodes",
+    "sumGpus": "Total GPUs",
+    "sumBusy": "GPUs in use",
+    "sumUtil": "Avg. utilization",
+    "users": "Usage by user",
+    "usersDesc": "Grouped by owner across all nodes and GPUs.",
+    "unknownOwner": "Unknown",
+    "colOwner": "Owner",
+    "colGpus": "GPUs",
+    "colMemory": "Memory",
+    "colProcs": "Processes",
+    "procCount": "{{count}}",
+    "noProcs": "-",
+    "proc": "{{node}} GPU {{index}} · {{name}} · {{memory}} · {{elapsed}}",
+    "unavailableNote": "{{count}} node(s) do not report per-process data and are not included in this table.",
+    "nodeUnavailable": "Per-process data not collected",
+    "nodeTitle": "{{name}}",
+    "nodeMeta": "{{count}} GPUs · avg {{util}}%",
+    "noUsers": "No processes are using a GPU.",
+    "empty": "No GPUs to show.",
+    "loading": "Loading...",
+    "error": "Could not load GPU usage. Please try again shortly.",
+    "notFound": "The selected node was not found.",
+    "stale": "Could not refresh; showing the previous values.",
+    "byNode": "GPUs by node",
+    "mem": "Memory"
   }
 }

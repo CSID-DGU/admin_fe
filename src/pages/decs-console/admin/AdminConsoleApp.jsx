@@ -11,6 +11,7 @@ import RequestManagementPage from "../../admin/RequestManagementPage";
 import ChangeRequestManagementPage from "../../admin/ChangeRequestManagementPage";
 import UserManagementPage from "../../admin/UserManagementPage";
 import ImageManagementPage from "../../admin/ImageManagementPage";
+import GpuUsagePage from "../../admin/GpuUsagePage";
 import TestPodPage from "../../admin/TestPodPage";
 import MessageTemplatePage from "../../admin/MessageTemplatePage";
 import donggukLogo from "../../../assets/dongguk_university_logo.svg";
@@ -48,6 +49,7 @@ function AdminConsoleApp() {
       { text: t("shell.requestManagement"), href: "/admin/requests", icon: "document-text", badge: pendingRequestCount },
       { text: t("shell.changeManagement"), href: "/admin/change-requests", icon: "arrow-path", badge: pendingChangeRequestCount },
       { text: t("shell.users"), href: "/admin/users", icon: "users" },
+      { text: t("shell.gpuUsage"), href: "/admin/gpu-usage", icon: "cpu-chip" },
       { type: "divider" },
       { type: "section", text: t("shell.system"), items: [
         { text: t("shell.images"), href: "/admin/images", icon: "folder" },
@@ -89,6 +91,7 @@ function AdminConsoleApp() {
           <Route path="requests" element={<RequestManagementPage />} />
           <Route path="change-requests" element={<ChangeRequestManagementPage />} />
           <Route path="users" element={<UserManagementPage />} />
+          <Route path="gpu-usage" element={<GpuUsagePage />} />
           <Route path="images" element={<ImageManagementPage />} />
           <Route path="message-templates" element={<MessageTemplatePage />} />
           <Route path="test-pods" element={<TestPodPage containers={[...(containers ?? []), ...waitingTests]} onRefetch={refetch} onOpenDetail={(c) => navigate(`/admin/containers/${c.id}`)} />} />
@@ -111,6 +114,7 @@ function getActiveHref(pathname) {
   if (pathname.startsWith("/admin/change-requests")) return "/admin/change-requests";
   if (pathname.startsWith("/admin/requests")) return "/admin/requests";
   if (pathname.startsWith("/admin/users")) return "/admin/users";
+  if (pathname.startsWith("/admin/gpu-usage")) return "/admin/gpu-usage";
   if (pathname.startsWith("/admin/images")) return "/admin/images";
   if (pathname.startsWith("/admin/message-templates")) return "/admin/message-templates";
   if (pathname.startsWith("/admin/test-pods")) return "/admin/test-pods";
