@@ -11,16 +11,19 @@ const DECISION_COPY = {
 function RequestDecisionModal({ decision, submitting = false, onCancel, onConfirm }) {
   const [comment, setComment] = useState("");
   const [clusterId, setClusterId] = useState("");
+  const [professorApproved, setProfessorApproved] = useState(false);
 
-  // 모달이 새로 열릴 때마다 기본 사유로 되돌린다
+  // 모달이 새로 열릴 때마다 기본 사유로 되돌린다. 지도교수 승인 확인은 매번 새로 체크해야 한다.
   useEffect(() => {
     setComment(decision?.defaultComment ?? "");
     setClusterId(decision?.defaultClusterId ?? "");
+    setProfessorApproved(false);
   }, [decision]);
 
   if (!decision) return null;
 
   const copy = DECISION_COPY[decision.kind];
+  const needsProfessorApproval = decision.kind === "approve";
 
   return (
     <Modal
@@ -32,8 +35,9 @@ function RequestDecisionModal({ decision, submitting = false, onCancel, onConfir
         <Button
           variant={decision.kind === "approve" ? "primary" : "normal"}
           loading={submitting}
+          disabled={needsProfessorApproval && !professorApproved}
           style={decision.kind === "deny" ? { color: "var(--decs-status-error)", borderColor: "var(--decs-status-error)" } : undefined}
-          onClick={() => onConfirm(comment.trim() || decision.defaultComment, clusterId)}
+          onClick={() => onConfirm(comment.trim() || decision.defaultComment, clusterId, professorApproved)}
         >
           {copy.confirm}
         </Button>
@@ -41,6 +45,17 @@ function RequestDecisionModal({ decision, submitting = false, onCancel, onConfir
     >
       <div style={{ display: "flex", flexDirection: "column", gap: "var(--decs-space-l)" }}>
         {decision.warning ? <Alert type="warning">{decision.warning}</Alert> : null}
+        {needsProfessorApproval ? (
+          <label style={{ display: "flex", alignItems: "center", gap: "var(--decs-space-s)", color: "var(--decs-text-body)" }}>
+            <input
+              type="checkbox"
+              checked={professorApproved}
+              disabled={submitting}
+              onChange={(event) => setProfessorApproved(event.target.checked)}
+            />
+            지도교수 승인과 사용 기간을 확인했습니다. 승인한 관리자 계정이 신청에 기록됩니다.
+          </label>
+        ) : null}
         {decision.clusterOptions ? (
           <FormField label="배정할 클러스터" constraintText="기본값은 신청자가 고른 클러스터입니다. 노드는 고른 클러스터 안에서 자동으로 정해집니다.">
             <Select

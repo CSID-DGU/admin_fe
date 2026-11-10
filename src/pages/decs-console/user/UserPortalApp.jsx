@@ -16,6 +16,7 @@ import ResourceMonitoringPage from "../../ResourceMonitoringPage";
 import donggukLogo from "../../../assets/dongguk_university_logo.svg";
 import RoleSwitch from "../../../components/RoleSwitch";
 import SlackMembershipModal from "../../../components/SlackMembershipModal";
+import GraduationDateModal from "../../../components/GraduationDateModal";
 import { useTranslation } from "react-i18next";
 
 function UserPortalApp() {
@@ -86,6 +87,7 @@ function UserPortalApp() {
   return (
     <div style={{ height: "100vh" }}>
       <SlackMembershipModal />
+      <GraduationDateModal />
       <AppLayout
         identity={{ title: t("shell.userTitle"), href: "/user", logo: donggukLogo, onFollow: () => navigate("/user") }}
         utilities={utilities}

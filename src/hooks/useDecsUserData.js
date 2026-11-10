@@ -95,7 +95,7 @@ function buildGpuOptions(gpuTypes) {
   }));
 }
 
-function buildServerVm(dto, groupNameByGid = {}) {
+function buildServerVm(dto, groupNameByGid = {}, groupIdByGid = {}) {
   const vm = mapUserServer(dto);
   // 노드가 배정돼 있으면 "FARM1"처럼 노드 번호까지 보여 준다. 아직 없으면 서버 이름만 쓴다.
   const serverName = (dto.nodeName ?? "").toUpperCase() || (dto.resourceGroup?.serverName ?? "");
@@ -129,6 +129,8 @@ function buildServerVm(dto, groupNameByGid = {}) {
     groups: (dto.ubuntuGids ?? []).map((gid) => ({
       ubuntuGid: gid,
       groupName: groupNameByGid[String(gid)] ?? `GID ${gid}`,
+      // 그룹 탈퇴 신청에 쓴다. 그룹 목록에 없으면 신청할 수 없다.
+      groupId: groupIdByGid[String(gid)] ?? null,
     })),
   };
 }
@@ -166,6 +168,7 @@ export function useDecsUserData() {
       // 그룹명 조회를 서버 목록보다 먼저 풀어서, 신청 응답의 gid 목록(ubuntuGids)을
       // 그룹명과 짝지어 "내 컨테이너"의 소속 그룹 표시에 쓴다.
       let groupNameByGid = {};
+      let groupIdByGid = {};
       if (groupsResult.status === "fulfilled" && groupsResult.value?.status === 200) {
         const groups = getArrayData(groupsResult.value);
         if (groups) {
@@ -173,6 +176,11 @@ export function useDecsUserData() {
             groups
               .filter((g) => (g.ubuntuGid ?? g.ubuntu_gid) != null)
               .map((g) => [String(g.ubuntuGid ?? g.ubuntu_gid), g.groupName ?? g.group_name])
+          );
+          groupIdByGid = Object.fromEntries(
+            groups
+              .filter((g) => (g.ubuntuGid ?? g.ubuntu_gid) != null)
+              .map((g) => [String(g.ubuntuGid ?? g.ubuntu_gid), g.groupId ?? g.group_id])
           );
           setGroupOptions(groups.map(toGroupOption).filter((g) => g.value !== "undefined"));
         } else {
@@ -188,7 +196,7 @@ export function useDecsUserData() {
           // 만료 임박 순 — 대시보드 단일 카드와 만료 경고는 가장 급한 컨테이너 기준
           setServers(
             serverDtos
-              .map((dto) => buildServerVm(dto, groupNameByGid))
+              .map((dto) => buildServerVm(dto, groupNameByGid, groupIdByGid))
               .sort((a, b) => a.daysLeft - b.daysLeft)
           );
         } else {

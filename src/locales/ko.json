@@ -30,6 +30,9 @@
     "contactEmail": "자주 사용하는 이메일",
     "contactEmailHelp": "Slack에 가입한 이메일을 입력하시기 바랍니다. 학교 이메일로 가입했다면 학교 이메일과 같게 입력하거나 비워 두면 됩니다.",
     "contactEmailInvalid": "이메일 형식이 올바르지 않습니다.",
+    "expectedGraduationDate": "졸업 예정일",
+    "expectedGraduationDateHelp": "졸업 예정일 + 30일이 지나면 계정이 비활성화됩니다. 졸업이 미뤄지면 접속해서 다시 입력할 수 있습니다.",
+    "expectedGraduationDatePast": "오늘 이후의 날짜를 입력하시기 바랍니다.",
     "verificationCode": "인증번호",
     "login": "로그인",
     "signup": "회원가입",
@@ -269,6 +272,12 @@
     "period": "사용 기간",
     "daysLeft_other": "{{count}}일 남음",
     "groups": "그룹",
+    "leaveGroup": "탈퇴 신청",
+    "leaveTitle": "{{name}} 그룹 탈퇴를 신청할까요?",
+    "leaveBody": "관리자가 승인하면 이 그룹에서 빠지고, 그룹 권한으로 공유받던 폴더에 접근할 수 없게 됩니다. 이미 있는 파일은 지워지지 않습니다.",
+    "leaveConfirm": "탈퇴 신청",
+    "leaveRequested": "{{name}} 그룹 탈퇴를 신청했습니다. 관리자가 승인하면 반영됩니다.",
+    "leaveFailed": "탈퇴 신청에 실패했습니다. 잠시 후 다시 시도하시기 바랍니다.",
     "groupsDesc": "홈 디렉터리 아래의 디렉터리를 공유할 수 있는 그룹입니다. 그룹 추가는 왼쪽 메뉴의 변경 요청에서 가능합니다.",
     "noGroups": "소속된 공유 그룹이 없습니다.",
     "shareHint": "디렉터리 공유: <code>group-dir-share ~/&lt;디렉터리&gt; &lt;그룹&gt;</code> 실행 후, 팀원은 <code>/home/&lt;계정 이름&gt;/&lt;디렉터리&gt;</code>로 접근합니다.",
@@ -428,6 +437,12 @@
     "approvedDoneOn": "승인 완료: {{date}}",
     "deniedOn": "거절: {{date}}",
     "adminComment": "관리자 의견"
+  },
+  "graduationModal": {
+    "title": "졸업 예정일을 입력해 주세요",
+    "body": "졸업 예정일 + 30일이 지나면 계정이 비활성화됩니다. 입력하지 않으면 마지막 컨테이너를 쓴 지 1년이 지난 뒤에 비활성화됩니다.",
+    "help": "졸업이 미뤄지면 접속해서 언제든 다시 입력할 수 있습니다.",
+    "later": "나중에"
   },
   "slackModal": {
     "title": "Slack에서 회원님을 찾지 못했습니다",
