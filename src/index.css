@@ -31,6 +31,8 @@
     height: 100%;
     font-family: var(--decs-font-base);
     line-height: 1.5;
+    word-break: keep-all;
+    overflow-wrap: anywhere;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }

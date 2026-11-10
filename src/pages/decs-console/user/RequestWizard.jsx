@@ -5,6 +5,7 @@ import { Wizard, Modal, Cards, FormField, Select, Input, KeyValuePairs, Alert, C
 import { requestService } from "../../../services/requestService";
 import { authService } from "../../../services/authService";
 import { toGroupOption } from "../../../utils/groupOption";
+import { isWizardDirty } from "../../../utils/wizardDirty";
 
 const GROUP_NAME_PATTERN = /^[a-z_][a-z0-9_-]*$/;
 // BE(SaveRequestRequestDTO.usagePurpose)와 같은 한도. 승인자가 이 글만 보고 판단하므로 최소 길이를 둔다.
@@ -58,6 +59,14 @@ function RequestWizard({ onCancel, onDone, gpuOptions: gpuOptionsProp, envOption
   const [portError, setPortError] = React.useState(null);
   const [clusterNoticeStep, setClusterNoticeStep] = React.useState(null);
   const [slackUnverified, setSlackUnverified] = React.useState(false);
+  const [leaveConfirmOpen, setLeaveConfirmOpen] = React.useState(false);
+  const initialExpiresDate = React.useRef(expiresDate).current;
+  const handleCancel = () => {
+    // env는 마운트 뒤 첫 옵션으로 자동 선택되므로 그 값을 초기값으로 본다.
+    const initial = { purpose: "", selectedServer: "", gpu: [], expiresDate: initialExpiresDate, env: envOptions.length > 0 ? String(envOptions[0].value) : "", selectedGroups: [], createdGroups: [], newGroupName: "", teamInfo: "", portNumber: "", portPurpose: "", portRequests: [] };
+    const current = { purpose, selectedServer, gpu, expiresDate, env, selectedGroups, createdGroups, newGroupName, teamInfo, portNumber, portPurpose, portRequests };
+    if (isWizardDirty(initial, current)) setLeaveConfirmOpen(true); else onCancel();
+  };
 
   const gpuOptions = React.useMemo(() => gpuOptionsProp ?? [], [gpuOptionsProp]);
   const envOptions = React.useMemo(() => envOptionsProp ?? [], [envOptionsProp]);
@@ -302,7 +311,7 @@ function RequestWizard({ onCancel, onDone, gpuOptions: gpuOptionsProp, envOption
       description: t("wizard.stepPeriodDesc"),
       content: (
         <div style={{ maxWidth: 420, display: "flex", flexDirection: "column", gap: "var(--decs-space-m)" }}>
-          <FormField label={t("wizard.endDate")} errorText={stepErrors.period} constraintText={t("wizard.endDateHelp")}>
+          <FormField label={t("wizard.endDate")} errorText={stepErrors.period} constraintText={`${t("wizard.endDateHelp")} ${t("expiry.retention")}`}>
             <Input
               value={expiresDate}
               onChange={(value) => { setExpiresDate(value); setStepErrors((prev) => ({ ...prev, period: null })); }}
@@ -463,7 +472,7 @@ function RequestWizard({ onCancel, onDone, gpuOptions: gpuOptionsProp, envOption
       {slackUnverified ? <div style={{ marginBottom: "var(--decs-space-m)" }}><Alert type="warning" header={t("wizard.slackTitle")}>{t("wizard.slackBody")}</Alert></div> : null}
       {error ? <div style={{ marginBottom: "var(--decs-space-m)" }}><Alert type="error">{error}</Alert></div> : null}
       <Container>
-        <Wizard steps={steps} activeStepIndex={step} onNavigate={handleNavigate} onCancel={onCancel} onSubmit={submit} submitLabel={t("wizard.submit")} isLoadingNextStep={submitting} />
+        <Wizard steps={steps} activeStepIndex={step} onNavigate={handleNavigate} onCancel={handleCancel} onSubmit={submit} submitLabel={t("wizard.submit")} isLoadingNextStep={submitting} />
       </Container>
       <Modal
         visible={clusterNoticeStep !== null}
@@ -472,6 +481,14 @@ function RequestWizard({ onCancel, onDone, gpuOptions: gpuOptionsProp, envOption
         footer={<Button variant="primary" onClick={() => { setStep(clusterNoticeStep); setClusterNoticeStep(null); }}>{t("common.confirm")}</Button>}
       >
         {t("wizard.clusterNoticeBody")}
+      </Modal>
+      <Modal
+        visible={leaveConfirmOpen}
+        onDismiss={() => setLeaveConfirmOpen(false)}
+        header={t("wizard.leaveTitle")}
+        footer={<><Button onClick={() => setLeaveConfirmOpen(false)}>{t("wizard.leaveKeep")}</Button><Button variant="primary" onClick={onCancel}>{t("wizard.leaveConfirm")}</Button></>}
+      >
+        {t("wizard.leaveBody")}
       </Modal>
     </div>
   );

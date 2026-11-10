@@ -3,6 +3,8 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Container, Header, Button, StatusIndicator, Badge, Alert, KeyValuePairs, Modal, PHONE_QUERY, useMediaQuery } from "../../../design-system";
 import { formatWarningTime } from "../../../services/warningService";
+import { pendingSummaryParts } from "../../../utils/pendingRequest";
+import { daysLeftLabel } from "../../../utils/decsMapper";
 
 const ACTIVITY_STATUS_TYPE = {
   PENDING: "pending",
@@ -52,10 +54,10 @@ function BigStatus({ onConnect, onExtend, server }) {
         </div>
         <div style={{ textAlign: "right" }}>
           <div style={{ fontSize: "var(--decs-fs-body-m)", color: "var(--decs-text-secondary)" }}>{t("dashboard.timeLeft")}</div>
-          <div style={{ fontSize: "var(--decs-fs-heading-xl)", fontWeight: 700, color: "var(--decs-text-heading)" }}>{t("dashboard.days", { count: server.daysLeft })}</div>
+          <div style={{ fontSize: "var(--decs-fs-heading-xl)", fontWeight: 700, color: "var(--decs-text-heading)" }}>{daysLeftLabel(server.daysLeft, "dashboard.days")}</div>
         </div>
       </div>
-      <div style={{ display: "flex", gap: "var(--decs-space-s)", marginTop: "var(--decs-space-l)" }}>
+      <div style={{ display: "flex", flexWrap: "wrap", gap: "var(--decs-space-s)", marginTop: "var(--decs-space-l)" }}>
         <Button variant="primary" iconName="arrow-up-right" onClick={onConnect}>{t("dashboard.connect")}</Button>
         <Button variant="normal" iconName="calendar" onClick={onExtend}>{t("dashboard.extend")}</Button>
       </div>
@@ -86,7 +88,7 @@ function WarningNotice({ warnings }) {
   return null;
 }
 
-function UserDashboard({ onRequest, onConnect, onExtend, userName, server, expiryDays, activities = [], warnings }) {
+function UserDashboard({ onRequest, onConnect, onExtend, userName, server, expiryDays, activities = [], warnings, pendingRequest, onViewRequests }) {
   const { t } = useTranslation();
   const phone = useMediaQuery(PHONE_QUERY);
   const [selectedActivity, setSelectedActivity] = useState(null);
@@ -97,13 +99,25 @@ function UserDashboard({ onRequest, onConnect, onExtend, userName, server, expir
 
       <WarningNotice warnings={warnings} />
 
-      {expiryDays != null ? (<Alert type="warning" header={t("dashboard.expiryHeader", { count: expiryDays })} action={<Button variant="normal" onClick={onExtend}>{t("dashboard.extendShort")}</Button>}>
+      {expiryDays != null ? (<Alert type="warning" header={expiryDays < 0 ? t("dashboard.expiryHeaderPast", { count: -expiryDays }) : expiryDays === 0 ? t("dashboard.expiryHeaderToday") : t("dashboard.expiryHeader", { count: expiryDays })} action={<Button variant="normal" onClick={onExtend}>{t("dashboard.extendShort")}</Button>}>
         {t("dashboard.expiryBody")}
       </Alert>) : null}
 
+      {pendingRequest ? (
+        <Container>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "var(--decs-space-m)" }}>
+            <div>
+              <div style={{ fontSize: "var(--decs-fs-body-s)", color: "var(--decs-text-inactive)", marginBottom: "var(--decs-space-xxxs)" }}>{t("dashboard.pendingTitle")}</div>
+              <div style={{ fontSize: "var(--decs-fs-body-l)", fontWeight: 700, color: "var(--decs-text-heading)" }}>{pendingSummaryParts(pendingRequest).join(" · ")}</div>
+            </div>
+            <Button variant="primary" onClick={onViewRequests}>{t("dashboard.viewRequests")}</Button>
+          </div>
+        </Container>
+      ) : null}
+
       {server ? (
         <BigStatus onConnect={onConnect} onExtend={onExtend} server={server} />
-      ) : (
+      ) : pendingRequest ? null : (
         <Container>
           <div style={{ color: "var(--decs-text-secondary)", fontSize: "var(--decs-fs-body-m)", padding: "var(--decs-space-xl) 0", textAlign: "center" }}>
             {t("dashboard.empty")}
@@ -111,12 +125,12 @@ function UserDashboard({ onRequest, onConnect, onExtend, userName, server, expir
         </Container>
       )}
 
-      <div style={{ display: "grid", gridTemplateColumns: phone ? "minmax(0, 1fr)" : "1fr 1fr", gap: "var(--decs-space-m)" }}>
-        <div style={{ background: "var(--decs-surface-container)", border: "1px dashed var(--decs-brand-300)", borderRadius: "var(--decs-radius-container)", padding: "var(--decs-space-xl)", textAlign: "center" }}>
+      <div style={{ display: "grid", gridTemplateColumns: phone || pendingRequest ? "minmax(0, 1fr)" : "1fr 1fr", gap: "var(--decs-space-m)" }}>
+        {pendingRequest ? null : <div style={{ background: "var(--decs-surface-container)", border: "1px dashed var(--decs-brand-300)", borderRadius: "var(--decs-radius-container)", padding: "var(--decs-space-xl)", textAlign: "center" }}>
           <div style={{ fontSize: "var(--decs-fs-body-l)", fontWeight: 700, color: "var(--decs-text-heading)" }}>{t("dashboard.needGpuTitle")}</div>
           <div style={{ fontSize: "var(--decs-fs-body-m)", color: "var(--decs-text-secondary)", margin: "var(--decs-space-xxs) 0 var(--decs-space-m)" }}>{t("dashboard.needGpuBody")}</div>
           <Button variant="primary" iconName="plus" onClick={onRequest}>{t("dashboard.requestGpu")}</Button>
-        </div>
+        </div>}
         <Container header={<Header variant="h2">{t("dashboard.recentActivity")}</Header>}>
           {activities.length === 0 ? (
             <div style={{ color: "var(--decs-text-secondary)", fontSize: "var(--decs-fs-body-s)", padding: "var(--decs-space-xs) 0" }}>

@@ -4,6 +4,7 @@ import i18n from "../i18n";
 import { requestService } from "../services/requestService";
 import { mapUserServer, mapPodStatus, daysLeft } from "../utils/decsMapper";
 import { toGroupOption } from "../utils/groupOption";
+import { pickPendingRequest } from "../utils/pendingRequest";
 
 
 function getArrayData(res) {
@@ -135,13 +136,10 @@ function buildServerVm(dto, groupNameByGid = {}, groupIdByGid = {}) {
   };
 }
 
-// 승인·거절이 아직 정해지지 않은 신청 상태. 이런 신청이 있으면 서버가 새 신청을 받지 않는다.
-const AWAITING_STATUSES = ["PENDING", "PROCESSING"];
-
 export function useDecsUserData() {
   const [servers, setServers] = useState(undefined);
   const [activities, setActivities] = useState(undefined);
-  const [awaitingRequestId, setAwaitingRequestId] = useState(undefined);
+  const [awaitingRequest, setAwaitingRequest] = useState(undefined);
   const [gpuOptions, setGpuOptions] = useState(undefined);
   const [envOptions, setEnvOptions] = useState(undefined);
   const [groupOptions, setGroupOptions] = useState(undefined);
@@ -209,9 +207,8 @@ export function useDecsUserData() {
       if (requestsResult.status === "fulfilled" && requestsResult.value?.status === 200) {
         const requests = getArrayData(requestsResult.value);
         if (requests) {
-          setAwaitingRequestId(
-            requests.find((request) => AWAITING_STATUSES.includes(request.status))?.requestId ?? null
-          );
+          const awaiting = pickPendingRequest(requests);
+          setAwaitingRequest(awaiting ? mapActivity(awaiting) : null);
           setActivities(
             [...requests]
               .sort((a, b) => {
@@ -278,7 +275,9 @@ export function useDecsUserData() {
       ? server.daysLeft
       : null;
 
+  const awaitingRequestId = awaitingRequest ? awaitingRequest.requestId : awaitingRequest;
+
   const refetch = () => setReloadKey((key) => key + 1);
 
-  return { server, servers, expiryDays, activities, awaitingRequestId, gpuOptions, envOptions, groupOptions, error, refetch };
+  return { server, servers, expiryDays, activities, awaitingRequest, awaitingRequestId, gpuOptions, envOptions, groupOptions, error, refetch };
 }

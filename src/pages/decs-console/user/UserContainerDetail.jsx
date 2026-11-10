@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Trans, useTranslation } from "react-i18next";
 import { Container, Header, KeyValuePairs, StatusIndicator, Button, Alert, ExpandableSection, Badge, Modal } from "../../../design-system";
 import MyGpuUsage from "../../../components/MyGpuUsage";
+import { daysLeftLabel } from "../../../utils/decsMapper";
 import RestartContainerModal from "../../../components/RestartContainerModal";
 import { requestService } from "../../../services/requestService";
 
@@ -138,8 +139,9 @@ function UserContainerDetail({ onBack, onRestarted, servers = [] }) {
       <MyGpuUsage key={server.requestId} requestId={server.requestId} running={server.statusType === "success"} />
 
       <Container header={<Header variant="h2">{t("container.period")}</Header>}>
-        <div style={{ fontSize: "var(--decs-fs-heading-xl)", fontWeight: 700, color: "var(--decs-text-heading)" }}>{t("container.daysLeft", { count: server.daysLeft })}</div>
+        <div style={{ fontSize: "var(--decs-fs-heading-xl)", fontWeight: 700, color: "var(--decs-text-heading)" }}>{daysLeftLabel(server.daysLeft, "container.daysLeft")}</div>
         <div style={{ color: "var(--decs-text-secondary)", fontSize: "var(--decs-fs-body-m)", marginTop: 4 }}>{server.expiresText}</div>
+        <div style={{ color: "var(--decs-text-secondary)", fontSize: "var(--decs-fs-body-s)", marginTop: 8 }}>{t("expiry.retention")}</div>
       </Container>
 
       <Container header={<Header variant="h2" description={t("container.groupsDesc")}>{t("container.groups")}</Header>}>
