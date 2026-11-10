@@ -34,7 +34,7 @@ const APPROVAL_BLOCK_REASON = {
 // 컨테이너를 새로 만드는 경우는 새 컨텍스트라 즉시 반영된다.
 const APPROVAL_DELAY_NOTE = {
   GROUP: "그룹 변경은 이미 실행 중인 컨테이너에 최대 약 30분 뒤에 반영됩니다. 새로 만드는 컨테이너는 즉시 반영됩니다.",
-  PASSWORD: "웹 로그인과 SSH(Ubuntu 계정) 비밀번호가 함께 바뀝니다. 신청자가 가입한 메일로 본인 확인을 마친 요청이고, 적용되면 신청자의 기존 로그인은 끊깁니다.",
+  PASSWORD: "웹 로그인과 SSH(서버 계정) 비밀번호가 함께 바뀝니다. 신청자가 가입한 메일로 본인 확인을 마친 요청이고, 적용되면 신청자의 기존 로그인은 끊깁니다.",
 };
 
 const POLL_MS = 3000;
@@ -680,7 +680,7 @@ const ChangeRequestManagementPage = () => {
                       value: `${sel.originalRequest.imageName}:${sel.originalRequest.imageVersion}`,
                     },
                     {
-                      label: "Ubuntu 계정",
+                      label: "서버 계정",
                       value: sel.originalRequest.ubuntuUsername,
                     },
                     {
