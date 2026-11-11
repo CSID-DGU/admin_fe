@@ -303,7 +303,7 @@
     "daysLeft_other": "{{count}}일 남음",
     "groups": "그룹",
     "leaveGroup": "탈퇴 신청",
-    "leaveTitle": "{{name}} 그룹 탈퇴를 신청할까요?",
+    "leaveTitle": "{{name}} 그룹 탈퇴를 신청하시겠습니까?",
     "leaveBody": "관리자가 승인하면 이 그룹에서 빠지고, 그룹 권한으로 공유받던 폴더에 접근할 수 없게 됩니다. 이미 있는 파일은 지워지지 않습니다.",
     "leaveConfirm": "탈퇴 신청",
     "leaveRequested": "{{name}} 그룹 탈퇴를 신청했습니다. 관리자가 승인하면 반영됩니다.",

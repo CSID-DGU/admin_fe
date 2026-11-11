@@ -1,9 +1,9 @@
 // UserContainerDetail — 접속·상태 이해 (친절한 문구 + 복사 가능한 접속 정보)
 import { useState } from "react";
 import { Trans, useTranslation } from "react-i18next";
+import { daysLeftLabel } from "../../../utils/decsMapper";
 import { Container, Header, KeyValuePairs, StatusIndicator, Button, Alert, ExpandableSection, Badge, Modal } from "../../../design-system";
 import MyGpuUsage from "../../../components/MyGpuUsage";
-import { daysLeftLabel } from "../../../utils/decsMapper";
 import RestartContainerModal from "../../../components/RestartContainerModal";
 import { requestService } from "../../../services/requestService";
 
