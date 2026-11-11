@@ -36,15 +36,21 @@ function groupByOwner(nodes) {
       for (const p of gpu.processes ?? []) {
         const name = p.ownerName || p.ubuntuUsername || null;
         const key = p.userId != null ? `u${p.userId}` : name ?? UNKNOWN;
-        const row = map.get(key) ?? { key, name, gpuKeys: new Set(), memory: 0, procs: [] };
+        const row = map.get(key) ?? { key, name, gpuKeys: new Set(), memory: 0, ramByContainer: new Map(), procs: [] };
         row.gpuKeys.add(`${node.nodeName}/${gpu.index}`);
         row.memory += num(p.memoryUsedMiB);
+        // 컨테이너 RAM은 같은 컨테이너의 프로세스 행마다 같은 값이 오므로 컨테이너별로 한 번만 센다.
+        if (p.containerRamMiB != null && p.containerId) row.ramByContainer.set(`${node.nodeName}/${p.containerId}`, num(p.containerRamMiB));
         row.procs.push({ ...p, nodeName: node.nodeName, gpuIndex: gpu.index });
         map.set(key, row);
       }
     }
   }
-  return [...map.values()].map((r) => ({ ...r, gpus: r.gpuKeys.size }));
+  return [...map.values()].map((r) => ({
+    ...r,
+    gpus: r.gpuKeys.size,
+    ram: r.ramByContainer.size ? [...r.ramByContainer.values()].reduce((s, v) => s + v, 0) : null,
+  }));
 }
 
 function GpuTile({ gpu }) {
@@ -150,8 +156,8 @@ export default function GpuUsagePage() {
     return list.sort((a, b) => {
       // 미확인 행은 정렬 방향과 상관없이 맨 아래에 둔다.
       if ((a.key === UNKNOWN) !== (b.key === UNKNOWN)) return a.key === UNKNOWN ? 1 : -1;
-      const av = sort.field === "label" ? a.label : a[sort.field];
-      const bv = sort.field === "label" ? b.label : b[sort.field];
+      const av = sort.field === "label" ? a.label : a[sort.field] ?? -1;
+      const bv = sort.field === "label" ? b.label : b[sort.field] ?? -1;
       return (typeof av === "string" ? av.localeCompare(bv) : av - bv) * dir || a.label.localeCompare(b.label);
     });
   }, [nodes, sort, t]);
@@ -180,6 +186,7 @@ export default function GpuUsagePage() {
     { id: "label", header: t("gpuUsage.colOwner"), sortingField: "label", cell: phone ? (r) => <>{ownerCell(r)}<div style={small}>{procList(r)}</div></> : ownerCell },
     { id: "gpus", header: t("gpuUsage.colGpus"), sortingField: "gpus", cell: (r) => <span style={num_}>{r.gpus}</span> },
     { id: "memory", header: t("gpuUsage.colMemory"), sortingField: "memory", cell: (r) => <span style={num_}>{formatMiB(r.memory)}</span> },
+    { id: "ram", header: t("gpuUsage.colRam"), sortingField: "ram", cell: (r) => <span style={num_}>{r.ram == null ? "—" : formatMiB(r.ram)}</span> },
     ...(phone ? [] : [{ id: "procCount", header: t("gpuUsage.colProcs"), sortingField: "procCount", cell: procList }]),
   ];
 
