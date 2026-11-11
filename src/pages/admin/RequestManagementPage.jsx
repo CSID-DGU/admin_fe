@@ -274,7 +274,7 @@ const RequestManagementPage = () => {
     return () => observer.disconnect();
   }, [hasMore, filteredRequests.length]);
 
-  const handleStatusUpdate = async (request, newStatus, comment = "", resourceGroupId = request.rsgroup_id) => {
+  const handleStatusUpdate = async (request, newStatus, comment = "", resourceGroupId = request.rsgroup_id, professorApprovalConfirmed = false) => {
     if (processingRequestId !== null) return;
     setProcessingRequestId(request.request_id);
     try {
@@ -286,6 +286,7 @@ const RequestManagementPage = () => {
           imageId: request.image_id,
           resourceGroupId,
           adminComment: comment,
+          professorApprovalConfirmed,
         });
       } else if (newStatus === "DENIED") {
         // 거절 API 호출
@@ -413,10 +414,10 @@ const RequestManagementPage = () => {
     });
   };
 
-  const confirmDecision = (comment, clusterId) => {
+  const confirmDecision = (comment, clusterId, professorApprovalConfirmed) => {
     const { kind, request } = decision;
     setDecision(null);
-    handleStatusUpdate(request, kind === "approve" ? "FULFILLED" : "DENIED", comment, clusterId ? Number(clusterId) : request.rsgroup_id);
+    handleStatusUpdate(request, kind === "approve" ? "FULFILLED" : "DENIED", comment, clusterId ? Number(clusterId) : request.rsgroup_id, professorApprovalConfirmed);
   };
 
   const formatDate = (dateString) => {

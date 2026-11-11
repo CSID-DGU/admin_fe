@@ -3,6 +3,7 @@ import userService from "../../services/userService";
 import UserGroupsModal from "./UserGroupsModal";
 import PasswordResetModal from "./PasswordResetModal";
 import UserWarningsModal from "./UserWarningsModal";
+import GroupLeaveRequestsPanel from "./GroupLeaveRequestsPanel";
 import {
   Alert,
   Badge,
@@ -17,6 +18,13 @@ import {
   StatusIndicator,
   Table,
 } from "../../design-system";
+
+// 백엔드가 이미 내려주는 ubuntuAccountStatus(NONE·ACTIVE·RELEASING)를 그대로 보여 준다.
+const UBUNTU_ACCOUNT_LABELS = {
+  ACTIVE: { type: "success", text: "있음" },
+  RELEASING: { type: "in-progress", text: "회수 중" },
+  NONE: { type: "stopped", text: "없음" },
+};
 
 const UserManagementPage = () => {
   const [users, setUsers] = useState([]);
@@ -227,6 +235,14 @@ const UserManagementPage = () => {
       ),
     },
     {
+      id: "ubuntuAccount",
+      header: "서버 계정",
+      cell: (user) => {
+        const account = UBUNTU_ACCOUNT_LABELS[user.ubuntuAccountStatus] ?? UBUNTU_ACCOUNT_LABELS.NONE;
+        return <StatusIndicator type={account.type}>{account.text}</StatusIndicator>;
+      },
+    },
+    {
       id: "createdAt",
       header: "가입일",
       cell: (user) => formatDate(user.createdAt),
@@ -258,6 +274,8 @@ const UserManagementPage = () => {
       >
         사용자 관리
       </Header>
+
+      <GroupLeaveRequestsPanel />
 
       {/* 알림 */}
       {alert && (

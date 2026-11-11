@@ -1,8 +1,9 @@
 // UserContainerDetail — 접속·상태 이해 (친절한 문구 + 복사 가능한 접속 정보)
 import { useState } from "react";
 import { Trans, useTranslation } from "react-i18next";
-import { Container, Header, KeyValuePairs, StatusIndicator, Button, Alert, ExpandableSection, Badge, PHONE_QUERY, useMediaQuery } from "../../../design-system";
 import { daysLeftLabel } from "../../../utils/decsMapper";
+import { Container, Header, KeyValuePairs, StatusIndicator, Button, Alert, ExpandableSection, Badge, Modal } from "../../../design-system";
+import MyGpuUsage from "../../../components/MyGpuUsage";
 import RestartContainerModal from "../../../components/RestartContainerModal";
 import { requestService } from "../../../services/requestService";
 
@@ -11,10 +12,26 @@ const CONTACT_FORM_URL = "https://forms.gle/nACaxj2UeJF56V2i7";
 // 기간 연장·그룹 추가·포트 변경은 여기서 내지 않는다 — 사이드바의 변경 요청 화면 한 곳에서 낸다.
 function UserContainerDetail({ onBack, onRestarted, servers = [] }) {
   const { t } = useTranslation();
-  const phone = useMediaQuery(PHONE_QUERY);
   const [selectedId, setSelectedId] = useState(null);
   const [restartOpen, setRestartOpen] = useState(false);
   const [restartNotice, setRestartNotice] = useState(null);
+  const [leaving, setLeaving] = useState(null);
+  const [leaveBusy, setLeaveBusy] = useState(false);
+  const [leaveNotice, setLeaveNotice] = useState(null);
+
+  // 탈퇴는 관리자가 승인해야 반영된다. 신청만 접수하고, 결과는 안내 문구로 알린다.
+  const requestLeave = async () => {
+    setLeaveBusy(true);
+    try {
+      await requestService.createGroupLeaveRequest(leaving.groupId);
+      setLeaveNotice({ type: "success", text: t("container.leaveRequested", { name: leaving.groupName }) });
+    } catch (e) {
+      setLeaveNotice({ type: "error", text: e?.status && e.message ? e.message : t("container.leaveFailed") });
+    } finally {
+      setLeaveBusy(false);
+      setLeaving(null);
+    }
+  };
 
   const server = servers.find((s) => s.requestId === selectedId) ?? servers[0];
 
@@ -49,7 +66,8 @@ function UserContainerDetail({ onBack, onRestarted, servers = [] }) {
 
       {servers.length > 1 ? (
         <Container header={<Header variant="h2" description={t("container.listDesc")}>{t("container.listTitle")}</Header>}>
-          <div style={{ display: "flex", flexDirection: "column", gap: "var(--decs-space-s)" }}>
+          {/* 컨테이너 하나를 한 행으로 둬 여러 개를 세로로 훑어 비교한다. 카드마다 세로로 길게 늘어지지 않는다. */}
+          <div style={{ display: "flex", flexDirection: "column", gap: "var(--decs-space-xs)" }}>
             {servers.map((item) => (
               <div
                 key={item.requestId}
@@ -58,18 +76,18 @@ function UserContainerDetail({ onBack, onRestarted, servers = [] }) {
                 onClick={() => setSelectedId(item.requestId)}
                 onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") setSelectedId(item.requestId); }}
                 style={{
-                  display: "flex", justifyContent: "space-between", alignItems: "center",
-                  padding: "var(--decs-space-s) var(--decs-space-m)", cursor: "pointer",
+                  display: "grid", gridTemplateColumns: "minmax(0, 1fr) auto", alignItems: "center", gap: "var(--decs-space-s)",
+                  minHeight: 44, minWidth: 0, padding: "var(--decs-space-xs) var(--decs-space-s)", cursor: "pointer",
                   borderRadius: "var(--decs-radius-input)",
                   border: item.requestId === server.requestId
                     ? "2px solid var(--decs-brand-300)"
                     : "1px solid var(--decs-border-container)",
                 }}
               >
-                <div>
+                <div style={{ minWidth: 0 }}>
                   {/* 제목은 서버와 SSH 포트(useDecsUserData의 jobTitle) — 컨테이너마다 다른 값은 포트뿐이다 */}
-                  <div style={{ fontWeight: 600, color: "var(--decs-text-heading)" }}>{item.jobTitle}</div>
-                  <div style={{ fontSize: "var(--decs-fs-body-s)", color: "var(--decs-text-secondary)" }}>
+                  <div style={{ fontWeight: 600, color: "var(--decs-text-heading)", overflowWrap: "anywhere" }}>{item.jobTitle}</div>
+                  <div style={{ fontSize: "var(--decs-fs-body-s)", color: "var(--decs-text-secondary)", overflowWrap: "anywhere" }}>
                     {item.resourceGroupName} · {item.expiresText}
                   </div>
                 </div>
@@ -118,24 +136,24 @@ function UserContainerDetail({ onBack, onRestarted, servers = [] }) {
         ) : null}
       </Container>
 
-      <div style={{ display: "grid", gridTemplateColumns: phone ? "minmax(0, 1fr)" : "1fr 1fr", gap: "var(--decs-space-m)" }}>
-        <Container header={<Header variant="h2">{t("container.usage")}</Header>}>
-          <div style={{ color: "var(--decs-text-secondary)", fontSize: "var(--decs-fs-body-s)", padding: "var(--decs-space-m) 0", textAlign: "center" }}>
-            {t("container.usageTodo")}
-          </div>
-        </Container>
-        <Container header={<Header variant="h2">{t("container.period")}</Header>}>
-          <div style={{ fontSize: "var(--decs-fs-heading-xl)", fontWeight: 700, color: "var(--decs-text-heading)" }}>{daysLeftLabel(server.daysLeft, "container.daysLeft")}</div>
-          <div style={{ color: "var(--decs-text-secondary)", fontSize: "var(--decs-fs-body-m)", marginTop: 4 }}>{server.expiresText}</div>
-          <div style={{ color: "var(--decs-text-secondary)", fontSize: "var(--decs-fs-body-s)", marginTop: 8 }}>{t("expiry.retention")}</div>
-        </Container>
-      </div>
+      <MyGpuUsage key={server.requestId} requestId={server.requestId} running={server.statusType === "success"} />
+
+      <Container header={<Header variant="h2">{t("container.period")}</Header>}>
+        <div style={{ fontSize: "var(--decs-fs-heading-xl)", fontWeight: 700, color: "var(--decs-text-heading)" }}>{daysLeftLabel(server.daysLeft, "container.daysLeft")}</div>
+        <div style={{ color: "var(--decs-text-secondary)", fontSize: "var(--decs-fs-body-m)", marginTop: 4 }}>{server.expiresText}</div>
+        <div style={{ color: "var(--decs-text-secondary)", fontSize: "var(--decs-fs-body-s)", marginTop: 8 }}>{t("expiry.retention")}</div>
+      </Container>
 
       <Container header={<Header variant="h2" description={t("container.groupsDesc")}>{t("container.groups")}</Header>}>
         {(server.groups ?? []).length > 0 ? (
           <div style={{ display: "flex", flexWrap: "wrap", gap: "var(--decs-space-xs)" }}>
             {server.groups.map((group) => (
-              <Badge key={group.ubuntuGid} color="grey">{group.groupName}</Badge>
+              <span key={group.ubuntuGid} style={{ display: "inline-flex", alignItems: "center", gap: "var(--decs-space-xxs)" }}>
+                <Badge color="grey">{group.groupName}</Badge>
+                {group.groupId != null ? (
+                  <Button variant="inline-link" onClick={() => setLeaving(group)}>{t("container.leaveGroup")}</Button>
+                ) : null}
+              </span>
             ))}
           </div>
         ) : (
@@ -143,6 +161,19 @@ function UserContainerDetail({ onBack, onRestarted, servers = [] }) {
             {t("container.noGroups")}
           </div>
         )}
+        {leaveNotice ? (
+          <div style={{ marginTop: "var(--decs-space-s)" }}>
+            <Alert type={leaveNotice.type} dismissible onDismiss={() => setLeaveNotice(null)}>{leaveNotice.text}</Alert>
+          </div>
+        ) : null}
+        <Modal
+          visible={leaving != null}
+          onDismiss={() => !leaveBusy && setLeaving(null)}
+          header={t("container.leaveTitle", { name: leaving?.groupName ?? "" })}
+          footer={<><Button disabled={leaveBusy} onClick={() => setLeaving(null)}>{t("common.cancel")}</Button><Button variant="primary" loading={leaveBusy} onClick={requestLeave}>{t("container.leaveConfirm")}</Button></>}
+        >
+          {t("container.leaveBody")}
+        </Modal>
         {/* 팀 디렉터리는 따로 만들지 않는다. 홈은 711(남은 지나가기만)이라, 홈 아래 폴더의 그룹을 팀 그룹으로
             바꾸면 그 팀원만 그룹 권한으로 들어온다. 컨테이너의 group-dir-share 가 그룹·권한을 한 번에 맞춘다. */}
         {(server.groups ?? []).length > 0 ? (
