@@ -11,6 +11,7 @@ import {
   StatusIndicator,
   Table,
 } from '../../design-system';
+import { extractPlaceholders } from '../../utils/placeholders';
 
 const CATEGORIES = [
   { label: '만료 알림', prefixes: ['notification.expired', 'notification.pre-expiry'] },
@@ -20,6 +21,8 @@ const CATEGORIES = [
   { label: '사용자 관리', prefixes: ['notification.user'] },
   { label: '시스템', prefixes: ['notification.monitor', 'notification.error'] },
 ];
+
+const formatPlaceholders = (text) => extractPlaceholders(text).map((n) => `{${n}}`).join(', ') || '없음';
 
 const MessageTemplatePage = () => {
   const [templates, setTemplates] = useState([]);
@@ -122,6 +125,12 @@ const MessageTemplatePage = () => {
       ),
     },
     {
+      id: 'placeholders',
+      header: '자리표시자',
+      width: '120px',
+      cell: (t) => formatPlaceholders(t.defaultValue ?? t.currentValue),
+    },
+    {
       id: 'status',
       header: '상태',
       width: '100px',
@@ -155,7 +164,7 @@ const MessageTemplatePage = () => {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--decs-space-l)' }}>
-      <Header variant="h1" description="알림 메시지 템플릿을 관리합니다.">
+      <Header variant="h1" description="알림 메시지 템플릿을 관리합니다. {0}, {1}과 같은 자리표시자는 발송할 때 신청자 이름·서버명 등 실제 값으로 바뀌며, 번호의 의미는 양식마다 다릅니다.">
         양식 관리
       </Header>
 
@@ -232,7 +241,7 @@ const MessageTemplatePage = () => {
 
             <FormField
               label="메시지 내용"
-              constraintText={`플레이스홀더: {0} = 사용자명, {1} = 서버명 등 (위치에 따라 다름)`}
+              constraintText={`이 양식의 자리표시자: ${formatPlaceholders(editing.defaultValue ?? editing.value)}. 번호마다 의미가 달라, 발송할 때 해당 값으로 바뀝니다. 기본값과 같은 위치에 그대로 두어야 합니다.`}
               htmlFor="template-value"
             >
               <textarea

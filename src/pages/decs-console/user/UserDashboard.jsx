@@ -150,7 +150,7 @@ function UserDashboard({ onRequest, onConnect, onExtend, userName, server, expir
                   }}
                 >
                   <div>
-                    <div style={{ fontSize: "var(--decs-fs-body-s)", color: "var(--decs-text-inactive)", marginBottom: "var(--decs-space-xxxs)" }}>{activity.label}</div>
+                    <div style={{ fontSize: "var(--decs-fs-body-s)", color: "var(--decs-text-inactive)", marginBottom: "var(--decs-space-xxxs)" }}>{[`${t("dashboard.createdAt")} ${activity.label}`, activity.serverName && `${t("dashboard.server")} ${activity.serverName}`].filter(Boolean).join(" · ")}</div>
                     <div style={{ fontSize: "var(--decs-fs-body-m)", color: "var(--decs-text-body)" }}>{activity.value}</div>
                   </div>
                   <span style={{ color: "var(--decs-text-secondary)", fontSize: "var(--decs-fs-body-s)" }}>{t("dashboard.more")}</span>
