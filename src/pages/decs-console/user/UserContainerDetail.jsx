@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { Trans, useTranslation } from "react-i18next";
 import { daysLeftLabel } from "../../../utils/decsMapper";
-import { Container, Header, KeyValuePairs, StatusIndicator, Button, Alert, ExpandableSection, Badge, Modal, PHONE_QUERY, useMediaQuery } from "../../../design-system";
+import { Container, Header, KeyValuePairs, StatusIndicator, Button, Alert, ExpandableSection, Badge, Modal } from "../../../design-system";
 import MyGpuUsage from "../../../components/MyGpuUsage";
 import RestartContainerModal from "../../../components/RestartContainerModal";
 import { requestService } from "../../../services/requestService";
