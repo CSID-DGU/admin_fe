@@ -1,6 +1,7 @@
 // UserContainerDetail — 접속·상태 이해 (친절한 문구 + 복사 가능한 접속 정보)
 import { useState } from "react";
 import { Trans, useTranslation } from "react-i18next";
+import { daysLeftLabel } from "../../../utils/decsMapper";
 import { Container, Header, KeyValuePairs, StatusIndicator, Button, Alert, ExpandableSection, Badge, Modal, PHONE_QUERY, useMediaQuery } from "../../../design-system";
 import RestartContainerModal from "../../../components/RestartContainerModal";
 import { requestService } from "../../../services/requestService";
@@ -141,8 +142,9 @@ function UserContainerDetail({ onBack, onRestarted, servers = [] }) {
           </div>
         </Container>
         <Container header={<Header variant="h2">{t("container.period")}</Header>}>
-          <div style={{ fontSize: "var(--decs-fs-heading-xl)", fontWeight: 700, color: "var(--decs-text-heading)" }}>{t("container.daysLeft", { count: server.daysLeft })}</div>
+          <div style={{ fontSize: "var(--decs-fs-heading-xl)", fontWeight: 700, color: "var(--decs-text-heading)" }}>{daysLeftLabel(server.daysLeft, "container.daysLeft")}</div>
           <div style={{ color: "var(--decs-text-secondary)", fontSize: "var(--decs-fs-body-m)", marginTop: 4 }}>{server.expiresText}</div>
+          <div style={{ color: "var(--decs-text-secondary)", fontSize: "var(--decs-fs-body-s)", marginTop: 8 }}>{t("expiry.retention")}</div>
         </Container>
       </div>
 
