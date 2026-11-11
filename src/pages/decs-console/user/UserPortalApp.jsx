@@ -16,6 +16,7 @@ import ResourceMonitoringPage from "../../ResourceMonitoringPage";
 import donggukLogo from "../../../assets/dongguk_university_logo.svg";
 import RoleSwitch from "../../../components/RoleSwitch";
 import SlackMembershipModal from "../../../components/SlackMembershipModal";
+import GraduationDateModal from "../../../components/GraduationDateModal";
 import { useTranslation } from "react-i18next";
 
 function UserPortalApp() {
@@ -23,7 +24,7 @@ function UserPortalApp() {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
   const { t, i18n } = useTranslation();
-  const { server, servers, expiryDays, activities, awaitingRequestId, gpuOptions, envOptions, groupOptions, error, refetch } = useDecsUserData();
+  const { server, servers, expiryDays, activities, awaitingRequest, awaitingRequestId, gpuOptions, envOptions, groupOptions, error, refetch } = useDecsUserData();
   const [warnings, setWarnings] = React.useState(null);
   const userName = user?.name || user?.email || t("portal.defaultUserName");
   const isAdmin = user?.role === "ADMIN";
@@ -86,6 +87,7 @@ function UserPortalApp() {
   return (
     <div style={{ height: "100vh" }}>
       <SlackMembershipModal />
+      <GraduationDateModal />
       <AppLayout
         identity={{ title: t("shell.userTitle"), href: "/user", logo: donggukLogo, onFollow: () => navigate("/user") }}
         utilities={utilities}
@@ -94,7 +96,7 @@ function UserPortalApp() {
       >
         {error ? <div style={{ marginBottom: "var(--decs-space-m)" }}><Flashbar items={[{ id: "decs-user-data", type: "warning", header: error, dismissible: false }]} /></div> : null}
         <Routes>
-          <Route index element={<UserDashboard userName={userName} warnings={warnings} server={server} expiryDays={expiryDays} activities={activities ?? []} onRequest={() => navigate("/user/request")} onConnect={() => navigate("/user/container")} onExtend={() => navigate("/user/change-requests", { state: { extend: true } })} />} />
+          <Route index element={<UserDashboard userName={userName} warnings={warnings} server={server} expiryDays={expiryDays} activities={activities ?? []} pendingRequest={awaitingRequest} onViewRequests={() => navigate("/user/requests")} onRequest={() => navigate("/user/request")} onConnect={() => navigate("/user/container")} onExtend={() => navigate("/user/change-requests", { state: { extend: true } })} />} />
           <Route path="request" element={awaitingRequestId != null ? <AwaitingRequestNotice onView={() => navigate("/user/requests")} /> : <RequestWizard onCancel={() => navigate("/user")} onDone={() => navigate("/user/requests")} gpuOptions={gpuOptions ?? []} envOptions={envOptions ?? []} groupOptions={groupOptions ?? []} onSubmit={submitRequest} accountUsername={user?.ubuntuUsername} />} />
           <Route path="container" element={<UserContainerDetail onBack={() => navigate("/user")} servers={servers ?? []} onRestarted={refetch} />} />
           <Route path="requests" element={<RequestStatusPage onChanged={refetch} />} />

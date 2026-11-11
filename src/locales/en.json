@@ -30,6 +30,9 @@
     "contactEmail": "Frequently used email",
     "contactEmailHelp": "Enter the email you joined Slack with. If you joined with your school email, keep it the same or leave it blank.",
     "contactEmailInvalid": "The email format is not valid.",
+    "expectedGraduationDate": "Expected graduation date",
+    "expectedGraduationDateHelp": "Your account is deactivated 30 days after this date. If your graduation is postponed, log in and enter it again.",
+    "expectedGraduationDatePast": "Enter a date that is today or later.",
     "verificationCode": "Verification code",
     "login": "Log in",
     "signup": "Sign up",
@@ -130,6 +133,12 @@
     "viewRequests": "View my requests",
     "changeAlreadyPending": "A change request of this type is already under review."
   },
+  "expiry": {
+    "today": "Expires today",
+    "past_one": "Expired ({{count}} day ago)",
+    "past_other": "Expired ({{count}} days ago)",
+    "retention": "When it expires, files outside your home directory are deleted, and your home directory is kept for a set period before deletion. The deletion date is announced by email."
+  },
   "dashboard": {
     "detailTitle": "Request details",
     "status": "Status",
@@ -149,13 +158,18 @@
     "description": "Check your GPU usage and recent activity.",
     "expiryHeader_one": "Your usage period expires in {{count}} day",
     "expiryHeader_other": "Your usage period expires in {{count}} days",
+    "expiryHeaderToday": "Your usage period expires today",
+    "expiryHeaderPast_one": "Your usage period has expired ({{count}} day ago)",
+    "expiryHeaderPast_other": "Your usage period has expired ({{count}} days ago)",
     "extendShort": "Extend",
-    "expiryBody": "When it expires, the container stops and unsaved work may be lost. Extend it in advance.",
+    "expiryBody": "When it expires, files outside your home directory are deleted, and your home directory is kept for a set period before deletion. The deletion date is announced by email.",
     "suspendedHeader": "Your account is suspended until {{until}}",
     "suspendedBody": "You have {{count}} warning(s), so container access (SSH, Jupyter, extra ports) is blocked. While suspended you cannot submit requests, change requests, or restart. Your containers, running jobs, and files are untouched, and the same ports work again once the suspension ends.",
     "warningHeader_one": "You have {{count}} warning",
     "warningHeader_other": "You have {{count}} warnings",
     "warningBody": "One more warning suspends container access for {{days}} days.",
+    "pendingTitle": "Request awaiting approval",
+    "viewRequests": "View request status",
     "empty": "You have not requested a GPU yet. Once you do, it will appear here.",
     "needGpuTitle": "Request a GPU",
     "needGpuBody": "Describe what you will use it for, then choose a server, GPU and usage period.",
@@ -247,7 +261,11 @@
     "errSubmit": "The request could not be submitted. Please try again shortly.",
     "submit": "Submit request",
     "clusterNoticeTitle": "You may be assigned to a different server",
-    "clusterNoticeBody": "If the selected server is busy, the administrator may assign you to another server based on your purpose."
+    "clusterNoticeBody": "If the selected server is busy, the administrator may assign you to another server based on your purpose.",
+    "leaveTitle": "Leave this request?",
+    "leaveBody": "What you have entered will be lost. Do you want to cancel?",
+    "leaveKeep": "Keep editing",
+    "leaveConfirm": "Cancel and leave"
   },
   "container": {
     "errExtendDate": "Choose a date later than the current end date.",
@@ -291,6 +309,12 @@
     "daysLeft_one": "{{count}} day left",
     "daysLeft_other": "{{count}} days left",
     "groups": "Groups",
+    "leaveGroup": "Request leave",
+    "leaveTitle": "Request to leave {{name}}?",
+    "leaveBody": "Once an admin approves, you leave this group and lose access to folders shared through it. Existing files are not deleted.",
+    "leaveConfirm": "Request leave",
+    "leaveRequested": "Requested to leave {{name}}. It takes effect after an admin approves.",
+    "leaveFailed": "Could not submit the request. Please try again later.",
     "groupsDesc": "Groups you can share directories under your home with. To be added to a group, use Change requests in the left menu.",
     "noGroups": "You are not in any shared group.",
     "shareHint": "Share a directory: run <code>group-dir-share ~/&lt;directory&gt; &lt;group&gt;</code>, then members open <code>/home/&lt;your username&gt;/&lt;directory&gt;</code>.",
@@ -450,6 +474,12 @@
     "approvedDoneOn": "Approved: {{date}}",
     "deniedOn": "Denied: {{date}}",
     "adminComment": "Administrator comment"
+  },
+  "graduationModal": {
+    "title": "Enter your expected graduation date",
+    "body": "Your account is deactivated 30 days after this date. If you do not enter it, the account is deactivated one year after your last container ended.",
+    "help": "If your graduation is postponed, you can enter it again at any time after logging in.",
+    "later": "Later"
   },
   "slackModal": {
     "title": "We could not find you on Slack",

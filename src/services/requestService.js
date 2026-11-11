@@ -29,11 +29,12 @@ export const requestService = {
     apiClient.get(`/api/admin/requests/${encodeURIComponent(requestId)}/job-steps`),
 
   // 승인은 생성 작업을 등록하고 바로 202로 돌아온다. 결과는 신청 상태 폴링으로 판정한다.
-  approveRequest: (requestId, { imageId, resourceGroupId, adminComment }) =>
+  approveRequest: (requestId, { imageId, resourceGroupId, adminComment, professorApprovalConfirmed }) =>
     apiClient.post(`/api/admin/requests/${encodeURIComponent(requestId)}/approval`, {
       imageId,
       resourceGroupId,
       adminComment,
+      professorApprovalConfirmed,
     }),
   rejectRequest: (requestId, adminComment) =>
     apiClient.post(`/api/admin/requests/${encodeURIComponent(requestId)}/rejection`, { adminComment }),
@@ -88,6 +89,15 @@ export const requestService = {
     apiClient.get("/api/requests/config/check-username", { username }),
   // 그룹은 바로 생긴다(201, gid 없음 — 승인 대기 그룹). 인프라 그룹은 이 그룹을 고른 신청이 승인될 때 만들어진다.
   createGroup: (groupName) => apiClient.post("/api/groups", { groupName }),
+  // 그룹 탈퇴는 신청 → 관리자 승인이다. 신청만으로는 소속이 바뀌지 않는다.
+  createGroupLeaveRequest: (groupId) =>
+    apiClient.post(`/api/groups/${encodeURIComponent(groupId)}/leave-requests`, {}),
+  getMyGroupLeaveRequests: () => apiClient.get("/api/groups/leave-requests/me"),
+  getPendingGroupLeaveRequests: () => apiClient.get("/api/admin/group-leave-requests"),
+  approveGroupLeaveRequest: (leaveRequestId) =>
+    apiClient.post(`/api/admin/group-leave-requests/${encodeURIComponent(leaveRequestId)}/approval`, {}),
+  rejectGroupLeaveRequest: (leaveRequestId) =>
+    apiClient.post(`/api/admin/group-leave-requests/${encodeURIComponent(leaveRequestId)}/rejection`, {}),
   getGroupOperation: (operationId) =>
     apiClient.get(`/api/groups/operations/${encodeURIComponent(operationId)}`),
   getDashboardServers: (status = "ALL") =>

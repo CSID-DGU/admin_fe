@@ -30,6 +30,9 @@
     "contactEmail": "자주 사용하는 이메일",
     "contactEmailHelp": "Slack에 가입한 이메일을 입력하시기 바랍니다. 학교 이메일로 가입했다면 학교 이메일과 같게 입력하거나 비워 두면 됩니다.",
     "contactEmailInvalid": "이메일 형식이 올바르지 않습니다.",
+    "expectedGraduationDate": "졸업 예정일",
+    "expectedGraduationDateHelp": "졸업 예정일 + 30일이 지나면 계정이 비활성화됩니다. 졸업이 미뤄지면 접속해서 다시 입력할 수 있습니다.",
+    "expectedGraduationDatePast": "오늘 이후의 날짜를 입력하시기 바랍니다.",
     "verificationCode": "인증번호",
     "login": "로그인",
     "signup": "회원가입",
@@ -129,6 +132,11 @@
     "viewRequests": "신청 현황 보기",
     "changeAlreadyPending": "이미 검토 중인 같은 종류의 변경 요청이 있습니다."
   },
+  "expiry": {
+    "today": "오늘 만료",
+    "past_other": "만료됨({{count}}일 지남)",
+    "retention": "만료되면 홈 디렉터리 밖의 파일은 삭제되고, 홈 디렉터리는 일정 기간 보관한 뒤 삭제합니다. 삭제일은 메일로 안내합니다."
+  },
   "dashboard": {
     "detailTitle": "신청 상세",
     "status": "상태",
@@ -146,12 +154,16 @@
     "greeting": "안녕하세요, {{name}}님",
     "description": "GPU 사용 현황과 최근 활동",
     "expiryHeader_other": "{{count}}일 뒤 사용 기간이 만료됩니다",
+    "expiryHeaderToday": "오늘 사용 기간이 만료됩니다",
+    "expiryHeaderPast_other": "사용 기간이 만료되었습니다({{count}}일 지남)",
     "extendShort": "연장하기",
-    "expiryBody": "만료되면 컨테이너가 정지되고 저장하지 않은 작업이 사라질 수 있습니다. 미리 연장하시기 바랍니다.",
+    "expiryBody": "만료되면 홈 디렉터리 밖의 파일은 삭제되고, 홈 디렉터리는 일정 기간 보관한 뒤 삭제합니다. 삭제일은 메일로 안내합니다.",
     "suspendedHeader": "{{until}}까지 이용이 정지되었습니다",
     "suspendedBody": "경고가 {{count}}회 누적되어 컨테이너 접속(SSH·Jupyter·추가 포트)이 차단되었습니다. 정지 중에는 신청·변경·재시작을 할 수 없습니다. 컨테이너와 실행 중인 작업, 파일은 그대로 유지되며, 정지가 끝나면 같은 포트로 다시 접속할 수 있습니다.",
     "warningHeader_other": "경고가 {{count}}회 있습니다",
     "warningBody": "경고를 한 번 더 받으면 {{days}}일 동안 컨테이너 접속이 정지됩니다.",
+    "pendingTitle": "승인 대기 중인 신청",
+    "viewRequests": "신청 현황 보기",
     "empty": "신청한 GPU가 없습니다.",
     "needGpuTitle": "GPU 신청",
     "needGpuBody": "사용 목적을 작성하고 서버, GPU, 기간을 선택해 신청합니다.",
@@ -243,7 +255,11 @@
     "errSubmit": "신청하지 못했습니다. 잠시 후 다시 시도하시기 바랍니다.",
     "submit": "신청하기",
     "clusterNoticeTitle": "다른 서버로 배정될 수 있습니다",
-    "clusterNoticeBody": "선택한 서버에 사용자가 많으면, 관리자가 사용 목적을 보고 다른 서버로 배정할 수 있습니다."
+    "clusterNoticeBody": "선택한 서버에 사용자가 많으면, 관리자가 사용 목적을 보고 다른 서버로 배정할 수 있습니다.",
+    "leaveTitle": "신청을 취소하시겠습니까?",
+    "leaveBody": "작성 중인 내용이 사라집니다. 취소하시겠습니까?",
+    "leaveKeep": "계속 작성",
+    "leaveConfirm": "취소하고 나가기"
   },
   "container": {
     "errExtendDate": "현재 종료일보다 뒤의 날짜를 선택하시기 바랍니다.",
@@ -286,6 +302,12 @@
     "period": "사용 기간",
     "daysLeft_other": "{{count}}일 남음",
     "groups": "그룹",
+    "leaveGroup": "탈퇴 신청",
+    "leaveTitle": "{{name}} 그룹 탈퇴를 신청할까요?",
+    "leaveBody": "관리자가 승인하면 이 그룹에서 빠지고, 그룹 권한으로 공유받던 폴더에 접근할 수 없게 됩니다. 이미 있는 파일은 지워지지 않습니다.",
+    "leaveConfirm": "탈퇴 신청",
+    "leaveRequested": "{{name}} 그룹 탈퇴를 신청했습니다. 관리자가 승인하면 반영됩니다.",
+    "leaveFailed": "탈퇴 신청에 실패했습니다. 잠시 후 다시 시도하시기 바랍니다.",
     "groupsDesc": "홈 디렉터리 아래의 디렉터리를 공유할 수 있는 그룹입니다. 그룹 추가는 왼쪽 메뉴의 변경 요청에서 가능합니다.",
     "noGroups": "소속된 공유 그룹이 없습니다.",
     "shareHint": "디렉터리 공유: <code>group-dir-share ~/&lt;디렉터리&gt; &lt;그룹&gt;</code> 실행 후, 팀원은 <code>/home/&lt;계정 이름&gt;/&lt;디렉터리&gt;</code>로 접근합니다.",
@@ -445,6 +467,12 @@
     "approvedDoneOn": "승인 완료: {{date}}",
     "deniedOn": "거절: {{date}}",
     "adminComment": "관리자 의견"
+  },
+  "graduationModal": {
+    "title": "졸업 예정일을 입력해 주세요",
+    "body": "졸업 예정일 + 30일이 지나면 계정이 비활성화됩니다. 입력하지 않으면 마지막 컨테이너를 쓴 지 1년이 지난 뒤에 비활성화됩니다.",
+    "help": "졸업이 미뤄지면 접속해서 언제든 다시 입력할 수 있습니다.",
+    "later": "나중에"
   },
   "slackModal": {
     "title": "Slack에서 회원님을 찾지 못했습니다",
