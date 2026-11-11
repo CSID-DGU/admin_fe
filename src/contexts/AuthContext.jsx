@@ -159,9 +159,9 @@ export const AuthProvider = ({ children }) => {
       <Modal visible={showSessionExpiredModal} onDismiss={handleSessionExpiredConfirm} header={sessionEndReason === "ACCOUNT_DISABLED" ? "계정 비활성화" : "다시 로그인이 필요합니다"} size="small" footer={<Button variant="primary" onClick={handleSessionExpiredConfirm}>{sessionEndReason === "ACCOUNT_DISABLED" ? "확인" : t("auth.login")}</Button>}>
         {sessionEndReason === "ACCOUNT_DISABLED" ? "계정이 비활성화되었습니다. 관리자에게 문의하시기 바랍니다." : "보안 업데이트 또는 세션 만료로 로그인이 해제되었습니다. 다시 로그인하시기 바랍니다."}
       </Modal>
-      <Modal visible={needsUbuntuUsername} dismissible={false} header="Ubuntu 유저네임 등록이 필요합니다" size="medium">
+      <Modal visible={needsUbuntuUsername} dismissible={false} header="서버 계정 이름 등록이 필요합니다" size="medium">
         <p style={{ marginTop: 0 }}>
-          컨테이너 신청과 SSH 접속에 쓰이는 Ubuntu 유저네임이 아직 없습니다. 등록해야 서비스를 계속 이용할 수 있습니다.
+          컨테이너 신청과 SSH 접속에 쓰이는 서버 계정 이름이 아직 없습니다. 등록해야 서비스를 계속 이용할 수 있습니다.
           한 번 등록하면 변경할 수 없으니 신중하게 정하시기 바랍니다.
         </p>
         <UbuntuUsernameRegisterForm formId="mandatory-ubuntu-username" autoFocus />

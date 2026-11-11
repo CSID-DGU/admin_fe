@@ -465,7 +465,7 @@ const RequestStatusPage = ({ onChanged }) => {
                       ...(selectedRequest.ubuntu_uid != null
                         ? [
                             {
-                              label: "Ubuntu UID",
+                              label: "서버 계정 UID",
                               value: String(selectedRequest.ubuntu_uid),
                               copyable: true,
                               copyText: String(selectedRequest.ubuntu_uid),
@@ -475,7 +475,7 @@ const RequestStatusPage = ({ onChanged }) => {
                       ...(selectedRequest.ubuntu_gid != null
                         ? [
                             {
-                              label: "Ubuntu GID",
+                              label: "서버 계정 GID",
                               value: String(selectedRequest.ubuntu_gid),
                               copyable: true,
                               copyText: String(selectedRequest.ubuntu_gid),

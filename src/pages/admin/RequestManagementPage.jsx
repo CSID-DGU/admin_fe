@@ -693,7 +693,7 @@ const RequestManagementPage = () => {
                 style={{ marginTop: "var(--decs-space-s)" }}
                 items={[
                   {
-                    label: "Ubuntu 사용자명",
+                    label: "서버 계정 이름",
                     value: sel.ubuntu_username,
                     copyable: true,
                     copyText: sel.ubuntu_username,
@@ -711,10 +711,10 @@ const RequestManagementPage = () => {
                     ? [{ label: "계정 그룹 GID", value: sel.ubuntu_gids.join(", ") }]
                     : []),
                   ...(sel.ubuntu_uid != null
-                    ? [{ label: "Ubuntu UID", value: sel.ubuntu_uid }]
+                    ? [{ label: "서버 계정 UID", value: sel.ubuntu_uid }]
                     : []),
                   ...(sel.ubuntu_gid != null
-                    ? [{ label: "Ubuntu GID (Primary)", value: sel.ubuntu_gid }]
+                    ? [{ label: "서버 계정 GID (Primary)", value: sel.ubuntu_gid }]
                     : []),
                 ]}
               />
