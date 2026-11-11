@@ -75,6 +75,7 @@ export const authService = {
         phone: userData.phone,
         ubuntuUsername: userData.ubuntuUsername,
         contactEmail: userData.contactEmail || null,
+        expectedGraduationDate: userData.expectedGraduationDate,
       });
       return response;
     } catch (error) {
@@ -133,6 +134,12 @@ export const authService = {
     requireAccessToken();
     const response = await apiClient.get("/api/users/me/slack-membership");
     return response.data?.data?.status;
+  },
+
+  // 졸업 예정일 입력 — 이 날짜 + 30일이 지나면 계정이 비활성화된다 (YYYY-MM-DD)
+  updateExpectedGraduationDate: async (expectedGraduationDate) => {
+    requireAccessToken();
+    return apiClient.patch("/api/users/me/graduation", { expectedGraduationDate });
   },
 
   // 자주 사용하는 이메일 변경 (비우면 지운다)

@@ -1,8 +1,8 @@
 // UserContainerDetail — 접속·상태 이해 (친절한 문구 + 복사 가능한 접속 정보)
 import { useState } from "react";
 import { Trans, useTranslation } from "react-i18next";
-import { Container, Header, KeyValuePairs, StatusIndicator, Button, Alert, ExpandableSection, Badge, PHONE_QUERY, useMediaQuery } from "../../../design-system";
 import { daysLeftLabel } from "../../../utils/decsMapper";
+import { Container, Header, KeyValuePairs, StatusIndicator, Button, Alert, ExpandableSection, Badge, Modal, PHONE_QUERY, useMediaQuery } from "../../../design-system";
 import RestartContainerModal from "../../../components/RestartContainerModal";
 import { requestService } from "../../../services/requestService";
 
@@ -15,6 +15,23 @@ function UserContainerDetail({ onBack, onRestarted, servers = [] }) {
   const [selectedId, setSelectedId] = useState(null);
   const [restartOpen, setRestartOpen] = useState(false);
   const [restartNotice, setRestartNotice] = useState(null);
+  const [leaving, setLeaving] = useState(null);
+  const [leaveBusy, setLeaveBusy] = useState(false);
+  const [leaveNotice, setLeaveNotice] = useState(null);
+
+  // 탈퇴는 관리자가 승인해야 반영된다. 신청만 접수하고, 결과는 안내 문구로 알린다.
+  const requestLeave = async () => {
+    setLeaveBusy(true);
+    try {
+      await requestService.createGroupLeaveRequest(leaving.groupId);
+      setLeaveNotice({ type: "success", text: t("container.leaveRequested", { name: leaving.groupName }) });
+    } catch (e) {
+      setLeaveNotice({ type: "error", text: e?.status && e.message ? e.message : t("container.leaveFailed") });
+    } finally {
+      setLeaveBusy(false);
+      setLeaving(null);
+    }
+  };
 
   const server = servers.find((s) => s.requestId === selectedId) ?? servers[0];
 
@@ -135,7 +152,12 @@ function UserContainerDetail({ onBack, onRestarted, servers = [] }) {
         {(server.groups ?? []).length > 0 ? (
           <div style={{ display: "flex", flexWrap: "wrap", gap: "var(--decs-space-xs)" }}>
             {server.groups.map((group) => (
-              <Badge key={group.ubuntuGid} color="grey">{group.groupName}</Badge>
+              <span key={group.ubuntuGid} style={{ display: "inline-flex", alignItems: "center", gap: "var(--decs-space-xxs)" }}>
+                <Badge color="grey">{group.groupName}</Badge>
+                {group.groupId != null ? (
+                  <Button variant="inline-link" onClick={() => setLeaving(group)}>{t("container.leaveGroup")}</Button>
+                ) : null}
+              </span>
             ))}
           </div>
         ) : (
@@ -143,6 +165,19 @@ function UserContainerDetail({ onBack, onRestarted, servers = [] }) {
             {t("container.noGroups")}
           </div>
         )}
+        {leaveNotice ? (
+          <div style={{ marginTop: "var(--decs-space-s)" }}>
+            <Alert type={leaveNotice.type} dismissible onDismiss={() => setLeaveNotice(null)}>{leaveNotice.text}</Alert>
+          </div>
+        ) : null}
+        <Modal
+          visible={leaving != null}
+          onDismiss={() => !leaveBusy && setLeaving(null)}
+          header={t("container.leaveTitle", { name: leaving?.groupName ?? "" })}
+          footer={<><Button disabled={leaveBusy} onClick={() => setLeaving(null)}>{t("common.cancel")}</Button><Button variant="primary" loading={leaveBusy} onClick={requestLeave}>{t("container.leaveConfirm")}</Button></>}
+        >
+          {t("container.leaveBody")}
+        </Modal>
         {/* 팀 디렉터리는 따로 만들지 않는다. 홈은 711(남은 지나가기만)이라, 홈 아래 폴더의 그룹을 팀 그룹으로
             바꾸면 그 팀원만 그룹 권한으로 들어온다. 컨테이너의 group-dir-share 가 그룹·권한을 한 번에 맞춘다. */}
         {(server.groups ?? []).length > 0 ? (

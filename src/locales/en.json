@@ -30,6 +30,9 @@
     "contactEmail": "Frequently used email",
     "contactEmailHelp": "Enter the email you joined Slack with. If you joined with your school email, keep it the same or leave it blank.",
     "contactEmailInvalid": "The email format is not valid.",
+    "expectedGraduationDate": "Expected graduation date",
+    "expectedGraduationDateHelp": "Your account is deactivated 30 days after this date. If your graduation is postponed, log in and enter it again.",
+    "expectedGraduationDatePast": "Enter a date that is today or later.",
     "verificationCode": "Verification code",
     "login": "Log in",
     "signup": "Sign up",
@@ -289,6 +292,12 @@
     "daysLeft_one": "{{count}} day left",
     "daysLeft_other": "{{count}} days left",
     "groups": "Groups",
+    "leaveGroup": "Request leave",
+    "leaveTitle": "Request to leave {{name}}?",
+    "leaveBody": "Once an admin approves, you leave this group and lose access to folders shared through it. Existing files are not deleted.",
+    "leaveConfirm": "Request leave",
+    "leaveRequested": "Requested to leave {{name}}. It takes effect after an admin approves.",
+    "leaveFailed": "Could not submit the request. Please try again later.",
     "groupsDesc": "Groups you can share directories under your home with. To be added to a group, use Change requests in the left menu.",
     "noGroups": "You are not in any shared group.",
     "shareHint": "Share a directory: run <code>group-dir-share ~/&lt;directory&gt; &lt;group&gt;</code>, then members open <code>/home/&lt;your username&gt;/&lt;directory&gt;</code>.",
@@ -448,6 +457,12 @@
     "approvedDoneOn": "Approved: {{date}}",
     "deniedOn": "Denied: {{date}}",
     "adminComment": "Administrator comment"
+  },
+  "graduationModal": {
+    "title": "Enter your expected graduation date",
+    "body": "Your account is deactivated 30 days after this date. If you do not enter it, the account is deactivated one year after your last container ended.",
+    "help": "If your graduation is postponed, you can enter it again at any time after logging in.",
+    "later": "Later"
   },
   "slackModal": {
     "title": "We could not find you on Slack",
