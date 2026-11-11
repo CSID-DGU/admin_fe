@@ -31,6 +31,7 @@ function MyGpuUsage({ requestId, running = true }) {
   const [gpus, setGpus] = useState(undefined);
   // false면 프로세스·다른 사용자 정보를 못 읽은 것이라 "없음"이 아니라 "알 수 없음"으로 보인다.
   const [processesAvailable, setProcessesAvailable] = useState(true);
+  const [myRamMiB, setMyRamMiB] = useState(null);
   // 마지막 갱신이 실패했는지. 값이 이미 있으면 오래된 값을 보이면서 "갱신 실패"를 알린다.
   const [failed, setFailed] = useState(false);
   const inFlight = useRef(false);
@@ -45,6 +46,7 @@ function MyGpuUsage({ requestId, running = true }) {
       const data = res?.data?.data;
       setGpus(Array.isArray(data?.gpus) ? data.gpus : []);
       setProcessesAvailable(data?.processesAvailable !== false);
+      setMyRamMiB(data?.myRamMiB ?? null);
       setFailed(false);
     } catch {
       if (!isCancelled()) setFailed(true);
@@ -85,6 +87,7 @@ function MyGpuUsage({ requestId, running = true }) {
     <Container header={header}>
       {failed ? <Alert type="warning">{t("container.usageStale")}</Alert> : null}
       {!processesAvailable ? <div style={{ ...small, marginBottom: "var(--decs-space-m)" }}>{t("container.gpuProcessesUnavailable")}</div> : null}
+      {myRamMiB != null ? <div style={{ ...small, marginBottom: "var(--decs-space-m)" }}>{t("container.myRam", { ram: formatMiB(myRamMiB) })}</div> : null}
       {/* GPU마다 한 줄을 차지하지 않고 타일로 모아 여러 GPU가 한 화면에 들어오게 한다 */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 136px), 1fr))", gap: "var(--decs-space-s)" }}>
         {gpus.map((gpu) => {
