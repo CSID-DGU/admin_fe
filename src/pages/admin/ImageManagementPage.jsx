@@ -1,5 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { getImages, createImage } from '../../services/imageService';
+import { useTranslation } from 'react-i18next';
+import { podService } from '../../services/podService';
 import {
   Alert,
   Badge,
@@ -11,8 +13,14 @@ import {
   Table,
 } from '../../design-system';
 
+// 이름·버전의 대소문자·앞뒤 공백 차이로 같은 이미지가 다른 키가 되지 않게 맞춘다.
+const imageKey = (name, version) => `${String(name ?? '').trim().toLowerCase()}:${String(version ?? '').trim().toLowerCase()}`;
+
 const ImageManagementPage = () => {
+  const { t } = useTranslation();
   const [images, setImages] = useState([]);
+  // 이미지(이름:버전)별 사용 중 컨테이너 수. 못 불러오면 null — 0으로 보이면 안 쓰는 이미지로 오해한다.
+  const [usageCounts, setUsageCounts] = useState(null);
   const [loading, setLoading] = useState(false);
   const [lastUpdated, setLastUpdated] = useState(null);
   const [alert, setAlert] = useState(null);
@@ -28,7 +36,31 @@ const ImageManagementPage = () => {
     fetchImages();
   }, []);
 
+  const usageSeq = useRef(0);
+  useEffect(() => () => { usageSeq.current = -1; }, []);
+
+  const fetchUsageCounts = async () => {
+    // 더 새 요청이 나갔거나 화면이 닫혔으면 이 응답은 버린다.
+    const seq = ++usageSeq.current;
+    try {
+      // 대기 중 테스트 신청은 아직 이미지를 쓰지 않으므로 받지 않는다.
+      const res = await podService.getActiveContainers(false);
+      if (seq !== usageSeq.current) return;
+      const list = Array.isArray(res?.data?.data) ? res.data.data : null;
+      if (!list) return setUsageCounts(null);
+      const counts = {};
+      list.forEach((c) => {
+        const key = imageKey(c.imageName, c.imageVersion);
+        counts[key] = (counts[key] ?? 0) + 1;
+      });
+      setUsageCounts(counts);
+    } catch {
+      if (seq === usageSeq.current) setUsageCounts(null);
+    }
+  };
+
   const fetchImages = async () => {
+    fetchUsageCounts();
     setLoading(true);
     try {
       const result = await getImages();
@@ -131,6 +163,11 @@ const ImageManagementPage = () => {
       id: 'cudaVersion',
       header: 'CUDA 버전',
       cell: (image) => <Badge color="green">CUDA {image.cudaVersion}</Badge>,
+    },
+    {
+      id: 'inUse',
+      header: t('container.imageInUse'),
+      cell: (image) => (usageCounts ? usageCounts[imageKey(image.imageName, image.imageVersion)] ?? 0 : '-'),
     },
     { id: 'description', header: '설명', minWidth: '200px', cell: (image) => image.description },
     {
