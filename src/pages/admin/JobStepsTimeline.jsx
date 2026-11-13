@@ -32,6 +32,8 @@ const ACTION_LABELS = {
 const RESOURCE_LABELS = {
   replication: "AD 복제 대기",
   groups: "공유 그룹 반영",
+  // 새 계정을 AD 그룹에 넣은 뒤, NAS가 그 그룹을 답할 때까지 기다리는 단계. 평소 10초, 길면 5분쯤 걸린다.
+  nas_groups: "NAS 공유 그룹 확인",
   new_groups: "새 공유 그룹 준비",
 };
 
@@ -93,6 +95,8 @@ const ERROR_LABELS = {
   "user not found": "계정 없음",
   ACCOUNT_NODE_UNKNOWN: "계정이 배포된 노드를 모름",
   ACCOUNT_IN_USE: "다른 컨테이너가 계정 사용 중",
+  // 이 단계만 실패로 남고 작업은 계속된다. 컨테이너는 쓸 수 있고 폴더 그룹 공유만 늦어진다.
+  NAS_GROUPS_UNCONFIRMED: "NAS가 공유 그룹을 아직 답하지 않음 (컨테이너는 생성됨, 그룹 공유는 조금 뒤 가능)",
 };
 
 const REASON_LABELS = {
