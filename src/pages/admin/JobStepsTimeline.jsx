@@ -14,6 +14,8 @@ const ACTION_LABELS = {
   SELECT_NODE: "노드 선택",
   ALLOCATE_NODEPORT: "접속 포트 할당",
   DEPLOY_KRB5: "Kerberos 키 배포",
+  // config-server가 컨테이너마다 NFS 연결을 따로 만들 때 기록된다(Kerberos를 쓰는 환경에서는 항상).
+  ATTACH_POD_NFS: "홈 디렉터리 NFS 연결",
   CREATE_POD_K8S: "컨테이너 생성",
   WAIT_READY: "컨테이너 준비 대기",
   PULL_IMAGE: "이미지 다운로드",
@@ -23,6 +25,7 @@ const ACTION_LABELS = {
   DELETE_SERVICE: "접속 포트 해제",
   RELEASE_NODEPORT: "접속 포트 반환",
   DELETE_POD_K8S: "컨테이너 삭제",
+  DETACH_POD_NFS: "홈 디렉터리 NFS 연결 정리",
   DELETE_ACCOUNT: "계정 삭제",
   DELETE_HOME: "홈 디렉터리 삭제",
   REMOVE_KRB5: "Kerberos 정리",
@@ -63,6 +66,7 @@ const STEP_LABELS = {
   step_delete_services: "접속 포트 해제",
   step_release_nodeports: "접속 포트 반환",
   step_delete_pod_k8s: "컨테이너 삭제",
+  step_detach_pod_nfs: "홈 디렉터리 NFS 연결 정리",
   step_cleanup_pod_node_krb5: "노드의 Kerberos 키 정리",
   step_check_account_revocable: "계정 회수 가능 여부 확인",
   step_delete_account: "계정 삭제",
@@ -97,6 +101,11 @@ const ERROR_LABELS = {
   ACCOUNT_IN_USE: "다른 컨테이너가 계정 사용 중",
   // 이 단계만 실패로 남고 작업은 계속된다. 컨테이너는 쓸 수 있고 폴더 그룹 공유만 늦어진다.
   NAS_GROUPS_UNCONFIRMED: "NAS가 공유 그룹을 아직 답하지 않음 (컨테이너는 생성됨, 그룹 공유는 조금 뒤 가능)",
+  // 노드가 그 컨테이너의 NFS 연결을 만들지 못했다. 컨테이너를 만들기 전 단계라 컨테이너는 생기지 않는다.
+  POD_NFS_ATTACH_FAILED: "노드가 홈 디렉터리 NFS를 연결하지 못함 (컨테이너를 만들지 않음)",
+  // 아래 둘은 이 단계만 실패로 남고 작업은 계속된다. 노드에 남은 NFS 연결은 krb5-reconcile 이 다시 정리한다.
+  POD_NFS_BUSY: "NFS 연결이 아직 사용 중이라 정리하지 못함 (작업은 계속됨, krb5-reconcile이 다시 정리)",
+  POD_NFS_DETACH_FAILED: "노드의 NFS 연결 정리 명령이 실패함 (작업은 계속됨, krb5-reconcile이 다시 정리)",
 };
 
 const REASON_LABELS = {
